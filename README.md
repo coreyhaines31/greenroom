@@ -31,6 +31,18 @@ brew install --cask coreyhaines31/tap/greenroom
 3. **Check them.** Watch the preview, talk and watch the meter move, and click **Test** to hear a tone on the left, then the right.
 4. **Click Save as my setup.** From then on the icon turns into a warning when your setup doesn't match, and the panel says what's wrong.
 
+## During a call
+
+Your Mac's default devices and what a call is really using can differ: Zoom and Meet keep their own device choices. Green Room shows the truth:
+
+- **Live now:** a green dot under each device an app has open, with the app's name ("Live in Google Chrome"). On macOS 14.2 and later it names the app; cameras just say another app is using them.
+- **Wrong device in a call:** "zoom.us is using MacBook Pro Microphone, not Shure MV7", with a button to switch your Mac's default and a tip to pick the device in the app if it keeps its own setting.
+- **Headset call mode:** when a Bluetooth headset's mic turns on, it drops to phone-call sound both ways. Green Room explains it and offers a better mic, like your Mac's own, with one click.
+
+Every problem has a button that fixes it, in the panel and right in the notification. If an app always listens (a recorder, for example), click **Ignore** on its warning; undo it in the gear menu.
+
+The first time you open Green Room, it proposes your setup from the devices you've used most, so saving it is one click.
+
 ## When a device is missing
 
 Green Room keeps a history of every camera, mic, and speaker it sees. A device that's been connected on most recent days counts as usual, and when one goes missing the panel tells you why:
