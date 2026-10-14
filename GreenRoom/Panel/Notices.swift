@@ -17,7 +17,7 @@ struct StatusHeader: View {
                 Label("Not ready", systemImage: "exclamationmark.triangle.fill")
                     .font(.headline).foregroundStyle(.orange)
                 ForEach(issues, id: \.message) { issue in
-                    IssueRow(issue: issue) { monitor.select($0) }
+                    IssueRow(issue: issue, fix: { monitor.select($0) }, ignore: { monitor.ignore(app: $0) })
                 }
             }
         }
@@ -46,6 +46,7 @@ struct StatusHeader: View {
 struct IssueRow: View {
     let issue: Mismatch
     let fix: (Device) -> Void
+    let ignore: (String) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -55,10 +56,16 @@ struct IssueRow: View {
                 Text(advice).font(.caption).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            if let device = issue.fix {
-                Button("Switch to \(device.name)") { fix(device) }
-                    .controlSize(.small)
+            HStack {
+                if let device = issue.fix {
+                    Button("Switch to \(device.name)") { fix(device) }
+                }
+                if case .appUsing(let app, _) = issue.problem {
+                    Button("Ignore \(app)") { ignore(app) }
+                        .help("For apps that always listen, like recorders. Undo in the gear menu.")
+                }
             }
+            .controlSize(.small)
         }
     }
 }

@@ -110,12 +110,13 @@ struct PanelView: View {
             }
             Button("History") { showHistory() }
             Spacer()
-            OptionsMenu(updater: updater)
+            OptionsMenu(monitor: monitor, updater: updater)
         }
     }
 }
 
 struct OptionsMenu: View {
+    let monitor: DeviceMonitor
     let updater: Updater
     @State private var alerts = Alerts.isEnabled
     @State private var openAtLogin = LoginItem.isEnabled
@@ -124,6 +125,13 @@ struct OptionsMenu: View {
         Menu {
             Toggle("Alert me when devices change", isOn: $alerts)
             Toggle("Open at login", isOn: $openAtLogin)
+            if !monitor.ignoredApps.isEmpty {
+                Menu("Ignored Apps") {
+                    ForEach(monitor.ignoredApps.sorted(), id: \.self) { app in
+                        Button("Stop Ignoring \(app)") { monitor.stopIgnoring(app: app) }
+                    }
+                }
+            }
             Divider()
             Button("Check for Updates…") { updater.checkForUpdates() }
             Button("Quit Green Room") { NSApp.terminate(nil) }

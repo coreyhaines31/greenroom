@@ -13,8 +13,11 @@ final class DeviceMonitor {
     private(set) var remembered: [MacAudioMemory.Remembered] = []
     private(set) var micProblem: MicProblem?
 
-    var readiness: Readiness { Readiness.evaluate(snapshot, setup: setup) }
-    var advisories: [Advisory] { Advisory.evaluate(snapshot) }
+    /// Apps whose device use never counts as a problem, like a recorder that's always listening.
+    private(set) var ignoredApps = Set(UserDefaults.standard.stringArray(forKey: "ignoredApps") ?? [])
+
+    var readiness: Readiness { Readiness.evaluate(snapshot.ignoring(apps: ignoredApps), setup: setup) }
+    var advisories: [Advisory] { Advisory.evaluate(snapshot.ignoring(apps: ignoredApps)) }
     /// What "Save as my setup" saves before there is one: the devices used most, from history.
     var proposedSetup: Setup { Setup.proposed(history: history, snapshot: snapshot, now: .now) }
     var needsAttention: Bool {
@@ -30,6 +33,7 @@ final class DeviceMonitor {
     @ObservationIgnored private var dayTimer: Timer?
     @ObservationIgnored private var cameraObservations: [NSKeyValueObservation] = []
     @ObservationIgnored private var pendingRefresh = false
+    @ObservationIgnored private var lastSave = Date.distantPast
 
     func start() {
         let listener = AudioChangeListener { [weak self] in self?.scheduleRefresh() }
@@ -95,10 +99,29 @@ final class DeviceMonitor {
         onEvents?(Array(history.events[start...]))
     }
 
+    /// Saves when something real changed (a device, an event, a new day), and otherwise at most
+    /// every few minutes: apps start and stop sound all day, and each one refreshes.
     private func recordHistory() {
-        if history.update(snapshot, now: .now) {
+        let before = history
+        guard history.update(snapshot, now: .now) else { return }
+        let changed = history.events != before.events || history.records.count != before.records.count
+            || history.appDays != before.appDays
+        if changed || Date.now.timeIntervalSince(lastSave) > 5 * 60 {
             HistoryStore.save(history)
+            lastSave = .now
         }
+    }
+
+    func ignore(app: String) {
+        ignoredApps.insert(app)
+        UserDefaults.standard.set(ignoredApps.sorted(), forKey: "ignoredApps")
+        onChange?()
+    }
+
+    func stopIgnoring(app: String) {
+        ignoredApps.remove(app)
+        UserDefaults.standard.set(ignoredApps.sorted(), forKey: "ignoredApps")
+        onChange?()
     }
 
     /// Usually-connected or saved-setup devices that aren't here, with why.
