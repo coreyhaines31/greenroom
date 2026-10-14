@@ -16,6 +16,8 @@ final class DeviceMonitor {
     var readiness: Readiness { Readiness.evaluate(snapshot, setup: setup) }
 
     @ObservationIgnored var onChange: (() -> Void)?
+    /// New timeline events from each device change, for alerts.
+    @ObservationIgnored var onEvents: (([DeviceHistory.Event]) -> Void)?
     @ObservationIgnored private var audioListener: AudioChangeListener?
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
     @ObservationIgnored private var dayTimer: Timer?
@@ -50,8 +52,11 @@ final class DeviceMonitor {
         guard force || latest != snapshot else { return }
         snapshot = latest
         remembered = MacAudioMemory.remembered()
+        let lastEvent = history.events.last?.id
         recordHistory()
+        let start = lastEvent.flatMap { id in history.events.lastIndex { $0.id == id } }.map { $0 + 1 } ?? 0
         onChange?()
+        onEvents?(Array(history.events[start...]))
     }
 
     private func recordHistory() {
