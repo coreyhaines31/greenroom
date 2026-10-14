@@ -104,4 +104,12 @@ public struct Snapshot: Sendable, Equatable {
     public func isLive(_ device: Device) -> Bool {
         live.contains { $0.kind == device.kind && $0.deviceID == device.id }
     }
+
+    /// Leaves out apps you've told Green Room to ignore, like a recorder that always listens.
+    public func ignoring(apps: Set<String>) -> Snapshot {
+        guard !apps.isEmpty else { return self }
+        var copy = self
+        copy.live = live.filter { use in use.app.map { !apps.contains($0) } ?? true }
+        return copy
+    }
 }

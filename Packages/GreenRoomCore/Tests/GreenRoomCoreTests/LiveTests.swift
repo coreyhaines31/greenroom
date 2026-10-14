@@ -108,3 +108,43 @@ struct LiveTests {
         #expect(proposal.devices[.speaker] == pebble)
     }
 }
+
+struct LiveStatusReportTests {
+    @Test func reportsLiveAppsAndCallMode() {
+        let pods = Device(id: "pods-in", name: "AirPods Pro", kind: .microphone, transport: .bluetooth)
+        let macMic = Device(id: "mac", name: "MacBook Pro Microphone", kind: .microphone, transport: .builtIn)
+        let snapshot = Snapshot(
+            devices: [.microphone: [pods, macMic]], active: [.microphone: pods],
+            live: [LiveUse(kind: .microphone, deviceID: "pods-in", app: "Google Chrome")],
+            sampleRates: ["pods-in": 16_000]
+        )
+        let report = StatusReport.make(
+            snapshot: snapshot, setup: nil, history: DeviceHistory(), usbProducts: [], micProblem: nil, now: .now
+        )
+        #expect(!report.ready)
+        #expect(report.inUse.first?.liveIn == ["Google Chrome"])
+        #expect(report.problems.map(\.message) == ["AirPods Pro is in call mode"])
+        #expect(report.text.contains("AirPods Pro · Bluetooth · live in Google Chrome"))
+    }
+}
+
+struct IgnoreTests {
+    let shure = Device(id: "mv7", name: "Shure MV7", kind: .microphone, transport: .usb)
+    let macMic = Device(id: "mac", name: "MacBook Pro Microphone", kind: .microphone, transport: .builtIn)
+    let zoomAudio = Device(id: "zoom", name: "ZoomAudioDevice", kind: .speaker, transport: .virtual)
+    let pebble = Device(id: "pebble", name: "Pebble V3", kind: .speaker, transport: .usb)
+
+    @Test func ignoredAppsAndVirtualDevicesDontCount() {
+        let setup = Setup(name: "Desk", devices: [.microphone: shure, .speaker: pebble])
+        let snapshot = Snapshot(
+            devices: [.microphone: [shure, macMic], .speaker: [pebble, zoomAudio]],
+            active: [.microphone: shure, .speaker: pebble],
+            live: [
+                LiveUse(kind: .microphone, deviceID: "mac", app: "screenpipe"),
+                LiveUse(kind: .speaker, deviceID: "zoom", app: "zoom.us")
+            ]
+        )
+        #expect(Readiness.evaluate(snapshot, setup: setup) != .ready)
+        #expect(Readiness.evaluate(snapshot.ignoring(apps: ["screenpipe"]), setup: setup) == .ready)
+    }
+}

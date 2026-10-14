@@ -123,11 +123,16 @@ public enum Readiness: Sendable, Equatable {
         return issues.isEmpty ? .ready : .notReady(issues)
     }
 
-    /// An app using another device of this kind, unless that same app also has the expected one.
+    /// An app using another real device of this kind, unless that same app also has the expected
+    /// one. Virtual and aggregate devices (Zoom's screen-share audio, loopback tools) don't count.
     static func wrongLiveUse(_ snapshot: Snapshot, kind: DeviceKind, expected: Device) -> LiveUse? {
         let uses = snapshot.live.filter { $0.kind == kind }
         let appsOnExpected = Set(uses.filter { $0.deviceID == expected.id }.map(\.app))
-        return uses.first { $0.deviceID != expected.id && !appsOnExpected.contains($0.app) }
+        return uses.first { use in
+            guard use.deviceID != expected.id, !appsOnExpected.contains(use.app),
+                  let device = snapshot.device(use.deviceID, kind: kind) else { return false }
+            return device.transport != .virtual && device.transport != .aggregate
+        }
     }
 }
 
