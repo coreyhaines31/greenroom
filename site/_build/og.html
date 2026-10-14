@@ -5,28 +5,25 @@
 <html>
 <head>
 <meta charset="utf-8">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
 <style>
   * { box-sizing: border-box; }
   html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
   body {
     position: relative;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
-    color: #fff;
+    color: #1d1d1f;
     background:
-      radial-gradient(700px 420px at 85% 15%, rgba(77, 217, 140, 0.30), transparent 70%),
-      linear-gradient(160deg, rgb(41, 158, 97), rgb(10, 77, 46) 60%, #062a19);
+      radial-gradient(620px 460px at 8% 0%, rgba(48, 209, 88, 0.22), transparent 70%),
+      radial-gradient(640px 480px at 95% 100%, rgba(10, 132, 255, 0.16), transparent 70%),
+      #f5f5f7;
   }
-  .bulbs { position: absolute; left: 40px; right: 40px; height: 34px;
-    background: radial-gradient(circle at 50% 50%, #fffaf0 0 4px, #f6c76b 6px, rgba(246, 199, 107, 0.35) 9px, transparent 14px) center / 52px 34px repeat-x; }
-  .top { top: 6px; } .bottom { bottom: 6px; }
   .copy { position: absolute; left: 80px; top: 140px; width: 640px; }
-  .brand { display: flex; align-items: center; gap: 16px; font-size: 30px; font-weight: 650; }
+  .brand { display: flex; align-items: center; gap: 16px; font-size: 30px; font-weight: 600; }
   .brand img { width: 64px; height: 64px; }
-  h1 { font: 400 70px/1 "Instrument Serif", Georgia, serif; margin: 40px 0 0; letter-spacing: -0.01em; }
-  h1 em { color: #4dd98c; display: block; }
+  h1 { font-size: 60px; line-height: 1.04; font-weight: 700; margin: 40px 0 0; letter-spacing: -0.04em; }
+  h1 em { color: #12884b; display: block; font-style: normal; }
   h1 span { white-space: nowrap; }
-  p { font-size: 24px; line-height: 1.4; color: #cfe8d8; margin: 28px 0 0; }
+  p { font-size: 24px; line-height: 1.4; color: #6e6e73; margin: 28px 0 0; }
   .panel {
     position: absolute; right: 70px; top: 140px; width: 380px; padding: 22px;
     background: rgba(244, 244, 246, 0.95); color: #1d1d1f; border-radius: 16px; font-size: 16px;
@@ -45,7 +42,6 @@
 </style>
 </head>
 <body>
-  <div class="bulbs top"></div><div class="bulbs bottom"></div>
   <div class="copy">
     <div class="brand"><img src="../images/icon.png" alt=""> Green Room</div>
     <h1><span>Camera, mic, speakers.</span> <em>Ready before you go on.</em></h1>
