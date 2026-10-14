@@ -1,6 +1,6 @@
 import Foundation
 
-public enum DeviceKind: String, Codable, Sendable, CaseIterable {
+public enum DeviceKind: String, Codable, CodingKeyRepresentable, Sendable, CaseIterable {
     case camera, microphone, speaker
 
     public var title: String {

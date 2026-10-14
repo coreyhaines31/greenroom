@@ -68,7 +68,9 @@ public enum AudioHardware {
     }
 
     static func device(for id: AudioObjectID, kind: DeviceKind) -> Device? {
-        guard let uid = uid(id) else { return nil }
+        // Core Audio makes these on the fly when an app (this one included) opens the
+        // default device. They aren't hardware, and they come and go.
+        guard let uid = uid(id), !uid.hasPrefix("CADefaultDeviceAggregate") else { return nil }
         let name = string(id, kAudioObjectPropertyName) ?? "Unknown device"
         return Device(id: uid, name: name, kind: kind, transport: transport(transportType(id)))
     }

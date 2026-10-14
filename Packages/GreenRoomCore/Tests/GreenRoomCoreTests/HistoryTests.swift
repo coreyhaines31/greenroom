@@ -115,3 +115,11 @@ struct DiagnosisTests {
         #expect(MacAudioMemory.remembered(fromPlist: data).map(\.name) == ["ATR2100x-USB Microphone", "Opal C1"])
     }
 }
+
+struct StorageTests {
+    @Test func kindKeyedDictionariesSaveAsObjects() throws {
+        let mic = Device(id: "m", name: "Mic", kind: .microphone, transport: .usb)
+        let data = try JSONEncoder().encode(Setup(name: "S", devices: [.microphone: mic]))
+        #expect(String(bytes: data, encoding: .utf8)?.contains("\"microphone\":{") == true)
+    }
+}
