@@ -8,24 +8,28 @@ final class MicMeter {
     /// 0 is silence (-60 dB or quieter), 1 is full scale.
     private(set) var level: Float = 0 {
         didSet {
-            if level > Self.soundLevel { lastSound = .now }
-            isSilent = Date.now.timeIntervalSince(lastSound) > Self.silentSeconds
+            // The clock starts with the first audio, not when the meter opens: Bluetooth
+            // headsets take a few seconds to switch into mic mode and send nothing meanwhile.
+            if level > Self.soundLevel || lastSound == nil { lastSound = .now }
+            isSilent = lastSound.map { Date.now.timeIntervalSince($0) > silentSeconds } ?? false
         }
     }
     /// True after a few seconds with nothing above room noise.
     private(set) var isSilent = false
     @ObservationIgnored private var engine: AVAudioEngine?
-    @ObservationIgnored private var lastSound = Date.now
+    @ObservationIgnored private var lastSound: Date?
+    @ObservationIgnored private var silentSeconds: TimeInterval = 5
 
     static let soundLevel: Float = 0.1
-    static let silentSeconds: TimeInterval = 5
 
-    func start() {
+    /// Bluetooth mics get longer: their first seconds of audio are often silence.
+    func start(bluetooth: Bool = false) {
+        silentSeconds = bluetooth ? 10 : 5
         let engine = AVAudioEngine()
         let input = engine.inputNode
         let format = input.outputFormat(forBus: 0)
         guard format.sampleRate > 0, format.channelCount > 0 else { return }
-        lastSound = .now
+        lastSound = nil
         isSilent = false
         input.installTap(onBus: 0, bufferSize: 1024, format: format, block: Self.tap { [weak self] level in
             DispatchQueue.main.async { MainActor.assumeIsolated { self?.level = level } }
