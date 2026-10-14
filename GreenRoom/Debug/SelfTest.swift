@@ -86,7 +86,8 @@ enum SelfTest {
         let recorder = AVAudioEngine()
         let format = recorder.inputNode.outputFormat(forBus: 0)
         guard format.sampleRate > 0 else { return 0 }
-        recorder.inputNode.installTap(onBus: 0, bufferSize: 4096, format: format, block: PlaybackTest.tap(into: recording))
+        let tap = PlaybackTest.tap(into: recording)
+        recorder.inputNode.installTap(onBus: 0, bufferSize: 4096, format: format, block: tap)
         try? recorder.start()
         try? await Task.sleep(for: .seconds(2))
         recorder.inputNode.removeTap(onBus: 0)
