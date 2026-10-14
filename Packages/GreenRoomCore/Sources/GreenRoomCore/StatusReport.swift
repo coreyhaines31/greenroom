@@ -24,6 +24,8 @@ public struct StatusReport: Codable, Sendable, Equatable {
     public let problems: [Problem]
     /// Devices that keep disconnecting. Worth fixing, but they don't make you not ready.
     public let flaky: [String]
+    /// Usual wired devices that aren't connected. Only a setup's devices make you not ready.
+    public let missing: [String]
 
     // swiftlint:disable:next function_parameter_count
     public static func make(
@@ -53,14 +55,12 @@ public struct StatusReport: Codable, Sendable, Equatable {
                 lastSeen: nil
             ))
         }
-        for record in history.missingUsual(snapshot, now: now) where named.insert(record.device.id).inserted {
-            let reason = advice(record.device)
-            problems.append(Problem(
-                kind: record.device.kind, device: record.device.name,
-                message: "\(record.device.name): \(reason.headline.lowercased())", advice: reason.advice,
-                lastSeen: record.lastSeen
-            ))
-        }
+        let missing = history.missingUsual(snapshot, now: now)
+            .filter { named.insert($0.device.id).inserted }
+            .map { record -> String in
+                let reason = advice(record.device)
+                return "\(record.device.name): \(reason.headline.lowercased()). \(reason.advice)"
+            }
         for advisory in Advisory.evaluate(snapshot) {
             problems.append(Problem(
                 kind: .microphone, device: advisory.device.name, message: advisory.title, advice: advisory.message,
@@ -73,7 +73,10 @@ public struct StatusReport: Codable, Sendable, Equatable {
             }
         }
         let flaky = FlakyDevice.find(in: history, now: now).map { "\($0.message). \($0.advice)" }
-        return StatusReport(ready: problems.isEmpty, setup: setup?.name, inUse: inUse, problems: problems, flaky: flaky)
+        return StatusReport(
+            ready: problems.isEmpty, setup: setup?.name, inUse: inUse, problems: problems, flaky: flaky,
+            missing: missing
+        )
     }
 
     public var text: String {
@@ -98,9 +101,9 @@ public struct StatusReport: Codable, Sendable, Equatable {
                 if problem.advice != problem.message { lines.append("  \(problem.advice)") }
             }
         }
-        if !flaky.isEmpty {
+        if !missing.isEmpty || !flaky.isEmpty {
             lines.append("")
-            lines += flaky.map { "~ \($0)" }
+            lines += missing.map { "~ \($0)" } + flaky.map { "~ \($0)" }
         }
         return lines.joined(separator: "\n")
     }
