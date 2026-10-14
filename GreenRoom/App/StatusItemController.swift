@@ -74,11 +74,16 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
     }
 
     private func refreshButton() {
-        let readiness = monitor.readiness
-        let (symbol, label): (String, String) = switch readiness {
-        case .noSetup: ("web.camera", "Green Room")
-        case .ready: ("web.camera.fill", "Green Room: ready")
-        case .notReady(let issues): ("exclamationmark.triangle.fill", issues.map(\.message).joined(separator: ". "))
+        let problems = monitor.advisories.map(\.title) + {
+            if case .notReady(let issues) = monitor.readiness { return issues.map(\.message) }
+            return []
+        }()
+        let (symbol, label): (String, String) = if !problems.isEmpty {
+            ("exclamationmark.triangle.fill", problems.joined(separator: ". "))
+        } else if monitor.readiness == .ready {
+            ("web.camera.fill", "Green Room: ready")
+        } else {
+            ("web.camera", "Green Room")
         }
         statusItem.button?.image = NSImage(systemSymbolName: symbol, accessibilityDescription: label)
         statusItem.button?.setAccessibilityLabel(label)
