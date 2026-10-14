@@ -61,7 +61,8 @@ enum SelfTest {
             let result: [String: Any] = [
                 "cameraAccess": camera, "micAccess": mic,
                 "camera": device?.name ?? "none", "cameraFrames": counter.frames,
-                "microphone": monitor.snapshot.active(.microphone)?.name ?? "none", "micPeakLevel": peak, "recordedSeconds": recordedSeconds
+                "microphone": monitor.snapshot.active(.microphone)?.name ?? "none", "micPeakLevel": peak,
+                "recordedSeconds": recordedSeconds
             ]
             if let data = try? JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys]) {
                 try? data.write(to: URL(fileURLWithPath: path))

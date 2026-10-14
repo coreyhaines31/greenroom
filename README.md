@@ -31,6 +31,22 @@ brew install --cask coreyhaines31/tap/greenroom
 3. **Check them.** Watch the preview, talk and watch the meter move, and click **Test** to hear a tone on the left, then the right.
 4. **Click Save as my setup.** From then on the icon turns into a warning when your setup doesn't match, and the panel says what's wrong.
 
+## Setups for each place you work
+
+Save more than one setup, like **Desk**, **Studio**, and **Travel**, from the Setup menu. Green Room checks the one whose devices are plugged in, so docking at your desk switches to Desk on its own. Pick another setup from the menu to apply all of its devices at once.
+
+**Right-click** the menu bar icon (or Control-click) for a quick menu of setups and devices that switches without opening the panel or turning on the camera.
+
+## Before the call
+
+Turn on **Check before calendar calls** in the gear menu. Two minutes before an event with a Zoom, Meet, Teams, Webex, or similar link, Green Room checks your setup. If you're ready it says nothing; if not, you get one alert with the fix. It needs calendar access, only reads when events start and whether they have a meeting link, and never changes your calendar.
+
+Click **Hear Yourself** next to the mic meter to record five seconds and hear them played back, so you know how you sound, not just that the mic works. The recording is never saved.
+
+## Keep my setup
+
+Turn on **Switch back when AirPods take over** in the gear menu. When a device that just connected, like AirPods coming out of the case or an iPhone nearby, takes over your mic or sound, Green Room switches back to your setup's device and tells you. If you meant it, click **Use AirPods** in the alert and Green Room leaves them alone until they disconnect. Anything you pick yourself is never switched back.
+
 ## During a call
 
 Your Mac's default devices and what a call is really using can differ: Zoom and Meet keep their own device choices. Green Room shows the truth:
