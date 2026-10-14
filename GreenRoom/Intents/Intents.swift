@@ -38,13 +38,17 @@ struct UseSetupIntent: AppIntent {
         }
         let snapshot = DeviceScanner.snapshot()
         var missing: [String] = []
+        var switched = 0
         for kind in [DeviceKind.microphone, .speaker] {
             guard let device = chosen.devices[kind] else { continue }
-            if let connected = snapshot.device(device.id, kind: kind) {
-                AudioHardware.setDefault(connected)
+            if let connected = snapshot.device(device.id, kind: kind), AudioHardware.setDefault(connected) {
+                switched += 1
             } else {
                 missing.append(device.name)
             }
+        }
+        if switched == 0 && missing.isEmpty {
+            return .result(dialog: "\(chosen.name) has no mic or speaker to switch. Pick its camera in your call app.")
         }
         if missing.isEmpty { return .result(dialog: "Using \(chosen.name).") }
         let list = ListFormatter.localizedString(byJoining: missing)

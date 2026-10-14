@@ -8,13 +8,15 @@ struct RecordingSection: View {
     @AppStorage("showRecordingCheck") private var expanded = false
 
     var body: some View {
+        // Reads the disk, power, and camera once per render.
+        let check = self.check
         VStack(alignment: .leading, spacing: 8) {
             Button {
                 expanded.toggle()
             } label: {
                 HStack(spacing: 4) {
                     Image(systemName: expanded ? "chevron.down" : "chevron.right").font(.caption2.weight(.semibold))
-                    Text(expanded ? "Ready to record?" : "Ready to record? \(summary)")
+                    Text(expanded ? "Ready to record?" : "Ready to record? \(summary(check))")
                 }
                 .font(.caption).foregroundStyle(.secondary)
                 .contentShape(Rectangle())
@@ -44,7 +46,7 @@ struct RecordingSection: View {
         ))
     }
 
-    private var summary: String {
+    private func summary(_ check: RecordingCheck) -> String {
         let problems = check.items.filter { !$0.passed }.count
         return problems == 0 ? "Yes" : "\(problems) to check"
     }

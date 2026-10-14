@@ -8,7 +8,8 @@ let usage = """
     Usage: greenroom <command> [--json]
 
       status     The camera, mic, and speaker in use, and anything to fix (exits 2 if so)
-                 --recording adds camera format, mic quality, disk space, and power
+                 --recording adds camera format, mic quality, disk space, and power,
+                 and exits 2 if anything would spoil a recording
       devices    Everything connected, and devices that are usually here but missing
       history    Recent plug-ins, unplugs, and switches (--limit N, default 20)
       setups     Your saved setups, and which one fits what's plugged in
@@ -55,8 +56,17 @@ case "status":
         sampleRates: snapshot.sampleRates
     )) : nil
     if json {
-        struct Combined: Encodable { let status: StatusReport; let recording: RecordingCheck? }
-        printJSON(Combined(status: report, recording: recording))
+        // The status fields stay at the top level either way; --recording adds one key.
+        if let recording,
+           let base = try? JSONSerialization.jsonObject(with: JSONEncoder().encode(report)) as? [String: Any],
+           let extra = try? JSONSerialization.jsonObject(with: JSONEncoder().encode(recording)) {
+            var merged = base
+            merged["recording"] = extra
+            let data = try? JSONSerialization.data(withJSONObject: merged, options: [.prettyPrinted, .sortedKeys])
+            print(data.flatMap { String(bytes: $0, encoding: .utf8) } ?? "{}")
+        } else {
+            printJSON(report)
+        }
     } else {
         print(report.text)
         if let recording {
@@ -163,10 +173,14 @@ case "use":
     var missing: [String] = []
     for kind in [DeviceKind.microphone, .speaker] {
         guard let device = chosen.devices[kind] else { continue }
-        if let connected = snapshot.device(device.id, kind: kind), AudioHardware.setDefault(connected) {
+        guard let connected = snapshot.device(device.id, kind: kind) else {
+            missing.append(device.name)
+            continue
+        }
+        if AudioHardware.setDefault(connected) {
             switched.append("\(kind.title): \(connected.name)")
         } else {
-            missing.append(device.name)
+            missing.append("\(connected.name) (macOS refused the switch)")
         }
     }
     if json {
@@ -181,7 +195,7 @@ case "use":
         // Cameras: each app keeps its own choice, so a command can't set it for them.
         if let camera = chosen.devices[.camera] { print("  Pick \(camera.name) as the camera in your call app.") }
     }
-    exit(missing.isEmpty ? 0 : 2)
+    exit(missing.isEmpty && !switched.isEmpty ? 0 : 2)
 
 case "--version", "-v":
     print(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "dev")
