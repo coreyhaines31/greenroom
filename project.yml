@@ -57,6 +57,7 @@ targets:
         PRODUCT_NAME: Green Room
         PRODUCT_MODULE_NAME: GreenRoom
         PRODUCT_BUNDLE_IDENTIFIER: com.greenroomformac.GreenRoom
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
   GreenRoomCLI:
     type: tool
     platform: macOS
