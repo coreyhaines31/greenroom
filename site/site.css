@@ -594,6 +594,7 @@ section.article { padding: 48px 0 24px; }
 .prose p + p { margin-top: 14px; }
 .prose strong, .prose b { color: var(--ink); font-weight: 600; }
 .prose a { color: var(--mint-ink); }
+.prose a.pill { color: var(--cta-ink); }
 .prose ul { padding-left: 22px; margin: 12px 0; }
 .prose li { margin-bottom: 8px; }
 .prose code { background: var(--surface); border: 1px solid var(--line); padding: 1px 6px; border-radius: 5px; overflow-wrap: anywhere; }
