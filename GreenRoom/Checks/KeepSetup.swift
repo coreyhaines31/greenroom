@@ -29,11 +29,14 @@ final class KeepSetup {
         guard Self.isEnabled else { return }
         let takeovers = Takeover.detect(
             events: events, timeline: monitor.history.events, setup: monitor.setup, snapshot: monitor.snapshot,
-            exempt: exempt
+            exempt: exempt.union(monitor.chosenRecently(within: Takeover.window))
         )
         for takeover in takeovers {
-            monitor.select(takeover.restore)
-            alerts.sendTakeover(takeover)
+            monitor.select(takeover.restore, byYou: false)
+            // Only say we switched back if it worked.
+            if monitor.snapshot.active(takeover.kind)?.id == takeover.restore.id {
+                alerts.sendTakeover(takeover)
+            }
         }
     }
 

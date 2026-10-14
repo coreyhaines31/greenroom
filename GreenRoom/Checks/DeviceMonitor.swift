@@ -165,7 +165,16 @@ final class DeviceMonitor {
             .map { missingDevice(Device(id: $0.id, name: $0.name, kind: .microphone, transport: .usb), lastSeen: nil) }
     }
 
-    func select(_ device: Device) {
+    /// Devices you picked in Green Room, and when. Keep my setup never reverts these.
+    @ObservationIgnored private(set) var chosenByYou: [String: Date] = [:]
+
+    func chosenRecently(within seconds: TimeInterval) -> Set<String> {
+        Set(chosenByYou.filter { Date.now.timeIntervalSince($0.value) <= seconds }.keys)
+    }
+
+    /// Switching back for Keep my setup isn't a choice of yours, so it skips the bookkeeping.
+    func select(_ device: Device, byYou: Bool = true) {
+        if byYou { chosenByYou[device.id] = .now }
         if device.kind == .camera {
             Cameras.setPreferred(device)
         } else {
@@ -198,6 +207,7 @@ final class DeviceMonitor {
     func apply(_ setup: Setup) {
         for device in setup.devices.values {
             if let connected = snapshot.device(device.id, kind: device.kind) {
+                chosenByYou[connected.id] = .now
                 if device.kind == .camera {
                     Cameras.setPreferred(connected)
                 } else {

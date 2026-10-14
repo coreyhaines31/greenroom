@@ -8,6 +8,7 @@ struct PanelView: View {
     let updater: Updater
     let callWatcher: CallWatcher
     let showHistory: () -> Void
+    let closePanel: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -119,7 +120,7 @@ struct PanelView: View {
                 Button("Save as my setup") { monitor.saveSetup() }
                     .help("Remember these devices and warn when something's different")
             } else {
-                SetupMenu(monitor: monitor)
+                SetupMenu(monitor: monitor, closePanel: closePanel)
             }
             Button("History") { showHistory() }
             Spacer()
@@ -228,7 +229,7 @@ struct DevicePicker<Trailing: View>: View {
     private func picker(_ devices: [Device]) -> some View {
         Picker(kind.title, selection: Binding(
             get: { selected?.id ?? "" },
-            set: { id in devices.first { $0.id == id }.map(monitor.select) }
+            set: { id in devices.first { $0.id == id }.map { monitor.select($0) } }
         )) {
             if selected == nil { Text("None").tag("") }
             ForEach(devices) { device in
