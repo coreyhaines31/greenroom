@@ -94,6 +94,12 @@ final class Alerts: NSObject, UNUserNotificationCenterDelegate {
         }
     }
 
+    /// The before-the-call heads-up. Sent whether or not other alerts are on, since you turned
+    /// this check on by itself.
+    func sendCallCheck(title: String, body: String, fix: Device?) {
+        send(title: title, body: body, fix: fix)
+    }
+
     /// Tells you Green Room switched back, with a button to keep the device that took over.
     func sendTakeover(_ takeover: Takeover) {
         let lead = takeover.kind == .speaker ? "took over the sound" : "took over the mic"

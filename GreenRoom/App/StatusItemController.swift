@@ -13,7 +13,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
 
     private let windows: Windows
 
-    init(monitor: DeviceMonitor, checks: Checks, windows: Windows, updater: Updater) {
+    init(monitor: DeviceMonitor, checks: Checks, windows: Windows, updater: Updater, callWatcher: CallWatcher) {
         self.monitor = monitor
         self.checks = checks
         self.windows = windows
@@ -26,7 +26,9 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
 
         popover.behavior = .transient
         popover.delegate = self
-        let panel = PanelView(monitor: monitor, checks: checks, updater: updater) { [weak self] in
+        let panel = PanelView(
+            monitor: monitor, checks: checks, updater: updater, callWatcher: callWatcher
+        ) { [weak self] in
             self?.popover.performClose(nil)
             self?.windows.showHistory()
         }

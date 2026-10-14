@@ -6,6 +6,7 @@ struct PanelView: View {
     let monitor: DeviceMonitor
     let checks: Checks
     let updater: Updater
+    let callWatcher: CallWatcher
     let showHistory: () -> Void
 
     var body: some View {
@@ -106,7 +107,7 @@ struct PanelView: View {
             }
             Button("History") { showHistory() }
             Spacer()
-            OptionsMenu(monitor: monitor, updater: updater)
+            OptionsMenu(monitor: monitor, updater: updater, callWatcher: callWatcher)
         }
     }
 }
@@ -114,6 +115,8 @@ struct PanelView: View {
 struct OptionsMenu: View {
     let monitor: DeviceMonitor
     let updater: Updater
+    let callWatcher: CallWatcher
+    @State private var checkCalls = CallWatcher.isEnabled && CallWatcher.hasAccess
     @State private var alerts = Alerts.isEnabled
     @State private var keepSetup = KeepSetup.isEnabled
     @State private var openAtLogin = LoginItem.isEnabled
@@ -122,6 +125,7 @@ struct OptionsMenu: View {
         Menu {
             Toggle("Alert me when devices change", isOn: $alerts)
             Toggle("Switch back when AirPods take over", isOn: $keepSetup)
+            Toggle("Check before calendar calls", isOn: $checkCalls)
             Toggle("Open at login", isOn: $openAtLogin)
             if !monitor.ignoredApps.isEmpty {
                 Menu("Ignored Apps") {
@@ -141,6 +145,10 @@ struct OptionsMenu: View {
         .accessibilityLabel("Options")
         .onChange(of: alerts) { Alerts.isEnabled = alerts }
         .onChange(of: keepSetup) { KeepSetup.isEnabled = keepSetup }
+        .onChange(of: checkCalls) {
+            guard checkCalls != (CallWatcher.isEnabled && CallWatcher.hasAccess) else { return }
+            Task { checkCalls = await callWatcher.setEnabled(checkCalls) }
+        }
         .onChange(of: openAtLogin) { openAtLogin = LoginItem.set(openAtLogin) }
     }
 }
