@@ -26,10 +26,11 @@ brew install --cask coreyhaines31/tap/greenroom
 
 ## Using it
 
-1. **Click the camera icon** in the menu bar. The first time, macOS asks for camera and microphone access. Green Room only uses them while the panel is open, and nothing is recorded or sent anywhere.
-2. **Pick your devices.** Choosing a mic or speaker makes it the Mac's default, the same as System Settings › Sound. Choosing a camera sets the one macOS suggests to apps; Zoom and Meet keep their own camera setting.
-3. **Check them.** Watch the preview, talk and watch the meter move, and click **Test** to hear a tone on the left, then the right.
-4. **Click Save as my setup.** From then on the icon turns into a warning when your setup doesn't match, and the panel says what's wrong.
+1. **A welcome window opens the first time.** It proposes your usual devices from what you've used, so saving your setup is one click, and offers the alerts, Keep my setup, calendar checks, and open at login in one place.
+2. **Click the camera icon** in the menu bar, or press **⌃⌥⌘G** from anywhere. The first time, macOS asks for camera and microphone access. Green Room only uses them while the panel is open, and nothing is recorded or sent anywhere.
+3. **Pick your devices.** Choosing a mic or speaker makes it the Mac's default, the same as System Settings › Sound. Choosing a camera sets the one macOS suggests to apps; Zoom and Meet keep their own camera setting.
+4. **Check them.** Watch the preview, talk and watch the meter move, and click **Test** to hear a tone on the left, then the right.
+5. **Click Save as my setup.** From then on the icon turns into a warning when your setup doesn't match, and the panel says what's wrong.
 
 ## Setups for each place you work
 
@@ -48,6 +49,8 @@ Click **Hear Yourself** next to the mic meter to record five seconds and hear th
 Turn on **Switch back when AirPods take over** in the gear menu. When a device that just connected, like AirPods coming out of the case or an iPhone nearby, takes over your mic or sound, Green Room switches back to your setup's device and tells you. If you meant it, click **Use AirPods** in the alert and Green Room leaves them alone until they disconnect. Anything you pick yourself is never switched back.
 
 ## Before you record
+
+When a recording app like Loom, OBS, Screen Studio, QuickTime, or Riverside turns on your mic, Green Room runs this check on its own and alerts you only if something would spoil the take.
 
 Open **Ready to record?** at the bottom of the panel, or run `greenroom status --recording`, for the things that ruin a take but don't matter on a call: the camera's resolution and frame rate (and whether an app picked a smaller size or the camera can't do better), the mic's quality, free disk space, and whether you're on battery or in Low Power Mode.
 
