@@ -1,3 +1,4 @@
+import AppKit
 import EventKit
 import Foundation
 import GreenRoomCore
@@ -50,8 +51,13 @@ final class CallWatcher {
             stop()
             return false
         }
-        if !Self.hasAccess {
+        if EKEventStore.authorizationStatus(for: .event) == .notDetermined {
             _ = try? await store.requestFullAccessToEvents()
+        } else if !Self.hasAccess, let url = URL(
+            string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars"
+        ) {
+            // Asked before and refused: macOS won't ask again, so open the setting instead.
+            NSWorkspace.shared.open(url)
         }
         Self.isEnabled = Self.hasAccess
         start()
@@ -60,6 +66,7 @@ final class CallWatcher {
 
     private func check() {
         let now = Date.now
+        if checked.count > 500 { checked.removeAll() }
         let window = now.addingTimeInterval(Self.lead.lowerBound)...now.addingTimeInterval(Self.lead.upperBound)
         let predicate = store.predicateForEvents(withStart: now, end: window.upperBound, calendars: nil)
         let calls = store.events(matching: predicate).filter { event in
