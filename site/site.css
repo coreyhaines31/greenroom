@@ -126,8 +126,8 @@ section { padding: clamp(64px, 8vw, 96px) 0; }
 .hero {
   padding-top: 48px; padding-bottom: clamp(56px, 7vw, 88px); overflow: hidden;
 }
-.hero-grid { display: grid; gap: 56px; justify-items: center; }
-.hero-copy { min-width: 0; text-align: center; display: grid; justify-items: center; }
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 56px; justify-items: center; }
+.hero-copy { min-width: 0; justify-self: stretch; text-align: center; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; }
 .hero .mirror { width: 100%; max-width: 820px; }
 .hero .panel { margin-right: 32px; }
 @media (min-width: 980px) { .hero { padding-top: 80px; } }
