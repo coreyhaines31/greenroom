@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Green Room · Check your camera, mic, and speakers before a call</title>
+  <meta name="description" content="Free Mac menu bar app that checks your camera, mic, and speakers in one click, and warns you when AirPods grab the sound or your USB mic isn't plugged in.">
+  <meta property="og:title" content="Green Room · Check your camera, mic, and speakers before a call">
+  <meta property="og:description" content="A free Mac menu bar app with a live camera preview, a mic meter, and a speaker test. It warns you when your setup changes.">
+  <meta property="og:image" content="https://greenroomformac.com/images/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:url" content="https://greenroomformac.com">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#0a4d2e">
+  <link rel="icon" href="/images/icon.png">
+  <link rel="apple-touch-icon" href="/images/icon.png">
+  <link rel="canonical" href="https://greenroomformac.com/">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap">
+  <link rel="stylesheet" href="/site.css">
+  <script src="/copy.js" defer></script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "SoftwareApplication", "name": "Green Room", "operatingSystem": "macOS 14 or later", "applicationCategory": "UtilitiesApplication", "description": "A free Mac menu bar app that checks your camera, microphone, and speakers in one click, remembers your usual setup, and warns you when something changes.", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "downloadUrl": "https://github.com/coreyhaines31/greenroom/releases/latest", "url": "https://greenroomformac.com", "image": "https://greenroomformac.com/images/icon.png", "author": {"@type": "Person", "name": "Corey Haines", "url": "https://corey.co"}}, {"@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Does Green Room record me?", "acceptedAnswer": {"@type": "Answer", "text": "No. The camera and mic only run while the panel is open, so you can see and hear that they work. Nothing is recorded, saved, or sent anywhere."}}, {"@type": "Question", "name": "Will it change my camera in Zoom or Google Meet?", "acceptedAnswer": {"@type": "Answer", "text": "Picking a mic or speaker in Green Room makes it your Mac's default, the same as System Settings › Sound, so most apps follow it. Picking a camera sets the one macOS suggests to apps. Zoom and Meet keep their own camera setting, so pick it there once too."}}, {"@type": "Question", "name": "How does it know a device is usually here?", "acceptedAnswer": {"@type": "Answer", "text": "Green Room keeps a history of every camera, mic, and speaker it sees. A device that's been connected on most recent days counts as usual. For USB audio devices it also reads macOS's own memory, so a mic you've used before shows up from the first day."}}, {"@type": "Question", "name": "My mic is plugged in. Why does it say Not plugged in?", "acceptedAnswer": {"@type": "Answer", "text": "It means your Mac doesn't see the mic on USB at all, even though the plug is in. That points to the cable, a hub, or the port. Try another port, or plug it straight into your Mac."}}, {"@type": "Question", "name": "What happens when I unplug my dock?", "acceptedAnswer": {"@type": "Answer", "text": "You get one alert that lists every usual device that left with it, not a pile of alerts. Turn alerts off any time in the gear menu."}}, {"@type": "Question", "name": "Does it work with AirPods and other Bluetooth devices?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. When a usual Bluetooth device is missing, Green Room says Not connected, and tells you to turn it on or connect it in Bluetooth settings."}}, {"@type": "Question", "name": "What do I need to run it?", "acceptedAnswer": {"@type": "Answer", "text": "macOS 14 Sonoma or later. The app is signed and notarized by Apple, and it updates itself."}}, {"@type": "Question", "name": "Is it really free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. The source is on GitHub under the Functional Source License (FSL-1.1-MIT), and each version becomes MIT two years after it's released."}}]}]}</script>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap">
+      <a class="brand" href="/"><img src="/images/icon.png" alt="" width="30" height="30"> Green Room</a>
+      <nav>
+        <a href="#how">How it works</a>
+        <a href="#agent">For AI agents</a>
+        <a href="#faq">FAQ</a>
+        <a href="https://github.com/coreyhaines31/greenroom">GitHub</a>
+        <a class="pill" href="https://github.com/coreyhaines31/greenroom/releases/latest">Download</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <p class="kicker"><span class="dot"></span>Free for Mac · No account · No tracking</p>
+          <h1>Camera, mic, speakers. <em>Ready before you go on.</em></h1>
+          <p class="lede">Green Room lives in your menu bar and checks all three in one click: a live camera preview, a mic meter, and a speaker test. Save your usual setup, and it warns you when AirPods grab the sound or your USB mic isn't plugged in.</p>
+          <div class="actions">
+            <a class="pill big" href="https://github.com/coreyhaines31/greenroom/releases/latest">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14"/></svg>Download free</a>
+            <a class="pill big ghost" href="https://github.com/coreyhaines31/greenroom">View source code</a>
+          </div>
+          <p class="fineprint">macOS 14 or later · Notarized by Apple · Updates itself<br><code>brew install --cask coreyhaines31/tap/greenroom</code></p>
+          <div class="hero-prompt">
+            <span class="hero-prompt-label">Using Claude Code or Codex? Paste this:</span>
+            <div class="hero-prompt-box">
+              <code>Install the macOS app "Green Room" for me…</code>
+              <button class="pill copy" type="button" data-copy-target="agent-install">Copy prompt</button>
+            </div>
+            <a class="hero-prompt-more" href="#agent">See the full prompt</a>
+          </div>
+        </div>
+
+        <div class="mirror" role="img" aria-label="The Green Room panel open from the menu bar. It says Not ready: ATR2100x-USB Microphone isn't connected. Below are the camera with a live preview, the microphone with a level meter, the speaker with a Test button, and a row explaining the missing microphone is not plugged in, last seen yesterday at 12:40 PM.">
+          <div class="screen">
+            <div class="menubar">
+              <span class="mb-left"><span class="apple"></span><b>Zoom</b><span>Meeting</span><span>View</span></span>
+              <span class="mb-right">
+                <span class="mb-item active"><svg viewBox="0 0 20 18" aria-hidden="true"><path class="warn-fill" d="M10 1.6 18.6 16.4H1.4Z"/><path class="warn-mark" d="M10 6.6v4.6M10 13.4v.4"/></svg></span>
+                <span class="mb-clock">Tue 9:58 AM</span>
+              </span>
+            </div>
+            <div class="panel">
+              <div class="p-head">
+                <div class="p-title warn"><svg viewBox="0 0 20 18" aria-hidden="true"><path class="warn-fill" d="M10 1.6 18.6 16.4H1.4Z"/><path class="warn-mark" d="M10 6.6v4.6M10 13.4v.4"/></svg>Not ready</div>
+                <p>ATR2100x-USB Microphone isn't connected</p>
+              </div>
+
+              <div class="p-group">
+                <span class="p-label">Camera</span>
+                <span class="popup">Cam Link 4K · External<i></i></span>
+                <div class="cam" aria-hidden="true">
+                  <span class="cam-lamp"></span><span class="cam-frame"></span><span class="cam-plant"></span>
+                  <span class="cam-neck"></span><span class="cam-body"></span><span class="cam-head"></span>
+                </div>
+              </div>
+
+              <div class="p-group">
+                <span class="p-label">Microphone</span>
+                <span class="popup">MacBook Pro Microphone · Built-in<i></i></span>
+                <div class="meter"><span></span></div>
+              </div>
+
+              <div class="p-row">
+                <div class="p-group">
+                  <span class="p-label">Speaker</span>
+                  <span class="popup">Studio Monitors · USB<i></i></span>
+                </div>
+                <span class="mac-btn">Test</span>
+              </div>
+
+              <div class="p-group">
+                <span class="p-label">Usually here, missing now</span>
+                <div class="missing">
+                  <b>ATR2100x-USB Microphone</b>
+                  <span class="orange">Not plugged in · last seen yesterday 12:40 PM</span>
+                  <span class="muted">Your Mac doesn't see it on USB at all. Check the cable and hub, or try another port.</span>
+                </div>
+              </div>
+
+              <div class="p-sep"></div>
+              <div class="p-foot">
+                <span class="mac-btn">Setup<svg viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4"/></svg></span>
+                <span class="mac-btn">History</span>
+                <span class="gear" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="how" id="how">
+      <div class="wrap">
+        <p class="eyebrow">Two minutes before the call</p>
+        <h2>One click, three answers.</h2>
+        <p class="section-lede">Which camera, which mic, and which speakers your Mac will use, and whether each one works. No more “can you hear me?” for the first minute.</p>
+        <ol class="steps">
+          <li>
+            <span class="step-n">1</span>
+            <h3>Click the camera icon</h3>
+            <p>It sits next to the clock. The first time, macOS asks for camera and mic access. Green Room only uses them while the panel is open.</p>
+          </li>
+          <li>
+            <span class="step-n">2</span>
+            <h3>Check all three</h3>
+            <p>See yourself in the preview. Talk and watch the meter move. Click Test to hear a tone in your left ear, then your right.</p>
+          </li>
+          <li>
+            <span class="step-n">3</span>
+            <h3>Save it as your setup</h3>
+            <p>Picking a mic or speaker makes it your Mac's default, the same as System Settings. Then click Save as my setup, and Green Room remembers it.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="watch">
+      <div class="wrap two">
+        <div>
+          <p class="eyebrow">Your setup, remembered</p>
+          <h2>It notices the switch before your guests do.</h2>
+          <p>AirPods connect and quietly take over the sound. A dock comes loose and your Mac falls back to its built-in mic. You find out when someone says you sound far away.</p>
+          <p>Green Room compares what's in use with the setup you saved. When they don't match, the menu bar icon turns into a warning, the panel says exactly what changed, and an alert tells you right away. Unplug a whole dock and you get one alert, not five.</p>
+          <ul class="states" aria-label="Menu bar icon states">
+            <li><span class="state-icon"><svg viewBox="0 0 20 18" aria-hidden="true"><rect class="cam-outline" x="2" y="4" width="11" height="10" rx="2.5"/><path class="cam-outline" d="M13 8.2 18 5.5v7L13 9.8"/></svg></span>No setup saved yet</li>
+            <li><span class="state-icon"><svg viewBox="0 0 20 18" aria-hidden="true"><rect class="cam-solid" x="2" y="4" width="11" height="10" rx="2.5"/><path class="cam-solid" d="M13 8.2 18 5.5v7L13 9.8Z"/></svg></span>Ready: matches your setup</li>
+            <li><span class="state-icon"><svg viewBox="0 0 20 18" aria-hidden="true"><path class="warn-fill solid" d="M10 1.6 18.6 16.4H1.4Z"/><path class="warn-mark" d="M10 6.6v4.6M10 13.4v.4"/></svg></span>Something changed</li>
+          </ul>
+        </div>
+        <div class="desk" role="img" aria-label="Three Mac notifications from Green Room: Sound is going to AirPods Pro, not Studio Monitors. Shure MV7 isn't connected. 3 devices disconnected: Cam Link 4K, Shure MV7, and Studio Monitors.">
+          <div class="toast">
+            <img src="/images/icon.png" alt="" width="38" height="38">
+            <div><span class="t-top"><b>Green Room</b><time>now</time></span><b>Sound is going to AirPods Pro, not Studio Monitors</b><span>Open Green Room to switch back.</span></div>
+          </div>
+          <div class="toast">
+            <img src="/images/icon.png" alt="" width="38" height="38">
+            <div><span class="t-top"><b>Green Room</b><time>2m ago</time></span><b>Shure MV7 isn't connected</b><span>Your Mac doesn't see it on USB at all. Check the cable and hub, or try another port.</span></div>
+          </div>
+          <div class="toast">
+            <img src="/images/icon.png" alt="" width="38" height="38">
+            <div><span class="t-top"><b>Green Room</b><time>9:02 AM</time></span><b>3 devices disconnected</b><span>Cam Link 4K, Shure MV7, and Studio Monitors. Check the dock or hub they share.</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="backstage" id="missing">
+      <div class="wrap">
+        <p class="eyebrow">When a device goes missing</p>
+        <h2>Not just missing. <em>Missing because.</em></h2>
+        <p class="section-lede">Green Room keeps a history of every camera, mic, and speaker you use. When one that's usually here disappears, it tells you why, and what to try first.</p>
+        <div class="diag">
+          <article>
+            <span class="tag usb">USB</span>
+            <h3>Not plugged in</h3>
+            <p class="means">Your Mac doesn't see it on USB at all.</p>
+            <p class="try"><b>Try</b> the cable, the hub, or another port.</p>
+          </article>
+          <article>
+            <span class="tag usb">USB</span>
+            <h3>Plugged in, but not working</h3>
+            <p class="means">It's on USB, but not showing up as a camera or mic.</p>
+            <p class="try"><b>Try</b> unplugging it and plugging it back in.</p>
+          </article>
+          <article>
+            <span class="tag bt">Bluetooth</span>
+            <h3>Not connected</h3>
+            <p class="means">It's off, or not paired right now.</p>
+            <p class="try"><b>Try</b> turning it on, or connect it in Bluetooth settings.</p>
+          </article>
+        </div>
+        <p class="day-one"><b>Works from day one.</b> Green Room also reads macOS's own memory of USB audio devices, so a mic you've used before shows up before Green Room has any history of its own.</p>
+      </div>
+    </section>
+
+    <section class="mic">
+      <div class="wrap two flip">
+        <div class="meters" role="img" aria-label="Three microphone level meters, each with a warning: This microphone is muted in macOS. Input volume is at zero. No sound coming in.">
+          <div class="meter-card">
+            <span class="popup static">Shure MV7 · USB<i></i></span>
+            <div class="meter still"><span style="width:0"></span></div>
+            <p class="m-warn"><svg viewBox="0 0 20 18" aria-hidden="true"><path class="warn-fill solid" d="M10 1.6 18.6 16.4H1.4Z"/><path class="warn-mark" d="M10 6.6v4.6M10 13.4v.4"/></svg>This microphone is muted in macOS.</p>
+          </div>
+          <div class="meter-card">
+            <span class="popup static">Shure MV7 · USB<i></i></span>
+            <div class="meter still"><span style="width:0"></span></div>
+            <p class="m-warn"><svg viewBox="0 0 20 18" aria-hidden="true"><path class="warn-fill solid" d="M10 1.6 18.6 16.4H1.4Z"/><path class="warn-mark" d="M10 6.6v4.6M10 13.4v.4"/></svg>Input volume is at zero. Raise it in System Settings › Sound.</p>
+          </div>
+          <div class="meter-card">
+            <span class="popup static">Shure MV7 · USB<i></i></span>
+            <div class="meter still"><span style="width:2%"></span></div>
+            <p class="m-warn"><svg viewBox="0 0 20 18" aria-hidden="true"><path class="warn-fill solid" d="M10 1.6 18.6 16.4H1.4Z"/><path class="warn-mark" d="M10 6.6v4.6M10 13.4v.4"/></svg>No sound coming in. Check the mic's own mute button or gain knob.</p>
+          </div>
+        </div>
+        <div>
+          <p class="eyebrow">Connected isn't the same as working</p>
+          <h2>Catch the silent mic.</h2>
+          <p>A mic can be plugged in, picked, and still send nothing. Under the meter, Green Room tells you when macOS has it muted, when its input volume is at zero, or when no sound has come in for five seconds.</p>
+          <p>That last one is usually the mute button or gain knob on the mic itself, the one you bumped while packing up yesterday.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="agent" id="agent">
+      <div class="wrap narrow">
+        <p class="eyebrow">For AI agents</p>
+        <h2>Let your AI agent install it.</h2>
+        <p class="section-lede">Using Claude Code, Codex, or another coding agent? Paste this in and it will install and open Green Room for you.</p>
+        <div class="prompt">
+          <button class="pill copy" type="button" data-copy-target="agent-install">Copy</button>
+          <pre id="agent-install">Install the macOS app "Green Room" for me.
+If Homebrew is installed (check with `command -v brew`), run:
+  brew install --cask coreyhaines31/tap/greenroom
+Otherwise, download and install the signed DMG:
+  curl -fL -o /tmp/GreenRoom.dmg https://github.com/coreyhaines31/greenroom/releases/latest/download/GreenRoom.dmg
+  hdiutil attach -nobrowse -quiet -mountpoint /tmp/greenroom-dmg /tmp/GreenRoom.dmg
+  ditto "/tmp/greenroom-dmg/Green Room.app" "/Applications/Green Room.app"
+  hdiutil detach -quiet /tmp/greenroom-dmg
+Then open it with: open -a "Green Room"
+It's a menu bar app with no Dock icon. Tell me to look for the small camera
+icon near the clock, and that macOS will ask for camera and microphone access
+the first time I open the panel (only used while the panel is open).
+Finally, run `greenroom status` (Homebrew puts it on the PATH; otherwise it's
+"/Applications/Green Room.app/Contents/MacOS/greenroom") and tell me what it says.</pre>
+        </div>
+
+        <h3 class="agent-sub">Then let it check your setup for you</h3>
+        <p>The <code>greenroom</code> command reads your devices from Terminal, so you, a script, or an agent can check them without clicking anything.</p>
+        <div class="terminal" role="img" aria-label="Terminal output of greenroom status: Not ready, 2 to fix. The microphone is the MacBook Pro Microphone instead of the Shure MV7, and sound is going to AirPods Pro instead of the Studio Monitors.">
+          <div class="term-bar"><i></i><i></i><i></i><span>Terminal</span></div>
+<pre><span class="ps">~ %</span> greenroom status
+<span class="bad">Not ready: 2 to fix.</span>
+
+<span class="dim">Camera (suggested)</span>  Cam Link 4K · External
+<span class="dim">Microphone        </span>  MacBook Pro Microphone · Built-in
+<span class="dim">Speaker           </span>  AirPods Pro · Bluetooth
+
+<span class="warn">! Microphone is MacBook Pro Microphone, not Shure MV7</span>
+<span class="dim">  Switch back in Green Room, or System Settings › Sound.</span>
+<span class="warn">! Sound is going to AirPods Pro, not Studio Monitors</span>
+<span class="dim">  Switch back in Green Room, or System Settings › Sound.</span>
+<span class="ps">~ %</span> echo $?
+2</pre>
+        </div>
+        <ul class="cmds">
+          <li><code>greenroom status</code><span>The camera, mic, and speaker in use, and whether they match your setup. Exits with 2 when something's wrong.</span></li>
+          <li><code>greenroom devices</code><span>Everything connected, plus usual devices that are missing and why.</span></li>
+          <li><code>greenroom history</code><span>Recent plug-ins, unplugs, and switches.</span></li>
+        </ul>
+        <p>Add <code>--json</code> to any of them. To make it automatic, add this line to your <code>CLAUDE.md</code> or <code>AGENTS.md</code>:</p>
+        <div class="prompt">
+          <button class="pill copy" type="button" data-copy-target="agent-rule">Copy</button>
+          <pre id="agent-rule">Before I record or join a call, or when I say my mic or camera isn't working, run `greenroom status --json` and tell me anything that doesn't match my setup, and why.</pre>
+        </div>
+        <p class="fineprint">Homebrew links the command for you. Installed from the DMG? Link it once:</p>
+        <div class="prompt plain">
+          <pre>sudo mkdir -p /usr/local/bin
+sudo ln -sf "/Applications/Green Room.app/Contents/MacOS/greenroom" \
+  /usr/local/bin/greenroom</pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="trust">
+      <div class="wrap">
+        <h2>What happens in the green room stays there.</h2>
+        <div class="trust-grid">
+          <div>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6 6 12 6s9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.8"/><path d="M4 3.5l16 17"/></svg>
+            <h3>No analytics, no account, no cloud</h3>
+            <p>Green Room never talks to the internet except to check for updates. There's nothing to sign up for.</p>
+          </div>
+          <div>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="13" height="12" rx="3"/><path d="M16 10.5 21 8v8l-5-2.5"/></svg>
+            <h3>Live only while you look</h3>
+            <p>They run while the panel is open, and stop when it closes. Nothing is recorded or saved.</p>
+          </div>
+          <div>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5V20H4z"/><path d="M10 20v-5h4v5"/></svg>
+            <h3>History stays on your Mac</h3>
+            <p>Your device history lives in one folder on your Mac, and never leaves it.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="faq" id="faq">
+      <div class="wrap narrow">
+        <h2>Questions</h2>
+        <details><summary>Does Green Room record me?</summary><p>No. The camera and mic only run while the panel is open, so you can see and hear that they work. Nothing is recorded, saved, or sent anywhere.</p></details>
+        <details><summary>Will it change my camera in Zoom or Google Meet?</summary><p>Picking a mic or speaker in Green Room makes it your Mac's default, the same as System Settings › Sound, so most apps follow it. Picking a camera sets the one macOS suggests to apps. Zoom and Meet keep their own camera setting, so pick it there once too.</p></details>
+        <details><summary>How does it know a device is usually here?</summary><p>Green Room keeps a history of every camera, mic, and speaker it sees. A device that's been connected on most recent days counts as usual. For USB audio devices it also reads macOS's own memory, so a mic you've used before shows up from the first day.</p></details>
+        <details><summary>My mic is plugged in. Why does it say Not plugged in?</summary><p>It means your Mac doesn't see the mic on USB at all, even though the plug is in. That points to the cable, a hub, or the port. Try another port, or plug it straight into your Mac.</p></details>
+        <details><summary>What happens when I unplug my dock?</summary><p>You get one alert that lists every usual device that left with it, not a pile of alerts. Turn alerts off any time in the gear menu.</p></details>
+        <details><summary>Does it work with AirPods and other Bluetooth devices?</summary><p>Yes. When a usual Bluetooth device is missing, Green Room says Not connected, and tells you to turn it on or connect it in Bluetooth settings.</p></details>
+        <details><summary>What do I need to run it?</summary><p>macOS 14 Sonoma or later. The app is signed and notarized by Apple, and it updates itself.</p></details>
+        <details><summary>Is it really free?</summary><p>Yes. The source is on GitHub under the Functional Source License (FSL-1.1-MIT), and each version becomes MIT two years after it's released.</p></details>
+      </div>
+    </section>
+
+    <section class="cta">
+      <div class="wrap">
+        <img src="/images/icon.png" alt="" width="96" height="96">
+        <h2>Next call, skip “can you hear me?”</h2>
+        <div class="actions center">
+          <a class="pill big" href="https://github.com/coreyhaines31/greenroom/releases/latest">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14"/></svg>Download free</a>
+        </div>
+        <p class="fineprint"><code>brew install --cask coreyhaines31/tap/greenroom</code></p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>© 2026 Corey Haines · Source available under <a href="https://github.com/coreyhaines31/greenroom/blob/main/LICENSE">FSL-1.1-MIT</a></span>
+      <span><a href="https://github.com/coreyhaines31/greenroom">GitHub</a> · <a href="https://github.com/coreyhaines31/greenroom/issues">Report a bug</a> · Also by Corey: <a href="https://wifiorisp.com">WiFi or ISP</a>, <a href="https://midnightoil.app">Midnight Oil</a></span>
+    </div>
+  </footer>
+</body>
+</html>
