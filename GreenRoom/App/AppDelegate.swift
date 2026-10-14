@@ -14,6 +14,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var hotKey = HotKey { [weak self] in self?.statusItemController?.toggle(pinned: false) }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Before the first refresh records today: no history and no setups means a new install.
+        let isNewUser = monitor.history.appDays.isEmpty && monitor.setups.isEmpty
         monitor.start()
         alerts.start()
         monitor.onEvents = { [weak self] events in
@@ -29,7 +31,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         hotKey.apply()
         windows.callWatcher = callWatcher
-        windows.showWelcomeIfNew()
+        windows.showWelcomeIfNew(isNewUser: isNewUser)
         #if DEBUG
         // Opens the panel on launch, for screenshots and testing without clicking.
         if CommandLine.arguments.contains("--open-panel") {

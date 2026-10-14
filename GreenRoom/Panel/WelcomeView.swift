@@ -12,6 +12,7 @@ struct WelcomeView: View {
     @State private var alerts = Alerts.isEnabled
     @State private var keepSetup = KeepSetup.isEnabled
     @State private var checkCalls = CallWatcher.isEnabled && CallWatcher.hasAccess
+    /// On by default for a new install, like the other Mac apps in the family.
     @State private var openAtLogin = true
 
     var body: some View {

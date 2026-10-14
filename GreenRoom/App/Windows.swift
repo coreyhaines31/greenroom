@@ -16,11 +16,13 @@ final class Windows {
         self.monitor = monitor
     }
 
-    /// Once, on first launch.
-    func showWelcomeIfNew() {
+    /// Once, on a new install. People who already used Green Room have their settings, so it
+    /// would only get in the way. Marked seen when shown, so closing it any way counts.
+    func showWelcomeIfNew(isNewUser: Bool) {
         guard !UserDefaults.standard.bool(forKey: Self.seenWelcomeKey), let callWatcher else { return }
+        UserDefaults.standard.set(true, forKey: Self.seenWelcomeKey)
+        guard isNewUser else { return }
         let view = WelcomeView(monitor: monitor, callWatcher: callWatcher) { [weak self] in
-            UserDefaults.standard.set(true, forKey: Self.seenWelcomeKey)
             self?.welcome?.close()
             self?.welcome = nil
         }
