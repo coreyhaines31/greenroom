@@ -180,15 +180,16 @@ public final class AudioChangeListener {
     }
 
     public func start() {
+        // Device and app lists need the per-object listeners rebuilt; default changes don't.
         var selectors = [
-            kAudioHardwarePropertyDevices,
-            kAudioHardwarePropertyDefaultInputDevice,
-            kAudioHardwarePropertyDefaultOutputDevice
+            (kAudioHardwarePropertyDevices, true),
+            (kAudioHardwarePropertyDefaultInputDevice, false),
+            (kAudioHardwarePropertyDefaultOutputDevice, false)
         ]
-        if #available(macOS 14.2, *) { selectors.append(kAudioHardwarePropertyProcessObjectList) }
-        for selector in selectors {
+        if #available(macOS 14.2, *) { selectors.append((kAudioHardwarePropertyProcessObjectList, true)) }
+        for (selector, rebuilds) in selectors {
             var addr = AudioHardware.address(selector)
-            let block = makeBlock(rebuilding: true)
+            let block = makeBlock(rebuilding: rebuilds)
             if AudioObjectAddPropertyListenerBlock(AudioHardware.system, &addr, .main, block) == noErr {
                 system.append((addr, block))
             }
@@ -209,8 +210,22 @@ public final class AudioChangeListener {
         let handler = self.handler
         return { [weak self] _, _ in
             MainActor.assumeIsolated {
-                if rebuilding { self?.rebuild() }
+                if rebuilding { self?.scheduleRebuild() }
                 handler()
+            }
+        }
+    }
+
+    private var rebuildPending = false
+
+    /// Apps come and go in bursts, so rebuilds are folded together.
+    private func scheduleRebuild() {
+        guard !rebuildPending else { return }
+        rebuildPending = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+            MainActor.assumeIsolated {
+                self?.rebuildPending = false
+                self?.rebuild()
             }
         }
     }

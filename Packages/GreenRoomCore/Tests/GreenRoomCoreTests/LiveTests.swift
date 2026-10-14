@@ -148,3 +148,14 @@ struct IgnoreTests {
         #expect(Readiness.evaluate(snapshot.ignoring(apps: ["screenpipe"]), setup: setup) == .ready)
     }
 }
+
+struct SystemServiceTests {
+    @Test func skipsMacOSSoundServicesButNotApps() {
+        #expect(LiveDevices.isSystemService("/System/Library/CoreServices/SystemSoundServer-macOS.app/x"))
+        #expect(!LiveDevices.isSystemService("/System/Applications/FaceTime.app/Contents/MacOS/FaceTime"))
+        #expect(LiveDevices.isSystemService("/usr/libexec/systemsoundserverd"))
+        #expect(LiveDevices.isSystemService("/System/Library/PrivateFrameworks/X.framework/coreaudiod"))
+        #expect(!LiveDevices.isSystemService("/opt/homebrew/bin/ffmpeg"))
+        #expect(!LiveDevices.isSystemService("/Applications/zoom.us.app/Contents/MacOS/zoom.us"))
+    }
+}
