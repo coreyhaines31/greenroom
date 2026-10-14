@@ -24,16 +24,17 @@ final class PlaybackTest {
         private let lock = NSLock()
         private var buffers: [AVAudioPCMBuffer] = []
 
+        /// Copies the raw bytes of each audio buffer, so any sample format and layout works.
         func append(_ buffer: AVAudioPCMBuffer) {
             guard let copy = AVAudioPCMBuffer(pcmFormat: buffer.format, frameCapacity: buffer.frameLength) else {
                 return
             }
             copy.frameLength = buffer.frameLength
-            let channels = Int(buffer.format.channelCount)
-            if let source = buffer.floatChannelData, let target = copy.floatChannelData {
-                for channel in 0..<channels {
-                    target[channel].update(from: source[channel], count: Int(buffer.frameLength))
-                }
+            let source = UnsafeMutableAudioBufferListPointer(UnsafeMutablePointer(mutating: buffer.audioBufferList))
+            let target = UnsafeMutableAudioBufferListPointer(copy.mutableAudioBufferList)
+            for (from, to) in zip(source, target) {
+                guard let bytes = from.mData, let destination = to.mData else { continue }
+                memcpy(destination, bytes, Int(min(from.mDataByteSize, to.mDataByteSize)))
             }
             lock.withLock { buffers.append(copy) }
         }
@@ -46,16 +47,22 @@ final class PlaybackTest {
         let recording = Recording()
         let engine = AVAudioEngine()
         let format = engine.inputNode.outputFormat(forBus: 0)
-        guard format.sampleRate > 0, format.channelCount > 0 else { return }
+        guard format.sampleRate > 0, format.channelCount > 0 else { return onDone() }
         engine.inputNode.installTap(onBus: 0, bufferSize: 4096, format: format, block: Self.tap(into: recording))
-        do { try engine.start() } catch { return }
+        do { try engine.start() } catch { return onDone() }
         self.engine = engine
+        // A different default mic mid-recording reconfigures the engine; stop rather than play junk.
+        let changed = NotificationCenter.default.addObserver(
+            forName: .AVAudioEngineConfigurationChange, object: engine, queue: .main
+        ) { _ in MainActor.assumeIsolated { [weak self] in self?.cancel(); onDone() } }
         task = Task {
+            defer { NotificationCenter.default.removeObserver(changed) }
             for left in stride(from: Self.seconds, to: 0, by: -1) {
                 phase = .recording(secondsLeft: left)
                 try? await Task.sleep(for: .seconds(1))
                 if Task.isCancelled { return }
             }
+            NotificationCenter.default.removeObserver(changed)
             engine.inputNode.removeTap(onBus: 0)
             engine.stop()
             await play(recording.all, format: format)
