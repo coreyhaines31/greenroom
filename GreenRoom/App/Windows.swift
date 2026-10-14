@@ -8,7 +8,24 @@ final class Windows {
     private let monitor: DeviceMonitor
     private var history: NSWindow?
     private var welcome: NSWindow?
+    private var settings: NSWindow?
     var callWatcher: CallWatcher?
+    var updater: Updater?
+    var hotKey: HotKey?
+
+    func showSettings() {
+        if settings == nil, let callWatcher, let updater, let hotKey {
+            let view = SettingsView(monitor: monitor, updater: updater, callWatcher: callWatcher, hotKey: hotKey)
+            let window = NSWindow(contentViewController: NSHostingController(rootView: view))
+            window.title = "Green Room Settings"
+            window.styleMask.remove(.resizable)
+            window.isReleasedWhenClosed = false
+            window.center()
+            settings = window
+        }
+        NSApp.activate()
+        settings?.makeKeyAndOrderFront(nil)
+    }
 
     static let seenWelcomeKey = "hasSeenWelcome"
 
@@ -53,6 +70,13 @@ final class Windows {
     }
 
     #if DEBUG
+    func writeSettingsSnapshot(to path: String) {
+        guard let view = settings?.contentView,
+              let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { return }
+        view.cacheDisplay(in: view.bounds, to: rep)
+        try? rep.representation(using: .png, properties: [:])?.write(to: URL(fileURLWithPath: path))
+    }
+
     func writeWelcomeSnapshot(to path: String) {
         guard let view = welcome?.contentView,
               let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { return }
