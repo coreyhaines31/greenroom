@@ -6,14 +6,27 @@ import Observation
 @Observable
 final class MicMeter {
     /// 0 is silence (-60 dB or quieter), 1 is full scale.
-    private(set) var level: Float = 0
+    private(set) var level: Float = 0 {
+        didSet {
+            if level > Self.soundLevel { lastSound = .now }
+            isSilent = Date.now.timeIntervalSince(lastSound) > Self.silentSeconds
+        }
+    }
+    /// True after a few seconds with nothing above room noise.
+    private(set) var isSilent = false
     @ObservationIgnored private var engine: AVAudioEngine?
+    @ObservationIgnored private var lastSound = Date.now
+
+    static let soundLevel: Float = 0.1
+    static let silentSeconds: TimeInterval = 5
 
     func start() {
         let engine = AVAudioEngine()
         let input = engine.inputNode
         let format = input.outputFormat(forBus: 0)
         guard format.sampleRate > 0, format.channelCount > 0 else { return }
+        lastSound = .now
+        isSilent = false
         input.installTap(onBus: 0, bufferSize: 1024, format: format, block: Self.tap { [weak self] level in
             DispatchQueue.main.async { MainActor.assumeIsolated { self?.level = level } }
         })
@@ -30,6 +43,7 @@ final class MicMeter {
         engine?.stop()
         engine = nil
         level = 0
+        isSilent = false
     }
 
     /// Built outside the main actor: the tap runs on a real-time audio thread.

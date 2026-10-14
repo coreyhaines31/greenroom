@@ -11,9 +11,12 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
     private let monitor: DeviceMonitor
     private let checks: Checks
 
-    init(monitor: DeviceMonitor, checks: Checks) {
+    private let windows: Windows
+
+    init(monitor: DeviceMonitor, checks: Checks, windows: Windows) {
         self.monitor = monitor
         self.checks = checks
+        self.windows = windows
         super.init()
 
         statusItem.autosaveName = "GreenRoomStatusItem"
@@ -22,7 +25,11 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
 
         popover.behavior = .transient
         popover.delegate = self
-        popover.contentViewController = NSHostingController(rootView: PanelView(monitor: monitor, checks: checks))
+        let panel = PanelView(monitor: monitor, checks: checks) { [weak self] in
+            self?.popover.performClose(nil)
+            self?.windows.showHistory()
+        }
+        popover.contentViewController = NSHostingController(rootView: panel)
 
         monitor.onChange = { [weak self] in self?.refreshButton() }
         refreshButton()

@@ -5,6 +5,7 @@ import SwiftUI
 struct PanelView: View {
     let monitor: DeviceMonitor
     let checks: Checks
+    let showHistory: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -12,6 +13,9 @@ struct PanelView: View {
             cameraSection
             microphoneSection
             speakerSection
+            if !monitor.missing.isEmpty {
+                missingSection
+            }
             Divider()
             footer
         }
@@ -55,6 +59,20 @@ struct PanelView: View {
                     .font(.caption).foregroundStyle(.secondary)
             } else {
                 LevelMeter(level: checks.meter.level)
+                if let problem = monitor.micProblem ?? (checks.meter.isSilent ? .silent : nil) {
+                    Label(problem.message, systemImage: "exclamationmark.triangle.fill")
+                        .font(.caption).foregroundStyle(.orange)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+    }
+
+    private var missingSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Usually here, missing now").font(.caption).foregroundStyle(.secondary)
+            ForEach(monitor.missing) { missing in
+                MissingRow(missing: missing)
             }
         }
     }
@@ -87,9 +105,38 @@ struct PanelView: View {
                 }
                 .fixedSize()
             }
+            Button("History") { showHistory() }
             Spacer()
             Button("Quit") { NSApp.terminate(nil) }
         }
+    }
+}
+
+struct MissingRow: View {
+    let missing: MissingDevice
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(missing.device.name).font(.callout.weight(.medium))
+            Text(summary).font(.caption).foregroundStyle(.orange)
+            Text(missing.reason.advice).font(.caption).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var summary: String {
+        guard let lastSeen = missing.lastSeen else { return missing.reason.headline }
+        return "\(missing.reason.headline) · last seen \(LastSeen.text(lastSeen))"
+    }
+}
+
+enum LastSeen {
+    static func text(_ date: Date, now: Date = .now) -> String {
+        let calendar = Calendar.current
+        let time = date.formatted(date: .omitted, time: .shortened)
+        if calendar.isDateInToday(date) { return "today \(time)" }
+        if calendar.isDateInYesterday(date) { return "yesterday \(time)" }
+        return date.formatted(.dateTime.weekday(.wide).month().day())
     }
 }
 

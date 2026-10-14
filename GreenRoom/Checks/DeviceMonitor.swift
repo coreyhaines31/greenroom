@@ -8,12 +8,17 @@ import Observation
 final class DeviceMonitor {
     private(set) var snapshot = Snapshot()
     private(set) var setup: Setup? = SetupStore.load()
+    private(set) var history = HistoryStore.load()
+    private(set) var usbProducts: [String] = []
+    private(set) var remembered: [MacAudioMemory.Remembered] = []
+    private(set) var micProblem: MicProblem?
 
     var readiness: Readiness { Readiness.evaluate(snapshot, setup: setup) }
 
     @ObservationIgnored var onChange: (() -> Void)?
     @ObservationIgnored private var audioListener: AudioChangeListener?
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
+    @ObservationIgnored private var dayTimer: Timer?
 
     func start() {
         let listener = AudioChangeListener { [weak self] in self?.refresh() }
@@ -24,20 +29,64 @@ final class DeviceMonitor {
                 MainActor.assumeIsolated { [weak self] in self?.refresh() }
             })
         }
-        refresh()
+        // Keeps "seen today" right for devices that stay plugged in for days.
+        dayTimer = Timer.scheduledTimer(withTimeInterval: 30 * 60, repeats: true) { _ in
+            MainActor.assumeIsolated { [weak self] in self?.recordHistory() }
+        }
+        refresh(force: true)
     }
 
     func stop() {
+        dayTimer?.invalidate()
         audioListener?.stop()
         observers.forEach(NotificationCenter.default.removeObserver)
         observers = []
     }
 
-    func refresh() {
+    func refresh(force: Bool = false) {
         let latest = DeviceScanner.snapshot()
-        guard latest != snapshot else { return }
+        usbProducts = USBDevices.productNames()
+        micProblem = latest.active(.microphone).flatMap(AudioHardware.micProblem)
+        guard force || latest != snapshot else { return }
         snapshot = latest
+        remembered = MacAudioMemory.remembered()
+        recordHistory()
         onChange?()
+    }
+
+    private func recordHistory() {
+        if history.update(snapshot, now: .now) {
+            HistoryStore.save(history)
+        }
+    }
+
+    /// Usually-connected or saved-setup devices that aren't here, with why.
+    var missing: [MissingDevice] {
+        var seen = Set<String>()
+        var result: [MissingDevice] = []
+        for (kind, device) in (setup?.devices ?? [:]).sorted(by: { $0.key.rawValue < $1.key.rawValue })
+        where !snapshot.contains(device.id, kind: kind) && seen.insert(device.id).inserted {
+            result.append(missingDevice(device, lastSeen: history.record(for: device)?.lastSeen))
+        }
+        for record in history.missingUsual(snapshot, now: .now) where seen.insert(record.device.id).inserted {
+            result.append(missingDevice(record.device, lastSeen: record.lastSeen))
+        }
+        return result
+    }
+
+    func missingDevice(_ device: Device, lastSeen: Date?) -> MissingDevice {
+        let reason = MissingReason.diagnose(name: device.name, transport: device.transport, usbProducts: usbProducts)
+        return MissingDevice(device: device, lastSeen: lastSeen, reason: reason)
+    }
+
+    /// Devices macOS has used before that aren't connected now and that Green Room hasn't
+    /// recorded itself.
+    var rememberedMissing: [MissingDevice] {
+        let connected = Set(DeviceKind.allCases.flatMap(snapshot.devices).map(\.name))
+        let recorded = Set(history.records.values.map(\.device.name))
+        return remembered
+            .filter { !connected.contains($0.name) && !recorded.contains($0.name) }
+            .map { missingDevice(Device(id: $0.id, name: $0.name, kind: .microphone, transport: .usb), lastSeen: nil) }
     }
 
     func select(_ device: Device) {
@@ -66,6 +115,31 @@ final class DeviceMonitor {
         snapshot.active(.camera)
             ?? setup?.devices[.camera].flatMap { saved in snapshot.devices(.camera).first { $0.id == saved.id } }
             ?? snapshot.devices(.camera).first
+    }
+}
+
+struct MissingDevice: Identifiable {
+    let device: Device
+    let lastSeen: Date?
+    let reason: MissingReason
+
+    var id: String { "\(device.kind.rawValue):\(device.id)" }
+}
+
+enum HistoryStore {
+    static var url: URL {
+        URL.applicationSupportDirectory.appending(path: "Green Room/history.json")
+    }
+
+    static func load() -> DeviceHistory {
+        (try? Data(contentsOf: url)).flatMap { try? JSONDecoder().decode(DeviceHistory.self, from: $0) }
+            ?? DeviceHistory()
+    }
+
+    static func save(_ history: DeviceHistory) {
+        guard let data = try? JSONEncoder().encode(history) else { return }
+        try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try? data.write(to: url, options: .atomic)
     }
 }
 
