@@ -63,7 +63,15 @@ struct PanelView: View {
                 Text("Allow microphone access in System Settings › Privacy & Security")
                     .font(.caption).foregroundStyle(.secondary)
             } else {
-                LevelMeter(level: checks.meter.level)
+                HStack(spacing: 10) {
+                    LevelMeter(level: checks.meter.level)
+                    Button(playbackLabel) { checks.hearYourself() }
+                        .controlSize(.small)
+                        .fixedSize()
+                        .disabled(checks.playback.phase != .idle)
+                        .help("Records five seconds and plays them back, so you hear what others will. "
+                            + "Nothing is saved.")
+                }
                 if let problem = monitor.micProblem ?? (checks.meter.isSilent ? .silent : nil) {
                     Label(problem.message, systemImage: "exclamationmark.triangle.fill")
                         .font(.caption).foregroundStyle(.orange)
@@ -86,6 +94,14 @@ struct PanelView: View {
         DevicePicker(kind: .speaker, monitor: monitor, selected: monitor.snapshot.active(.speaker)) {
             Button(toneLabel) { checks.tone.play() }
                 .disabled(checks.tone.playing != nil)
+        }
+    }
+
+    private var playbackLabel: String {
+        switch checks.playback.phase {
+        case .idle: "Hear Yourself"
+        case .recording(let left): "Talk… \(left)"
+        case .playing: "Playing…"
         }
     }
 
