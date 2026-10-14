@@ -49,6 +49,11 @@ struct PanelView: View {
             // 16:9 at the panel's 308pt content width.
             .frame(maxWidth: .infinity)
             .frame(height: 173)
+            if let advice = checks.camera.advice {
+                Label(advice, systemImage: "lightbulb")
+                    .font(.caption).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 
