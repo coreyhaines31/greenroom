@@ -136,8 +136,10 @@ final class Alerts: NSObject, UNUserNotificationCenterDelegate {
         guard let kind = (info["kind"] as? String).flatMap(DeviceKind.init(rawValue:)),
               let deviceID = info["deviceID"] as? String else { return }
         await MainActor.run {
-            monitor.refresh()
-            if let device = monitor.snapshot.device(deviceID, kind: kind) {
+            monitor.refresh(force: true)
+            // An old banner shouldn't switch devices if the problem is already gone.
+            let fixes = Self.mismatches(monitor.readiness).compactMap(\.fix) + monitor.advisories.compactMap(\.fix)
+            if let device = fixes.first(where: { $0.id == deviceID && $0.kind == kind }) {
                 monitor.select(device)
             }
         }

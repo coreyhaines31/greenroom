@@ -48,7 +48,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         if popover.isShown {
             popover.performClose(nil)
         } else if let button = statusItem.button {
-            monitor.refresh()
+            monitor.refresh(force: true)
             checks.start()
             if let view = popover.contentViewController?.view {
                 view.layoutSubtreeIfNeeded()

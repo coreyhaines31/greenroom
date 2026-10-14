@@ -59,6 +59,7 @@ final class DeviceMonitor {
         dayTimer?.invalidate()
         cameraObservations = []
         audioListener?.stop()
+        audioListener = nil
         observers.forEach(NotificationCenter.default.removeObserver)
         observers = []
     }
@@ -78,18 +79,26 @@ final class DeviceMonitor {
 
     /// Cameras say when another app starts or stops using them.
     private func observeCameras() {
+        let onChange = Self.cameraChangeHandler { [weak self] in self?.scheduleRefresh() }
         cameraObservations = Cameras.captureDevices().map { camera in
-            camera.observe(\.isInUseByAnotherApplication) { _, _ in
-                DispatchQueue.main.async { MainActor.assumeIsolated { [weak self] in self?.scheduleRefresh() } }
-            }
+            camera.observe(\.isInUseByAnotherApplication) { _, _ in onChange() }
         }
+    }
+
+    /// KVO calls back on AVFoundation's threads, so the handler is made outside the main actor
+    /// and hops back to it.
+    nonisolated static func cameraChangeHandler(
+        _ refresh: @escaping @MainActor @Sendable () -> Void
+    ) -> @Sendable () -> Void {
+        { DispatchQueue.main.async { MainActor.assumeIsolated { refresh() } } }
     }
 
     func refresh(force: Bool = false) {
         let latest = DeviceScanner.snapshot()
+        // Apps start and stop sounds all day; only a real change pays for the slower checks.
+        guard force || latest != snapshot else { return }
         usbProducts = USBDevices.productNames()
         micProblem = latest.active(.microphone).flatMap(AudioHardware.micProblem)
-        guard force || latest != snapshot else { return }
         snapshot = latest
         remembered = MacAudioMemory.remembered()
         let lastEvent = history.events.last?.id
@@ -104,8 +113,9 @@ final class DeviceMonitor {
     private func recordHistory() {
         let before = history
         guard history.update(snapshot, now: .now) else { return }
+        let activeDays = { (history: DeviceHistory) in history.records.values.map { $0.activeDays?.count ?? 0 } }
         let changed = history.events != before.events || history.records.count != before.records.count
-            || history.appDays != before.appDays
+            || history.appDays != before.appDays || activeDays(history) != activeDays(before)
         if changed || Date.now.timeIntervalSince(lastSave) > 5 * 60 {
             HistoryStore.save(history)
             lastSave = .now
