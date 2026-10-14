@@ -9,6 +9,9 @@ public struct DeviceHistory: Codable, Sendable, Equatable {
         public var lastSeen: Date
         /// Days it was connected, as `yyyy-MM-dd`, newest last.
         public var days: [String]
+        /// Days it was the one in use (the system default, or the suggested camera). Optional so
+        /// history saved by 1.0 still loads.
+        public var activeDays: [String]?
     }
 
     public enum Change: String, Codable, Sendable { case connected, disconnected, selected }
@@ -53,6 +56,11 @@ public struct DeviceHistory: Codable, Sendable, Equatable {
             record.device = device
             record.lastSeen = now
             Self.append(today, to: &record.days)
+            if snapshot.active(device.kind)?.id == device.id {
+                var activeDays = record.activeDays ?? []
+                Self.append(today, to: &activeDays)
+                record.activeDays = activeDays
+            }
             records[key] = record
             // The first run has nothing to compare against, so it records no events.
             if let present, !present.contains(key) {
@@ -79,12 +87,28 @@ public struct DeviceHistory: Codable, Sendable, Equatable {
     /// Connected on at least 3 of the last 14 days, or on every day Green Room has run if
     /// that's fewer. A device you stop using drops off after two weeks on its own.
     public func isUsual(_ record: Record, now: Date, calendar: Calendar = .current) -> Bool {
-        let window = Set((0..<Self.usualWindow).compactMap { offset in
-            calendar.date(byAdding: .day, value: -offset, to: now).map { Self.day($0, calendar) }
-        })
+        let window = Self.window(now: now, calendar: calendar)
         let seen = record.days.filter(window.contains).count
         let ran = appDays.filter(window.contains).count
         return seen > 0 && seen >= min(3, ran)
+    }
+
+    /// Days in the last two weeks this device was connected.
+    public func recentDays(_ record: Record, now: Date, calendar: Calendar = .current) -> Int {
+        let window = Self.window(now: now, calendar: calendar)
+        return record.days.filter(window.contains).count
+    }
+
+    /// Days in the last two weeks this device was the one in use.
+    public func recentActiveDays(_ record: Record, now: Date, calendar: Calendar = .current) -> Int {
+        let window = Self.window(now: now, calendar: calendar)
+        return (record.activeDays ?? []).filter(window.contains).count
+    }
+
+    static func window(now: Date, calendar: Calendar) -> Set<String> {
+        Set((0..<usualWindow).compactMap { offset in
+            calendar.date(byAdding: .day, value: -offset, to: now).map { day($0, calendar) }
+        })
     }
 
     /// Devices that are usually connected but aren't right now, most recently seen first.

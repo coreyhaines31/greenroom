@@ -6,7 +6,10 @@ for kind in DeviceKind.allCases {
     let active = snapshot.active(kind)?.id
     for device in snapshot.devices(kind) {
         let marker = device.id == active ? "●" : " "
-        print("  \(marker) \(device.name) (\(device.transport.label))")
+        let live = snapshot.liveApps(device)
+        let note = live.isEmpty ? "" : " · live in \(live.joined(separator: ", "))"
+        let rate = kind == .microphone ? snapshot.sampleRates[device.id].map { " · \(Int($0 / 1000)) kHz" } ?? "" : ""
+        print("  \(marker) \(device.name) (\(device.transport.label))\(rate)\(note)")
     }
 }
 

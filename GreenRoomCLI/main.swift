@@ -33,10 +33,12 @@ func fail(_ message: String) -> Never {
     exit(1)
 }
 
-let snapshot = DeviceScanner.snapshot()
+let appDefaults = UserDefaults(suiteName: Storage.defaultsDomain)
+let ignoredApps = Set(appDefaults?.stringArray(forKey: "ignoredApps") ?? [])
+let snapshot = DeviceScanner.snapshot().ignoring(apps: ignoredApps)
 let history = Storage.loadHistory()
 let usb = USBDevices.productNames()
-let setup = UserDefaults(suiteName: Storage.defaultsDomain).flatMap(Storage.loadSetup)
+let setup = appDefaults.flatMap(Storage.loadSetup)
 
 switch arguments.first {
 case "status":

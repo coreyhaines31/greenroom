@@ -22,7 +22,7 @@ final class Windows {
             window.setFrameAutosaveName("History")
             history = window
         }
-        monitor.refresh()
+        monitor.refresh(force: true)
         NSApp.activate()
         history?.makeKeyAndOrderFront(nil)
     }

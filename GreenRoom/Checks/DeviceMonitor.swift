@@ -13,7 +13,17 @@ final class DeviceMonitor {
     private(set) var remembered: [MacAudioMemory.Remembered] = []
     private(set) var micProblem: MicProblem?
 
-    var readiness: Readiness { Readiness.evaluate(snapshot, setup: setup) }
+    /// Apps whose device use never counts as a problem, like a recorder that's always listening.
+    private(set) var ignoredApps = Set(UserDefaults.standard.stringArray(forKey: "ignoredApps") ?? [])
+
+    var readiness: Readiness { Readiness.evaluate(snapshot.ignoring(apps: ignoredApps), setup: setup) }
+    var advisories: [Advisory] { Advisory.evaluate(snapshot.ignoring(apps: ignoredApps)) }
+    /// What "Save as my setup" saves before there is one: the devices used most, from history.
+    var proposedSetup: Setup { Setup.proposed(history: history, snapshot: snapshot, now: .now) }
+    var needsAttention: Bool {
+        if case .notReady = readiness { return true }
+        return !advisories.isEmpty
+    }
 
     @ObservationIgnored var onChange: (() -> Void)?
     /// New timeline events from each device change, for alerts.
@@ -21,16 +31,23 @@ final class DeviceMonitor {
     @ObservationIgnored private var audioListener: AudioChangeListener?
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
     @ObservationIgnored private var dayTimer: Timer?
+    @ObservationIgnored private var cameraObservations: [NSKeyValueObservation] = []
+    @ObservationIgnored private var pendingRefresh = false
+    @ObservationIgnored private var lastSave = Date.distantPast
 
     func start() {
-        let listener = AudioChangeListener { [weak self] in self?.refresh() }
+        let listener = AudioChangeListener { [weak self] in self?.scheduleRefresh() }
         listener.start()
         audioListener = listener
         for name in [AVCaptureDevice.wasConnectedNotification, AVCaptureDevice.wasDisconnectedNotification] {
             observers.append(NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { _ in
-                MainActor.assumeIsolated { [weak self] in self?.refresh() }
+                MainActor.assumeIsolated { [weak self] in
+                    self?.observeCameras()
+                    self?.scheduleRefresh()
+                }
             })
         }
+        observeCameras()
         // Keeps "seen today" right for devices that stay plugged in for days.
         dayTimer = Timer.scheduledTimer(withTimeInterval: 30 * 60, repeats: true) { _ in
             MainActor.assumeIsolated { [weak self] in self?.recordHistory() }
@@ -40,16 +57,48 @@ final class DeviceMonitor {
 
     func stop() {
         dayTimer?.invalidate()
+        cameraObservations = []
         audioListener?.stop()
+        audioListener = nil
         observers.forEach(NotificationCenter.default.removeObserver)
         observers = []
     }
 
+    /// Core Audio sends changes in bursts (a call starting touches several devices), so
+    /// they're folded into one refresh.
+    func scheduleRefresh() {
+        guard !pendingRefresh else { return }
+        pendingRefresh = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+            MainActor.assumeIsolated {
+                self?.pendingRefresh = false
+                self?.refresh()
+            }
+        }
+    }
+
+    /// Cameras say when another app starts or stops using them.
+    private func observeCameras() {
+        let onChange = Self.cameraChangeHandler { [weak self] in self?.scheduleRefresh() }
+        cameraObservations = Cameras.captureDevices().map { camera in
+            camera.observe(\.isInUseByAnotherApplication) { _, _ in onChange() }
+        }
+    }
+
+    /// KVO calls back on AVFoundation's threads, so the handler is made outside the main actor
+    /// and hops back to it.
+    nonisolated static func cameraChangeHandler(
+        _ refresh: @escaping @MainActor @Sendable () -> Void
+    ) -> @Sendable () -> Void {
+        { DispatchQueue.main.async { MainActor.assumeIsolated { refresh() } } }
+    }
+
     func refresh(force: Bool = false) {
         let latest = DeviceScanner.snapshot()
+        // Apps start and stop sounds all day; only a real change pays for the slower checks.
+        guard force || latest != snapshot else { return }
         usbProducts = USBDevices.productNames()
         micProblem = latest.active(.microphone).flatMap(AudioHardware.micProblem)
-        guard force || latest != snapshot else { return }
         snapshot = latest
         remembered = MacAudioMemory.remembered()
         let lastEvent = history.events.last?.id
@@ -59,10 +108,30 @@ final class DeviceMonitor {
         onEvents?(Array(history.events[start...]))
     }
 
+    /// Saves when something real changed (a device, an event, a new day), and otherwise at most
+    /// every few minutes: apps start and stop sound all day, and each one refreshes.
     private func recordHistory() {
-        if history.update(snapshot, now: .now) {
+        let before = history
+        guard history.update(snapshot, now: .now) else { return }
+        let activeDays = { (history: DeviceHistory) in history.records.values.map { $0.activeDays?.count ?? 0 } }
+        let changed = history.events != before.events || history.records.count != before.records.count
+            || history.appDays != before.appDays || activeDays(history) != activeDays(before)
+        if changed || Date.now.timeIntervalSince(lastSave) > 5 * 60 {
             HistoryStore.save(history)
+            lastSave = .now
         }
+    }
+
+    func ignore(app: String) {
+        ignoredApps.insert(app)
+        UserDefaults.standard.set(ignoredApps.sorted(), forKey: "ignoredApps")
+        onChange?()
+    }
+
+    func stopIgnoring(app: String) {
+        ignoredApps.remove(app)
+        UserDefaults.standard.set(ignoredApps.sorted(), forKey: "ignoredApps")
+        onChange?()
     }
 
     /// Usually-connected or saved-setup devices that aren't here, with why.
@@ -103,8 +172,9 @@ final class DeviceMonitor {
         refresh()
     }
 
+    /// The first save takes the proposal from history; later saves take what's in use now.
     func saveSetup() {
-        setup = Setup.current(snapshot)
+        setup = setup == nil ? proposedSetup : Setup.current(snapshot)
         SetupStore.save(setup)
         onChange?()
     }
