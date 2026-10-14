@@ -1,0 +1,12 @@
+included:
+  - GreenRoom
+  - Packages/GreenRoomCore/Sources
+  - Packages/GreenRoomCore/Tests
+excluded:
+  - Packages/GreenRoomCore/.build
+opt_in_rules:
+  - empty_count
+  - first_where
+  - sorted_imports
+identifier_name:
+  excluded: [x, y, id, ms, to, on, v4, v6]
