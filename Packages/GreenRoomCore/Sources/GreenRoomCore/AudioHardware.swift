@@ -36,6 +36,37 @@ public enum AudioHardware {
         ) == noErr
     }
 
+    /// Checks macOS's own mute switch and input volume. Many USB mics expose neither, which
+    /// reads as fine here; the level meter catches the rest.
+    public static func micProblem(_ device: Device) -> MicProblem? {
+        guard device.kind == .microphone,
+              let id = deviceIDs().first(where: { uid($0) == device.id }) else { return nil }
+        for element in [kAudioObjectPropertyElementMain, 1] {
+            if let mute = scalar(id, kAudioDevicePropertyMute, element: element, as: UInt32.self), mute != 0 {
+                return .muted
+            }
+        }
+        for element in [kAudioObjectPropertyElementMain, 1] {
+            if let volume = scalar(id, kAudioDevicePropertyVolumeScalar, element: element, as: Float32.self) {
+                return volume <= 0.001 ? .volumeZero : nil
+            }
+        }
+        return nil
+    }
+
+    static func scalar<T: Numeric>(
+        _ id: AudioObjectID, _ selector: AudioObjectPropertySelector, element: UInt32, as type: T.Type
+    ) -> T? {
+        var addr = AudioObjectPropertyAddress(
+            mSelector: selector, mScope: kAudioObjectPropertyScopeInput, mElement: element
+        )
+        guard AudioObjectHasProperty(id, &addr) else { return nil }
+        var value: T = 0
+        var size = UInt32(MemoryLayout<T>.size)
+        guard AudioObjectGetPropertyData(id, &addr, 0, nil, &size, &value) == noErr else { return nil }
+        return value
+    }
+
     static func device(for id: AudioObjectID, kind: DeviceKind) -> Device? {
         guard let uid = uid(id) else { return nil }
         let name = string(id, kAudioObjectPropertyName) ?? "Unknown device"
