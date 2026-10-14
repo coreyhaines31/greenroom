@@ -17,6 +17,8 @@ final class CameraSession {
     @ObservationIgnored private var analyzer: FrameAnalyzer?
     /// One line about light and framing, while the preview runs.
     private(set) var advice: String?
+    /// Callbacks already on their way when the camera stops shouldn't bring advice back.
+    @ObservationIgnored private var running = false
 
     var session: AVCaptureSession { box.session }
 
@@ -25,20 +27,28 @@ final class CameraSession {
     func start(_ device: AVCaptureDevice) {
         let box = box
         if analyzer == nil {
-            let analyzer = FrameAnalyzer(onAdvice: Self.adviceHandler { [weak self] in self?.advice = $0 })
+            let analyzer = FrameAnalyzer(onAdvice: Self.adviceHandler { [weak self] advice in
+                guard let self, running else { return }
+                self.advice = advice
+            })
             self.analyzer = analyzer
             box.queue.async {
                 let output = AVCaptureVideoDataOutput()
                 output.alwaysDiscardsLateVideoFrames = true
+                // Small frames are plenty to find a face and judge light, and cost far less.
                 output.videoSettings = [
-                    kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
+                    kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_420YpCbCr8BiPlanarFullRange,
+                    kCVPixelBufferWidthKey as String: 640, kCVPixelBufferHeightKey as String: 360
                 ]
-                output.setSampleBufferDelegate(analyzer, queue: box.queue)
+                output.setSampleBufferDelegate(analyzer, queue: analyzer.queue)
                 box.session.beginConfiguration()
                 if box.session.canAddOutput(output) { box.session.addOutput(output) }
                 box.session.commitConfiguration()
             }
         }
+        running = true
+        if deviceID != device.uniqueID { advice = nil }
+        if let analyzer { analyzer.queue.async { analyzer.reset() } }
         let newID = deviceID == device.uniqueID ? nil : device.uniqueID
         deviceID = device.uniqueID
         box.queue.async {
@@ -56,6 +66,7 @@ final class CameraSession {
     func stop() {
         let box = box
         box.queue.async { if box.session.isRunning { box.session.stopRunning() } }
+        running = false
         advice = nil
     }
 

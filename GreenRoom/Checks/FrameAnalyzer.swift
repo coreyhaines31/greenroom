@@ -7,6 +7,17 @@ import Vision
 final class FrameAnalyzer: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate, @unchecked Sendable {
     private let onAdvice: @Sendable (String?) -> Void
     private var last = Date.distantPast
+    /// The first second or so after the camera starts is dark while exposure settles.
+    private var startedAt = Date.distantPast
+    static let warmUp: TimeInterval = 1.5
+    /// Analysis runs on its own queue so it never holds up starting or stopping the camera.
+    let queue = DispatchQueue(label: "com.greenroomformac.framing", qos: .utility)
+
+    /// Call when the camera starts, on `queue`.
+    func reset() {
+        startedAt = .now
+        last = .now
+    }
 
     init(onAdvice: @escaping @Sendable (String?) -> Void) {
         self.onAdvice = onAdvice
@@ -15,9 +26,8 @@ final class FrameAnalyzer: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
     func captureOutput(
         _ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection
     ) {
-        guard Date.now.timeIntervalSince(last) >= 1, let pixels = CMSampleBufferGetImageBuffer(sampleBuffer) else {
-            return
-        }
+        guard Date.now.timeIntervalSince(startedAt) >= Self.warmUp, Date.now.timeIntervalSince(last) >= 1,
+              let pixels = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         last = .now
         let request = VNDetectFaceRectanglesRequest()
         try? VNImageRequestHandler(cvPixelBuffer: pixels, orientation: .up).perform([request])
