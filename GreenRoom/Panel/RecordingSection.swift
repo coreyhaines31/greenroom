@@ -8,8 +8,19 @@ struct RecordingSection: View {
     @AppStorage("showRecordingCheck") private var expanded = false
 
     var body: some View {
-        DisclosureGroup(isExpanded: $expanded) {
-            VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 8) {
+            Button {
+                expanded.toggle()
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: expanded ? "chevron.down" : "chevron.right").font(.caption2.weight(.semibold))
+                    Text(expanded ? "Ready to record?" : "Ready to record? \(summary)")
+                }
+                .font(.caption).foregroundStyle(.secondary)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            if expanded {
                 ForEach(check.items, id: \.title) { item in
                     Label {
                         VStack(alignment: .leading, spacing: 1) {
@@ -23,10 +34,6 @@ struct RecordingSection: View {
                     }
                 }
             }
-            .padding(.top, 6)
-        } label: {
-            Text(expanded ? "Ready to record?" : "Ready to record? \(summary)")
-                .font(.caption).foregroundStyle(.secondary)
         }
     }
 

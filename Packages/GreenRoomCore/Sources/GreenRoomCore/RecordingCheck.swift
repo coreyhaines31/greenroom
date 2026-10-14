@@ -57,8 +57,9 @@ public struct RecordingCheck: Codable, Sendable, Equatable {
             let whole = rate.truncatingRemainder(dividingBy: 1000) == 0
             let khz = whole ? "\(Int(rate / 1000))" : String(format: "%.1f", rate / 1000)
             items.append(rate >= 44_100
-                ? Item(title: mic, detail: "\(khz) kHz", passed: true)
-                : Item(title: mic, detail: "\(khz) kHz is phone-call quality. Record with a USB or built-in mic.",
+                ? Item(title: "Microphone", detail: "\(mic) · \(khz) kHz", passed: true)
+                : Item(title: "Microphone",
+                       detail: "\(mic) · \(khz) kHz is phone-call quality. Record with a USB or built-in mic.",
                        passed: false))
         }
         if let free = inputs.freeBytes {
@@ -86,25 +87,26 @@ public struct RecordingCheck: Codable, Sendable, Equatable {
     /// Below 1080p is the most common recording mistake, and the fix depends on why.
     static func cameraItem(_ inputs: Inputs) -> Item {
         guard let camera = inputs.cameraName else {
-            return Item(title: "No camera", detail: "Connect or pick a camera.", passed: false)
+            return Item(title: "Camera", detail: "None connected. Connect or pick a camera.", passed: false)
         }
         let size = "\(inputs.cameraWidth)×\(inputs.cameraHeight), up to \(inputs.cameraFPS) fps"
         if inputs.cameraHeight >= 1080 {
-            return Item(title: camera, detail: size, passed: true)
+            return Item(title: "Camera", detail: "\(camera) · \(size)", passed: true)
         }
         if inputs.cameraMaxHeight >= 1080 {
             let who = inputs.cameraApps.isEmpty
                 ? "The app using it" : ListFormatter.localizedString(byJoining: inputs.cameraApps)
             return Item(
-                title: camera,
-                detail: "\(size) right now, though it can do \(inputs.cameraMaxHeight)p. "
+                title: "Camera",
+                detail: "\(camera) · \(size) right now, though it can do \(inputs.cameraMaxHeight)p. "
                     + "\(who) may have picked the lower size; check its video settings.",
                 passed: false
             )
         }
         return Item(
-            title: camera,
-            detail: "\(size), its best right now. For a capture card, set the camera's HDMI output to 1080p or 4K.",
+            title: "Camera",
+            detail: "\(camera) · \(size), its best right now. "
+                + "For a capture card, set the camera's HDMI output to 1080p or 4K.",
             passed: false
         )
     }

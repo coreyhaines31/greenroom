@@ -14,14 +14,14 @@ struct RecordingCheckTests {
     @Test func readyWhenEverythingIsGood() {
         let check = RecordingCheck.evaluate(inputs())
         #expect(check.ready)
-        #expect(check.items.first?.detail == "1920×1080, up to 60 fps")
+        #expect(check.items.first?.detail == "Cam Link 4K · 1920×1080, up to 60 fps")
     }
 
     @Test func flagsWhatWouldRuinATake() {
         let check = RecordingCheck.evaluate(inputs(height: 720, rate: 16_000, free: 5_000_000_000, battery: true))
         #expect(!check.ready)
         #expect(check.items.filter { !$0.passed }.count == 4)
-        #expect(check.items[1].detail.hasPrefix("16 kHz is phone-call quality"))
+        #expect(check.items[1].detail.hasPrefix("Shure MV7 · 16 kHz is phone-call quality"))
         #expect(check.items[0].detail.contains("Loom may have picked the lower size"))
     }
 }
