@@ -394,6 +394,10 @@ h1 em { display: block; }
 .agent .fineprint { margin-top: 18px; }
 .agent .fineprint code { white-space: normal; overflow-wrap: anywhere; display: inline; }
 
+/* Before you go on */
+.extras .trust-grid { margin-top: 40px; }
+.extras .day-one { margin-top: 36px; }
+
 /* Trust */
 .trust h2 { max-width: 14em; }
 .trust-grid { display: grid; gap: 36px; margin-top: 48px; }
