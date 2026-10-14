@@ -17,8 +17,9 @@ public struct RecordingCheck: Codable, Sendable, Equatable {
         public var cameraFPS: Int
         /// The tallest format the camera offers. A capture card only offers what its input sends.
         public var cameraMaxHeight: Int
-        /// Apps using the camera right now, which may have picked a smaller format.
-        public var cameraApps: [String]
+        /// Another app has the camera open, so its current format is what that app records.
+        /// Otherwise the current format is just a default and says nothing.
+        public var cameraInUseElsewhere: Bool
         public var micName: String?
         public var micSampleRate: Double?
         public var freeBytes: Int64?
@@ -27,11 +28,11 @@ public struct RecordingCheck: Codable, Sendable, Equatable {
 
         public init(
             cameraName: String?, cameraWidth: Int, cameraHeight: Int, cameraFPS: Int, cameraMaxHeight: Int,
-            cameraApps: [String] = [], micName: String?, micSampleRate: Double?, freeBytes: Int64?, onBattery: Bool,
-            lowPowerMode: Bool
+            cameraInUseElsewhere: Bool = false, micName: String?, micSampleRate: Double?, freeBytes: Int64?,
+            onBattery: Bool, lowPowerMode: Bool
         ) {
             self.cameraMaxHeight = cameraMaxHeight
-            self.cameraApps = cameraApps
+            self.cameraInUseElsewhere = cameraInUseElsewhere
             self.cameraName = cameraName
             self.cameraWidth = cameraWidth
             self.cameraHeight = cameraHeight
@@ -84,38 +85,37 @@ public struct RecordingCheck: Codable, Sendable, Equatable {
         return RecordingCheck(items: items)
     }
 
-    /// Below 1080p is the most common recording mistake, and the fix depends on why.
+    /// Below 1080p is the most common recording mistake, and the fix depends on why: an app
+    /// recording at a smaller size, or a camera (often a capture card) that can't do better.
     static func cameraItem(_ inputs: Inputs) -> Item {
         guard let camera = inputs.cameraName else {
             return Item(title: "Camera", detail: "None connected. Connect or pick a camera.", passed: false)
         }
-        let size = "\(inputs.cameraWidth)×\(inputs.cameraHeight), up to \(inputs.cameraFPS) fps"
-        if inputs.cameraHeight >= 1080 {
-            return Item(title: "Camera", detail: "\(camera) · \(size)", passed: true)
-        }
-        if inputs.cameraMaxHeight >= 1080 {
-            let who = inputs.cameraApps.isEmpty
-                ? "The app using it" : ListFormatter.localizedString(byJoining: inputs.cameraApps)
+        let current = "\(inputs.cameraWidth)×\(inputs.cameraHeight)"
+        if inputs.cameraMaxHeight < 1080 {
             return Item(
                 title: "Camera",
-                detail: "\(camera) · \(size) right now, though it can do \(inputs.cameraMaxHeight)p. "
-                    + "\(who) may have picked the lower size; check its video settings.",
+                detail: "\(camera) · \(inputs.cameraMaxHeight)p at most right now. "
+                    + "For a capture card, set the camera's HDMI output to 1080p or 4K.",
                 passed: false
             )
         }
-        return Item(
-            title: "Camera",
-            detail: "\(camera) · \(size), its best right now. "
-                + "For a capture card, set the camera's HDMI output to 1080p or 4K.",
-            passed: false
-        )
+        if inputs.cameraInUseElsewhere, inputs.cameraHeight < 1080 {
+            return Item(
+                title: "Camera",
+                detail: "\(camera) · an app is using it at \(current), though it can do \(inputs.cameraMaxHeight)p. "
+                    + "Check that app's video settings.",
+                passed: false
+            )
+        }
+        let now = inputs.cameraInUseElsewhere ? ", \(current) in use now" : ""
+        return Item(title: "Camera", detail: "\(camera) · up to \(inputs.cameraMaxHeight)p\(now)", passed: true)
     }
 
     /// Reads the current camera format, mic rate, free space, and power state.
     public static func currentInputs(camera: Device?, mic: Device?, sampleRates: [String: Double]) -> Inputs {
         let capture = camera.flatMap(Cameras.captureDevice(for:))
         let dimensions = capture.map { CMVideoFormatDescriptionGetDimensions($0.activeFormat.formatDescription) }
-        let fps = capture?.activeFormat.videoSupportedFrameRateRanges.map(\.maxFrameRate).max() ?? 0
         let maxHeight = capture?.formats
             .map { CMVideoFormatDescriptionGetDimensions($0.formatDescription).height }
             .max()
@@ -125,8 +125,9 @@ public struct RecordingCheck: Codable, Sendable, Equatable {
         return Inputs(
             cameraName: camera?.name, cameraWidth: Int(dimensions?.width ?? 0),
             cameraHeight: Int(dimensions?.height ?? 0),
-            cameraFPS: Int(fps.rounded()), cameraMaxHeight: Int(maxHeight ?? 0),
-            cameraApps: [], micName: mic?.name, micSampleRate: mic.flatMap { sampleRates[$0.id] },
+            cameraFPS: 0, cameraMaxHeight: Int(maxHeight ?? 0),
+            cameraInUseElsewhere: capture?.isInUseByAnotherApplication ?? false,
+            micName: mic?.name, micSampleRate: mic.flatMap { sampleRates[$0.id] },
             freeBytes: free, onBattery: onBattery(), lowPowerMode: ProcessInfo.processInfo.isLowPowerModeEnabled
         )
     }
