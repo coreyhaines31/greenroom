@@ -22,6 +22,7 @@ final class DeviceMonitor {
     var advisories: [Advisory] { Advisory.evaluate(snapshot.ignoring(apps: ignoredApps)) }
     /// What "Save as my setup" saves before there is one: the devices used most, from history.
     var proposedSetup: Setup { Setup.proposed(history: history, snapshot: snapshot, now: .now) }
+    var flaky: [FlakyDevice] { FlakyDevice.find(in: history, now: .now) }
     var needsAttention: Bool {
         if case .notReady = readiness { return true }
         return !advisories.isEmpty

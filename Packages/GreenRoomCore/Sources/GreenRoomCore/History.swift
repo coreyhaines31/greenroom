@@ -112,12 +112,20 @@ public struct DeviceHistory: Codable, Sendable, Equatable {
     }
 
     /// Devices that are usually connected but aren't right now, most recently seen first.
+    /// Wired devices that are usually connected but aren't right now, most recently seen first,
+    /// one per name (a USB mic with a headphone jack is both a mic and a speaker). AirPods,
+    /// iPhones, and displays come and go all day, so they only count when they're in a setup.
     public func missingUsual(_ snapshot: Snapshot, now: Date, calendar: Calendar = .current) -> [Record] {
-        records.values
+        var names = Set<String>()
+        return records.values
+            .filter { Self.wired.contains($0.device.transport) }
             .filter { !snapshot.contains($0.device.id, kind: $0.device.kind) }
             .filter { isUsual($0, now: now, calendar: calendar) }
             .sorted { $0.lastSeen > $1.lastSeen }
+            .filter { names.insert($0.device.name).inserted }
     }
+
+    static let wired: Set<Transport> = [.usb, .external, .thunderbolt]
 
     static func day(_ date: Date, _ calendar: Calendar) -> String {
         let parts = calendar.dateComponents([.year, .month, .day], from: date)
