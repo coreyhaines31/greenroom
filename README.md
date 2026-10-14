@@ -40,13 +40,13 @@ Save more than one setup, like **Desk**, **Studio**, and **Travel**, from the Se
 
 ## Before the call
 
-Turn on **Check before calendar calls** in the gear menu. Two minutes before an event with a Zoom, Meet, Teams, Webex, or similar link, Green Room checks your setup. If you're ready it says nothing; if not, you get one alert with the fix. It needs calendar access, only reads when events start and whether they have a meeting link, and never changes your calendar.
+Turn on **Check before calendar calls** in Settings. Two minutes before an event with a Zoom, Meet, Teams, Webex, or similar link, Green Room checks your setup. If you're ready it says nothing; if not, you get one alert with the fix. It needs calendar access, only reads when events start and whether they have a meeting link, and never changes your calendar.
 
 Click **Hear Yourself** next to the mic meter to record five seconds and hear them played back, so you know how you sound, not just that the mic works. The recording is never saved.
 
 ## Keep my setup
 
-Turn on **Switch back when AirPods take over** in the gear menu. When a device that just connected, like AirPods coming out of the case or an iPhone nearby, takes over your mic or sound, Green Room switches back to your setup's device and tells you. If you meant it, click **Use AirPods** in the alert and Green Room leaves them alone until they disconnect. Anything you pick yourself is never switched back.
+Turn on **Switch back when AirPods take over** in Settings (gear menu › Settings…). When a device that just connected, like AirPods coming out of the case or an iPhone nearby, takes over your mic or sound, Green Room switches back to your setup's device and tells you. If you meant it, click **Use AirPods** in the alert and Green Room leaves them alone until they disconnect. Anything you pick yourself is never switched back.
 
 ## Before you record
 
@@ -64,7 +64,7 @@ Your Mac's default devices and what a call is really using can differ: Zoom and 
 - **Wrong device in a call:** "zoom.us is using MacBook Pro Microphone, not Shure MV7", with a button to switch your Mac's default and a tip to pick the device in the app if it keeps its own setting.
 - **Headset call mode:** when a Bluetooth headset's mic turns on, it drops to phone-call sound both ways. Green Room explains it and offers a better mic, like your Mac's own, with one click.
 
-Every problem has a button that fixes it, in the panel and right in the notification. If an app always listens (a recorder, for example), click **Ignore** on its warning; undo it in the gear menu.
+Every problem has a button that fixes it, in the panel and right in the notification. If an app always listens (a recorder, for example), click **Ignore** on its warning; undo it in Settings (gear menu › Settings…).
 
 The first time you open Green Room, it proposes your setup from the devices you've used most, so saving it is one click.
 
@@ -82,7 +82,7 @@ It also uses macOS's own memory of USB audio devices, so a mic you've used befor
 
 Under the mic meter you'll see a warning if macOS has the mic muted, its input volume is at zero, or no sound has come in for five seconds (usually the mic's own mute button or gain knob).
 
-**Alerts:** a notification when your setup stops matching or a usual device disconnects. Turn them off in the gear menu.
+**Alerts:** a notification when your setup stops matching or a usual device disconnects. Turn them off in Settings (gear menu › Settings…).
 
 **Keeps disconnecting:** a device that drops five or more times in a week gets a note with what to try, like another cable or port.
 
