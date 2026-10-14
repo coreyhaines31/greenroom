@@ -6,7 +6,9 @@ struct PanelView: View {
     let monitor: DeviceMonitor
     let checks: Checks
     let updater: Updater
+    let callWatcher: CallWatcher
     let showHistory: () -> Void
+    let closePanel: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -62,7 +64,15 @@ struct PanelView: View {
                 Text("Allow microphone access in System Settings › Privacy & Security")
                     .font(.caption).foregroundStyle(.secondary)
             } else {
-                LevelMeter(level: checks.meter.level)
+                HStack(spacing: 10) {
+                    LevelMeter(level: checks.meter.level)
+                    Button(playbackLabel) { checks.hearYourself() }
+                        .controlSize(.small)
+                        .fixedSize()
+                        .disabled(checks.playback.phase != .idle)
+                        .help("Records five seconds and plays them back, so you hear what others will. "
+                            + "Nothing is saved.")
+                }
                 if let problem = monitor.micProblem ?? (checks.meter.isSilent ? .silent : nil) {
                     Label(problem.message, systemImage: "exclamationmark.triangle.fill")
                         .font(.caption).foregroundStyle(.orange)
@@ -88,6 +98,14 @@ struct PanelView: View {
         }
     }
 
+    private var playbackLabel: String {
+        switch checks.playback.phase {
+        case .idle: "Hear Yourself"
+        case .recording(let left): "Talk… \(left)"
+        case .playing: "Playing…"
+        }
+    }
+
     private var toneLabel: String {
         switch checks.tone.playing {
         case .left: "Left…"
@@ -98,19 +116,15 @@ struct PanelView: View {
 
     private var footer: some View {
         HStack {
-            if monitor.setup == nil {
+            if monitor.setups.isEmpty {
                 Button("Save as my setup") { monitor.saveSetup() }
                     .help("Remember these devices and warn when something's different")
             } else {
-                Menu("Setup") {
-                    Button("Update to current devices") { monitor.saveSetup() }
-                    Button("Forget setup") { monitor.forgetSetup() }
-                }
-                .fixedSize()
+                SetupMenu(monitor: monitor, closePanel: closePanel)
             }
             Button("History") { showHistory() }
             Spacer()
-            OptionsMenu(monitor: monitor, updater: updater)
+            OptionsMenu(monitor: monitor, updater: updater, callWatcher: callWatcher)
         }
     }
 }
@@ -118,12 +132,17 @@ struct PanelView: View {
 struct OptionsMenu: View {
     let monitor: DeviceMonitor
     let updater: Updater
+    let callWatcher: CallWatcher
+    @State private var checkCalls = CallWatcher.isEnabled && CallWatcher.hasAccess
     @State private var alerts = Alerts.isEnabled
+    @State private var keepSetup = KeepSetup.isEnabled
     @State private var openAtLogin = LoginItem.isEnabled
 
     var body: some View {
         Menu {
             Toggle("Alert me when devices change", isOn: $alerts)
+            Toggle("Switch back when AirPods take over", isOn: $keepSetup)
+            Toggle("Check before calendar calls", isOn: $checkCalls)
             Toggle("Open at login", isOn: $openAtLogin)
             if !monitor.ignoredApps.isEmpty {
                 Menu("Ignored Apps") {
@@ -142,6 +161,11 @@ struct OptionsMenu: View {
         .fixedSize()
         .accessibilityLabel("Options")
         .onChange(of: alerts) { Alerts.isEnabled = alerts }
+        .onChange(of: keepSetup) { KeepSetup.isEnabled = keepSetup }
+        .onChange(of: checkCalls) {
+            guard checkCalls != (CallWatcher.isEnabled && CallWatcher.hasAccess) else { return }
+            Task { checkCalls = await callWatcher.setEnabled(checkCalls) }
+        }
         .onChange(of: openAtLogin) { openAtLogin = LoginItem.set(openAtLogin) }
     }
 }
@@ -205,7 +229,7 @@ struct DevicePicker<Trailing: View>: View {
     private func picker(_ devices: [Device]) -> some View {
         Picker(kind.title, selection: Binding(
             get: { selected?.id ?? "" },
-            set: { id in devices.first { $0.id == id }.map(monitor.select) }
+            set: { id in devices.first { $0.id == id }.map { monitor.select($0) } }
         )) {
             if selected == nil { Text("None").tag("") }
             ForEach(devices) { device in

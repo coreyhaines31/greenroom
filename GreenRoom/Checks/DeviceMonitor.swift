@@ -2,12 +2,12 @@ import AVFoundation
 import GreenRoomCore
 import Observation
 
-/// Keeps a live snapshot of connected devices and checks it against the saved setup.
+/// Keeps a live snapshot of connected devices and checks it against the setup that fits.
 @MainActor
 @Observable
 final class DeviceMonitor {
     private(set) var snapshot = Snapshot()
-    private(set) var setup: Setup? = SetupStore.load()
+    private(set) var setups: [Setup] = SetupStore.load()
     private(set) var history = HistoryStore.load()
     private(set) var usbProducts: [String] = []
     private(set) var remembered: [MacAudioMemory.Remembered] = []
@@ -16,6 +16,8 @@ final class DeviceMonitor {
     /// Apps whose device use never counts as a problem, like a recorder that's always listening.
     private(set) var ignoredApps = Set(UserDefaults.standard.stringArray(forKey: "ignoredApps") ?? [])
 
+    /// The saved setup that fits what's plugged in right now.
+    var setup: Setup? { Setup.bestMatch(setups, snapshot: snapshot) }
     var readiness: Readiness { Readiness.evaluate(snapshot.ignoring(apps: ignoredApps), setup: setup) }
     var advisories: [Advisory] { Advisory.evaluate(snapshot.ignoring(apps: ignoredApps)) }
     /// What "Save as my setup" saves before there is one: the devices used most, from history.
@@ -163,7 +165,16 @@ final class DeviceMonitor {
             .map { missingDevice(Device(id: $0.id, name: $0.name, kind: .microphone, transport: .usb), lastSeen: nil) }
     }
 
-    func select(_ device: Device) {
+    /// Devices you picked in Green Room, and when. Keep my setup never reverts these.
+    @ObservationIgnored private(set) var chosenByYou: [String: Date] = [:]
+
+    func chosenRecently(within seconds: TimeInterval) -> Set<String> {
+        Set(chosenByYou.filter { Date.now.timeIntervalSince($0.value) <= seconds }.keys)
+    }
+
+    /// Switching back for Keep my setup isn't a choice of yours, so it skips the bookkeeping.
+    func select(_ device: Device, byYou: Bool = true) {
+        if byYou { chosenByYou[device.id] = .now }
         if device.kind == .camera {
             Cameras.setPreferred(device)
         } else {
@@ -172,16 +183,51 @@ final class DeviceMonitor {
         refresh()
     }
 
-    /// The first save takes the proposal from history; later saves take what's in use now.
+    /// The first save takes the proposal from history. After that it updates the setup that
+    /// fits to what's in use now.
     func saveSetup() {
-        setup = setup == nil ? proposedSetup : Setup.current(snapshot)
-        SetupStore.save(setup)
-        onChange?()
+        guard let current = setup else {
+            store([withDate(proposedSetup)])
+            return
+        }
+        saveNewSetup(named: current.name)
     }
 
-    func forgetSetup() {
-        setup = nil
-        SetupStore.save(nil)
+    /// Saves what's in use now under a name, replacing a setup with that name.
+    func saveNewSetup(named name: String) {
+        let setup = withDate(Setup.current(snapshot, name: name))
+        store(setups.filter { $0.name != name } + [setup])
+    }
+
+    func forget(_ setup: Setup) {
+        store(setups.filter { $0.name != setup.name })
+    }
+
+    /// Makes the setup's connected mic, speaker, and camera the ones in use.
+    func apply(_ setup: Setup) {
+        for device in setup.devices.values {
+            if let connected = snapshot.device(device.id, kind: device.kind) {
+                chosenByYou[connected.id] = .now
+                if device.kind == .camera {
+                    Cameras.setPreferred(connected)
+                } else {
+                    AudioHardware.setDefault(connected)
+                }
+            }
+        }
+        store(setups.map { $0.name == setup.name ? withDate($0) : $0 })
+        refresh(force: true)
+    }
+
+    private func withDate(_ setup: Setup) -> Setup {
+        var setup = setup
+        setup.lastUsed = .now
+        return setup
+    }
+
+    private func store(_ setups: [Setup]) {
+        self.setups = setups
+        SetupStore.save(setups)
         onChange?()
     }
 
@@ -207,6 +253,6 @@ enum HistoryStore {
 }
 
 enum SetupStore {
-    static func load() -> Setup? { Storage.loadSetup(.standard) }
-    static func save(_ setup: Setup?) { Storage.saveSetup(setup, .standard) }
+    static func load() -> [Setup] { Storage.loadSetups(.standard) }
+    static func save(_ setups: [Setup]) { Storage.saveSetups(setups, .standard) }
 }

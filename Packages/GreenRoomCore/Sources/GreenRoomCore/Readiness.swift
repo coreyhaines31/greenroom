@@ -4,10 +4,33 @@ import Foundation
 public struct Setup: Codable, Sendable, Equatable {
     public var name: String
     public var devices: [DeviceKind: Device]
+    /// When it was last saved or applied, to break ties between setups. Optional so setups
+    /// saved by 1.0 and 1.1 still load.
+    public var lastUsed: Date?
 
-    public init(name: String, devices: [DeviceKind: Device]) {
+    public init(name: String, devices: [DeviceKind: Device], lastUsed: Date? = nil) {
         self.name = name
         self.devices = devices
+        self.lastUsed = lastUsed
+    }
+
+    /// How many of its devices are connected right now.
+    public func connectedCount(in snapshot: Snapshot) -> Int {
+        devices.values.filter { snapshot.contains($0.id, kind: $0.kind) }.count
+    }
+
+    /// The setup that fits what's plugged in: the most of its devices connected, then the
+    /// biggest share of them, then the one used last. Plug in the dock and Desk wins; unplug
+    /// it and Travel does.
+    public static func bestMatch(_ setups: [Setup], snapshot: Snapshot) -> Setup? {
+        setups.max { lhs, rhs in
+            let left = lhs.connectedCount(in: snapshot), right = rhs.connectedCount(in: snapshot)
+            if left != right { return left < right }
+            let leftShare = Double(left) / Double(max(lhs.devices.count, 1))
+            let rightShare = Double(right) / Double(max(rhs.devices.count, 1))
+            if leftShare != rightShare { return leftShare < rightShare }
+            return (lhs.lastUsed ?? .distantPast) < (rhs.lastUsed ?? .distantPast)
+        }
     }
 
     /// Saves whatever is active right now.
