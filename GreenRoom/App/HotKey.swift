@@ -9,6 +9,8 @@ final class HotKey {
     private var hotKey: EventHotKeyRef?
     private var handler: EventHandlerRef?
     private let action: () -> Void
+    /// True when another app already owns the shortcut.
+    private(set) var isTaken = false
 
     /// The C callback can't capture anything, so it finds the action here.
     private static var current: HotKey?
@@ -36,22 +38,26 @@ final class HotKey {
     private func register() {
         guard hotKey == nil else { return }
         Self.current = self
-        var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
-        InstallEventHandler(GetApplicationEventTarget(), { _, _, _ in
-            DispatchQueue.main.async { MainActor.assumeIsolated { HotKey.current?.action() } }
-            return noErr
-        }, 1, &spec, nil, &handler)
+        if handler == nil {
+            var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
+            // Carbon delivers application-target events on the main thread.
+            InstallEventHandler(GetApplicationEventTarget(), { _, _, _ in
+                MainActor.assumeIsolated { HotKey.current?.action() }
+                return noErr
+            }, 1, &spec, nil, &handler)
+        }
         // "GrRm"
         let id = EventHotKeyID(signature: OSType(0x4772_526D), id: 1)
-        RegisterEventHotKey(
+        let status = RegisterEventHotKey(
             UInt32(kVK_ANSI_G), UInt32(controlKey | optionKey | cmdKey), id, GetApplicationEventTarget(), 0, &hotKey
         )
+        isTaken = status != noErr
+        if isTaken { hotKey = nil }
     }
 
     private func unregister() {
         if let hotKey { UnregisterEventHotKey(hotKey) }
-        if let handler { RemoveEventHandler(handler) }
         hotKey = nil
-        handler = nil
+        isTaken = false
     }
 }

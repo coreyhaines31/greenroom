@@ -168,7 +168,8 @@ struct OptionsMenu: View {
             Toggle("Alert me when devices change", isOn: $alerts)
             Toggle("Switch back when AirPods take over", isOn: $keepSetup)
             Toggle("Check before calendar calls", isOn: $checkCalls)
-            Toggle("Open with \(HotKey.label)", isOn: $useHotKey)
+            Toggle(hotKey.isTaken ? "Open with \(HotKey.label) (another app has it)" : "Open with \(HotKey.label)",
+                   isOn: $useHotKey)
             Toggle("Open at login", isOn: $openAtLogin)
             if !monitor.ignoredApps.isEmpty {
                 Menu("Ignored Apps") {
