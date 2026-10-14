@@ -1,6 +1,7 @@
 #if DEBUG
 import AppKit
 import AVFoundation
+import Vision
 import GreenRoomCore
 
 /// `--self-test <path>`: runs the live checks for a few seconds without the panel and writes
@@ -8,12 +9,30 @@ import GreenRoomCore
 final class FrameCounter: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate, @unchecked Sendable {
     private let lock = NSLock()
     private var count = 0
+    private var framing: String?
     var frames: Int { lock.withLock { count } }
+    var advice: String { lock.withLock { framing ?? "none" } }
+    private var measured = ""
+    var measurements: String { lock.withLock { measured } }
+    private lazy var analyzer = FrameAnalyzer { [weak self] advice in
+        guard let self else { return }
+        lock.withLock { framing = advice }
+    }
 
     func captureOutput(
         _ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection
     ) {
-        lock.withLock { count += 1 }
+        let frame = lock.withLock { count += 1; return count }
+        analyzer.captureOutput(output, didOutput: sampleBuffer, from: connection)
+        if frame == 60, let pixels = CMSampleBufferGetImageBuffer(sampleBuffer) {
+            let request = VNDetectFaceRectanglesRequest()
+            try? VNImageRequestHandler(cvPixelBuffer: pixels, orientation: .up).perform([request])
+            let faces = request.results?.map(\.boundingBox) ?? []
+            let face = faces.first.map { String(format: "x %.2f y %.2f h %.2f", $0.midX, $0.midY, $0.height) } ?? "none"
+            let text = String(format: "brightness %.2f, faces %d, face %@", FrameAnalyzer.brightness(pixels, in: nil),
+                              faces.count, face)
+            lock.withLock { measured = text }
+        }
     }
 }
 
@@ -29,6 +48,9 @@ enum SelfTest {
             if camera, let device, let capture = Cameras.captureDevice(for: device),
                let input = try? AVCaptureDeviceInput(device: capture) {
                 let output = AVCaptureVideoDataOutput()
+                output.videoSettings = [
+                    kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
+                ]
                 output.setSampleBufferDelegate(counter, queue: box.queue)
                 box.session.addInput(input)
                 box.session.addOutput(output)
@@ -62,7 +84,7 @@ enum SelfTest {
                 "cameraAccess": camera, "micAccess": mic,
                 "camera": device?.name ?? "none", "cameraFrames": counter.frames,
                 "microphone": monitor.snapshot.active(.microphone)?.name ?? "none", "micPeakLevel": peak,
-                "recordedSeconds": recordedSeconds
+                "recordedSeconds": recordedSeconds, "framingAdvice": counter.advice, "framingMeasured": counter.measurements
             ]
             if let data = try? JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys]) {
                 try? data.write(to: URL(fileURLWithPath: path))
