@@ -1,49 +1,53 @@
 import Foundation
 
-/// A device that keeps dropping out: usually a worn cable, a loose port, or an underpowered hub.
+/// A wired device that keeps dropping out and coming straight back: the signature of a worn
+/// cable, a loose port, or an underpowered hub. Unplugging something on purpose doesn't count,
+/// because it stays unplugged for a while.
 public struct FlakyDevice: Sendable, Equatable {
     public let device: Device
-    public let drops: Int
+    public let blips: Int
 
-    public var message: String { "\(device.name) disconnected \(drops) times this week" }
+    public var message: String { "\(device.name) dropped out and came back \(blips) times this week" }
 
     public var advice: String {
-        switch device.transport {
-        case .bluetooth: "Keep it charged and closer to your Mac, or forget and re-pair it in Bluetooth settings."
-        case .usb, .external: "Try another cable or port, or plug it straight into your Mac instead of a hub."
-        default: "Check its connection, or try another port."
-        }
+        "Try another cable or port, or plug it straight into your Mac instead of a hub."
     }
 
-    /// Five drops in a week is more than a few deliberate unplugs.
-    public static let threshold = 5
+    /// Three blips in a week is more than chance.
+    public static let threshold = 3
     static let window: TimeInterval = 7 * 24 * 3600
-    /// Unplugging a whole dock drops everything on it at once; that's one decision, not a fault.
-    static let dockGap: TimeInterval = 5
+    /// Back within two minutes means it dropped, not that someone unplugged it.
+    static let blipLength: TimeInterval = 120
+    /// Several devices blipping together is sleep, wake, or a dock, not one bad cable.
+    static let together: TimeInterval = 5
 
-    /// Counts drops in the last week, skipping ones that happened with several other devices at
-    /// the same moment, and leaving out a mic and speaker that are the same headset twice.
     public static func find(in history: DeviceHistory, now: Date) -> [FlakyDevice] {
-        let recent = history.events.filter {
-            $0.change == .disconnected && now.timeIntervalSince($0.time) <= window
+        let events = history.events.filter { now.timeIntervalSince($0.time) <= window }
+        let drops = events.enumerated().filter { _, event in
+            event.change == .disconnected && DeviceHistory.wired.contains(event.device.transport)
         }
-        var drops: [String: (device: Device, count: Int)] = [:]
-        for event in recent {
-            let together = recent.filter { abs($0.time.timeIntervalSince(event.time)) <= dockGap }
-            let others = Set(together.map(\.device.name)).subtracting([event.device.name])
-            guard others.count < 2 else { continue }
-            let key = event.device.name
-            drops[key] = (event.device, (drops[key]?.count ?? 0) + 1)
-        }
-        // A headset is a mic and a speaker; count each drop once by halving its pair of events.
-        return drops.values
-            .map { entry in
-                let pair = recent.contains {
-                    $0.device.name == entry.device.name && $0.device.kind != entry.device.kind
-                }
-                return FlakyDevice(device: entry.device, drops: pair ? (entry.count + 1) / 2 : entry.count)
+        // Each drop that comes back quickly, as (name, time).
+        let blips: [(device: Device, time: Date)] = drops.compactMap { index, drop in
+            let back = events[(index + 1)...].contains { later in
+                later.change == .connected && later.device.id == drop.device.id
+                    && later.time.timeIntervalSince(drop.time) <= blipLength
             }
-            .filter { $0.drops >= threshold }
-            .sorted { $0.drops > $1.drops }
+            return back ? (drop.device, drop.time) : nil
+        }
+        var counts: [String: (device: Device, times: [Date])] = [:]
+        for blip in blips {
+            let others = Set(blips.filter { abs($0.time.timeIntervalSince(blip.time)) <= together }.map(\.device.name))
+            guard others.count < 3 else { continue }
+            // A USB headset is a mic and a speaker; one drop is one blip.
+            var entry = counts[blip.device.name] ?? (blip.device, [])
+            if !entry.times.contains(where: { abs($0.timeIntervalSince(blip.time)) <= together }) {
+                entry.times.append(blip.time)
+            }
+            counts[blip.device.name] = entry
+        }
+        return counts.values
+            .map { FlakyDevice(device: $0.device, blips: $0.times.count) }
+            .filter { $0.blips >= threshold }
+            .sorted { $0.blips > $1.blips }
     }
 }
