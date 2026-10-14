@@ -100,6 +100,12 @@ final class Alerts: NSObject, UNUserNotificationCenterDelegate {
         send(title: title, body: body, fix: fix)
     }
 
+    /// "Loom started recording: check your camera." No fix button: the fixes live in the
+    /// recording app's own settings or on the desk.
+    func sendRecordingCheck(title: String, body: String) {
+        send(title: title, body: body)
+    }
+
     /// Tells you Green Room switched back, with a button to keep the device that took over.
     func sendTakeover(_ takeover: Takeover) {
         let lead = takeover.kind == .speaker ? "took over the sound" : "took over the mic"

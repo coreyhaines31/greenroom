@@ -8,21 +8,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var alerts = Alerts(monitor: monitor)
     private lazy var keepSetup = KeepSetup(monitor: monitor, alerts: alerts)
     private lazy var callWatcher = CallWatcher(monitor: monitor, alerts: alerts)
+    private lazy var recordingWatcher = RecordingWatcher(monitor: monitor, alerts: alerts)
     private let updater = Updater()
     private var statusItemController: StatusItemController?
+    private lazy var hotKey = HotKey { [weak self] in self?.statusItemController?.toggle(pinned: false) }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Before the first refresh records today: no history and no setups means a new install.
+        let isNewUser = monitor.history.appDays.isEmpty && monitor.setups.isEmpty
         monitor.start()
         alerts.start()
         monitor.onEvents = { [weak self] events in
             // Switch back first, so the alerts see the fixed state.
             self?.keepSetup.devicesChanged(events)
             self?.alerts.devicesChanged(events)
+            self?.recordingWatcher.devicesChanged()
         }
         callWatcher.start()
         statusItemController = StatusItemController(
-            monitor: monitor, checks: checks, windows: windows, updater: updater, callWatcher: callWatcher
+            monitor: monitor, checks: checks, windows: windows, updater: updater, callWatcher: callWatcher,
+            hotKey: hotKey
         )
+        hotKey.apply()
+        windows.callWatcher = callWatcher
+        windows.showWelcomeIfNew(isNewUser: isNewUser)
         #if DEBUG
         // Opens the panel on launch, for screenshots and testing without clicking.
         if CommandLine.arguments.contains("--open-panel") {
@@ -39,6 +48,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
                 self.statusItemController?.writeSnapshot(to: path)
                 self.windows.writeHistorySnapshot(to: path.replacingOccurrences(of: ".png", with: "-history.png"))
+                self.windows.writeWelcomeSnapshot(to: path.replacingOccurrences(of: ".png", with: "-welcome.png"))
             }
         }
         #endif
