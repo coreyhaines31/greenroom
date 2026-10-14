@@ -10,7 +10,10 @@ struct PanelView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            StatusHeader(readiness: monitor.readiness, setupName: monitor.setup?.name)
+            StatusHeader(monitor: monitor)
+            ForEach(monitor.advisories, id: \.device.id) { advisory in
+                AdvisoryCard(advisory: advisory) { monitor.select($0) }
+            }
             cameraSection
             microphoneSection
             speakerSection
@@ -79,8 +82,7 @@ struct PanelView: View {
     }
 
     private var speakerSection: some View {
-        HStack(alignment: .bottom) {
-            DevicePicker(kind: .speaker, monitor: monitor, selected: monitor.snapshot.active(.speaker))
+        DevicePicker(kind: .speaker, monitor: monitor, selected: monitor.snapshot.active(.speaker)) {
             Button(toneLabel) { checks.tone.play() }
                 .disabled(checks.tone.playing != nil)
         }
@@ -108,12 +110,13 @@ struct PanelView: View {
             }
             Button("History") { showHistory() }
             Spacer()
-            OptionsMenu(updater: updater)
+            OptionsMenu(monitor: monitor, updater: updater)
         }
     }
 }
 
 struct OptionsMenu: View {
+    let monitor: DeviceMonitor
     let updater: Updater
     @State private var alerts = Alerts.isEnabled
     @State private var openAtLogin = LoginItem.isEnabled
@@ -122,6 +125,13 @@ struct OptionsMenu: View {
         Menu {
             Toggle("Alert me when devices change", isOn: $alerts)
             Toggle("Open at login", isOn: $openAtLogin)
+            if !monitor.ignoredApps.isEmpty {
+                Menu("Ignored Apps") {
+                    ForEach(monitor.ignoredApps.sorted(), id: \.self) { app in
+                        Button("Stop Ignoring \(app)") { monitor.stopIgnoring(app: app) }
+                    }
+                }
+            }
             Divider()
             Button("Check for Updates…") { updater.checkForUpdates() }
             Button("Quit Green Room") { NSApp.terminate(nil) }
@@ -164,41 +174,30 @@ enum LastSeen {
     }
 }
 
-struct StatusHeader: View {
-    let readiness: Readiness
-    let setupName: String?
-
-    var body: some View {
-        switch readiness {
-        case .noSetup:
-            Label("Pick your devices, then save them as your setup", systemImage: "web.camera")
-                .font(.headline)
-                .fixedSize(horizontal: false, vertical: true)
-        case .ready:
-            Label("Ready: \(setupName ?? "your setup")", systemImage: "checkmark.circle.fill")
-                .font(.headline).foregroundStyle(.green)
-        case .notReady(let issues):
-            VStack(alignment: .leading, spacing: 4) {
-                Label("Not ready", systemImage: "exclamationmark.triangle.fill")
-                    .font(.headline).foregroundStyle(.orange)
-                ForEach(issues, id: \.message) { issue in
-                    Text(issue.message).font(.callout)
-                }
-            }
-        }
-    }
-}
-
-struct DevicePicker: View {
+struct DevicePicker<Trailing: View>: View {
     let kind: DeviceKind
     let monitor: DeviceMonitor
     let selected: Device?
+    /// Sits on the picker's line, like the speaker's Test button.
+    @ViewBuilder var trailing: Trailing
+
+    init(kind: DeviceKind, monitor: DeviceMonitor, selected: Device?, @ViewBuilder trailing: () -> Trailing) {
+        self.kind = kind
+        self.monitor = monitor
+        self.selected = selected
+        self.trailing = trailing()
+    }
 
     var body: some View {
         let devices = monitor.snapshot.devices(kind)
         VStack(alignment: .leading, spacing: 4) {
             Text(kind.title).font(.caption).foregroundStyle(.secondary)
-            picker(devices)
+            HStack {
+                picker(devices)
+                Spacer(minLength: 8)
+                trailing
+            }
+            LiveCaption(kind: kind, snapshot: monitor.snapshot, selected: selected)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -215,6 +214,12 @@ struct DevicePicker: View {
         }
         .labelsHidden()
         .fixedSize()
+    }
+}
+
+extension DevicePicker where Trailing == EmptyView {
+    init(kind: DeviceKind, monitor: DeviceMonitor, selected: Device?) {
+        self.init(kind: kind, monitor: monitor, selected: selected) { EmptyView() }
     }
 }
 

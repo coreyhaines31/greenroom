@@ -53,6 +53,8 @@ public enum DeviceScanner {
             snapshot.devices[kind] = AudioHardware.devices(kind)
             snapshot.active[kind] = AudioHardware.defaultDevice(kind)
         }
+        snapshot.live = LiveDevices.current()
+        snapshot.sampleRates = AudioHardware.microphoneSampleRates()
         return snapshot
     }
 }

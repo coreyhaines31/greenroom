@@ -63,8 +63,8 @@ public enum AudioHardware {
         guard AudioObjectHasProperty(id, &addr) else { return nil }
         var value: T = 0
         var size = UInt32(MemoryLayout<T>.size)
-        guard AudioObjectGetPropertyData(id, &addr, 0, nil, &size, &value) == noErr else { return nil }
-        return value
+        let status = withUnsafeMutablePointer(to: &value) { AudioObjectGetPropertyData(id, &addr, 0, nil, &size, $0) }
+        return status == noErr ? value : nil
     }
 
     static func device(for id: AudioObjectID, kind: DeviceKind) -> Device? {
@@ -101,13 +101,32 @@ public enum AudioHardware {
         AudioObjectPropertyAddress(mSelector: selector, mScope: scope, mElement: kAudioObjectPropertyElementMain)
     }
 
-    static func deviceIDs() -> [AudioObjectID] {
-        var addr = address(kAudioHardwarePropertyDevices)
+    static func deviceIDs() -> [AudioObjectID] { objectList(system, kAudioHardwarePropertyDevices) }
+
+    static func objectList(
+        _ object: AudioObjectID, _ selector: AudioObjectPropertySelector,
+        scope: AudioObjectPropertyScope = kAudioObjectPropertyScopeGlobal
+    ) -> [AudioObjectID] {
+        var addr = address(selector, scope: scope)
         var size: UInt32 = 0
-        guard AudioObjectGetPropertyDataSize(system, &addr, 0, nil, &size) == noErr else { return [] }
+        guard AudioObjectGetPropertyDataSize(object, &addr, 0, nil, &size) == noErr, size > 0 else { return [] }
         var ids = [AudioObjectID](repeating: 0, count: Int(size) / MemoryLayout<AudioObjectID>.size)
-        guard AudioObjectGetPropertyData(system, &addr, 0, nil, &size, &ids) == noErr else { return [] }
+        guard AudioObjectGetPropertyData(object, &addr, 0, nil, &size, &ids) == noErr else { return [] }
         return ids
+    }
+
+    /// Nominal sample rate of each microphone, keyed by device UID.
+    public static func microphoneSampleRates() -> [String: Double] {
+        var rates: [String: Double] = [:]
+        for id in deviceIDs() where hasStreams(id, scope: kAudioObjectPropertyScopeInput) {
+            var addr = address(kAudioDevicePropertyNominalSampleRate)
+            var rate: Float64 = 0
+            var size = UInt32(MemoryLayout<Float64>.size)
+            if let uid = uid(id), AudioObjectGetPropertyData(id, &addr, 0, nil, &size, &rate) == noErr {
+                rates[uid] = rate
+            }
+        }
+        return rates
     }
 
     static func uid(_ id: AudioObjectID) -> String? { string(id, kAudioDevicePropertyDeviceUID) }
@@ -141,40 +160,103 @@ public enum AudioHardware {
     }
 }
 
-/// Calls back on the main queue when a device is plugged in or removed, or a default changes.
+/// Calls back on the main queue when a device is plugged in or removed, a default changes, or an
+/// app starts or stops using a device. Call `stop()` when done.
+@MainActor
 public final class AudioChangeListener {
     private let handler: @MainActor @Sendable () -> Void
-    private var registered: [(AudioObjectPropertyAddress, AudioObjectPropertyListenerBlock)] = []
+    private var system: [(AudioObjectPropertyAddress, AudioObjectPropertyListenerBlock)] = []
+    private struct Registration {
+        let object: AudioObjectID
+        let address: AudioObjectPropertyAddress
+        let block: AudioObjectPropertyListenerBlock
+    }
+
+    /// Listeners on each device and app, rebuilt whenever either list changes.
+    private var perObject: [Registration] = []
 
     public init(handler: @escaping @MainActor @Sendable () -> Void) {
         self.handler = handler
     }
 
     public func start() {
-        let selectors = [
-            kAudioHardwarePropertyDevices,
-            kAudioHardwarePropertyDefaultInputDevice,
-            kAudioHardwarePropertyDefaultOutputDevice
+        // Device and app lists need the per-object listeners rebuilt; default changes don't.
+        var selectors = [
+            (kAudioHardwarePropertyDevices, true),
+            (kAudioHardwarePropertyDefaultInputDevice, false),
+            (kAudioHardwarePropertyDefaultOutputDevice, false)
         ]
-        for selector in selectors {
+        if #available(macOS 14.2, *) { selectors.append((kAudioHardwarePropertyProcessObjectList, true)) }
+        for (selector, rebuilds) in selectors {
             var addr = AudioHardware.address(selector)
-            let handler = self.handler
-            let block: AudioObjectPropertyListenerBlock = { _, _ in
-                MainActor.assumeIsolated { handler() }
-            }
+            let block = makeBlock(rebuilding: rebuilds)
             if AudioObjectAddPropertyListenerBlock(AudioHardware.system, &addr, .main, block) == noErr {
-                registered.append((addr, block))
+                system.append((addr, block))
             }
         }
+        rebuild()
     }
 
     public func stop() {
-        for (addr, block) in registered {
+        for (addr, block) in system {
             var addr = addr
             AudioObjectRemovePropertyListenerBlock(AudioHardware.system, &addr, .main, block)
         }
-        registered = []
+        system = []
+        removePerObject()
     }
 
-    deinit { stop() }
+    private func makeBlock(rebuilding: Bool) -> AudioObjectPropertyListenerBlock {
+        let handler = self.handler
+        return { [weak self] _, _ in
+            MainActor.assumeIsolated {
+                if rebuilding { self?.scheduleRebuild() }
+                handler()
+            }
+        }
+    }
+
+    private var rebuildPending = false
+
+    /// Apps come and go in bursts, so rebuilds are folded together.
+    private func scheduleRebuild() {
+        guard !rebuildPending else { return }
+        rebuildPending = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { [weak self] in
+            MainActor.assumeIsolated {
+                self?.rebuildPending = false
+                self?.rebuild()
+            }
+        }
+    }
+
+    private func rebuild() {
+        removePerObject()
+        var targets: [(AudioObjectID, AudioObjectPropertySelector)] = []
+        for device in AudioHardware.deviceIDs() {
+            targets.append((device, kAudioDevicePropertyDeviceIsRunningSomewhere))
+            targets.append((device, kAudioDevicePropertyNominalSampleRate))
+        }
+        if #available(macOS 14.2, *) {
+            for process in AudioHardware.objectList(AudioHardware.system, kAudioHardwarePropertyProcessObjectList) {
+                targets.append((process, kAudioProcessPropertyIsRunningInput))
+                targets.append((process, kAudioProcessPropertyIsRunningOutput))
+            }
+        }
+        for (object, selector) in targets {
+            var addr = AudioHardware.address(selector)
+            let block = makeBlock(rebuilding: false)
+            if AudioObjectAddPropertyListenerBlock(object, &addr, .main, block) == noErr {
+                perObject.append(Registration(object: object, address: addr, block: block))
+            }
+        }
+    }
+
+    private func removePerObject() {
+        for registration in perObject {
+            var addr = registration.address
+            AudioObjectRemovePropertyListenerBlock(registration.object, &addr, .main, registration.block)
+        }
+        perObject = []
+    }
 }
