@@ -21,6 +21,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if CommandLine.arguments.contains("--open-panel") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) { self.statusItemController?.toggle(pinned: true) }
         }
+        if let index = CommandLine.arguments.firstIndex(of: "--self-test"), index + 1 < CommandLine.arguments.count {
+            SelfTest.run(monitor: monitor, writingTo: CommandLine.arguments[index + 1])
+        }
         if CommandLine.arguments.contains("--open-history") {
             windows.showHistory()
         }
