@@ -63,3 +63,41 @@ struct ReadinessTests {
         #expect(AudioHardware.transport(0) == .other)
     }
 }
+
+struct StatusReportTests {
+    let shure = Device(id: "mv7", name: "Shure MV7", kind: .microphone, transport: .usb)
+    let macMic = Device(id: "mac", name: "MacBook Pro Microphone", kind: .microphone, transport: .builtIn)
+    let speakers = Device(id: "spk", name: "MacBook Pro Speakers", kind: .speaker, transport: .builtIn)
+
+    @Test func readyWhenSetupMatches() {
+        let snapshot = Snapshot(
+            devices: [.microphone: [shure], .speaker: [speakers]], active: [.microphone: shure, .speaker: speakers]
+        )
+        let report = StatusReport.make(
+            snapshot: snapshot, setup: .current(snapshot, name: "Desk"), history: DeviceHistory(),
+            usbProducts: [], micProblem: nil, now: .now
+        )
+        #expect(report.ready)
+        #expect(report.text.hasPrefix("Ready: Desk matches."))
+    }
+
+    @Test func explainsAnUnpluggedSetupMic() {
+        let setup = Setup(name: "Desk", devices: [.microphone: shure])
+        let snapshot = Snapshot(devices: [.microphone: [macMic]], active: [.microphone: macMic])
+        let report = StatusReport.make(
+            snapshot: snapshot, setup: setup, history: DeviceHistory(), usbProducts: ["USB2.0 Hub"],
+            micProblem: nil, now: .now
+        )
+        #expect(!report.ready)
+        #expect(report.problems.map(\.message) == ["Shure MV7 isn't connected"])
+        #expect(report.problems.first?.advice.hasPrefix("Your Mac doesn't see it on USB") == true)
+    }
+
+    @Test func reportsAMutedMic() {
+        let snapshot = Snapshot(devices: [.microphone: [macMic]], active: [.microphone: macMic])
+        let report = StatusReport.make(
+            snapshot: snapshot, setup: nil, history: DeviceHistory(), usbProducts: [], micProblem: .muted, now: .now
+        )
+        #expect(report.problems.map(\.message) == [MicProblem.muted.message])
+    }
+}
