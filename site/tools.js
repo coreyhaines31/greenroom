@@ -358,6 +358,202 @@
     });
   }
 
+  // ---------- Speaker test ----------
+  function speakerTest() {
+    const ui = {
+      left: $("spk-left"), right: $("spk-right"), both: $("spk-both"), status: $("spk-status"),
+      sweep: $("spk-sweep"), sweepBar: $("spk-sweep-bar"), hz: $("spk-hz"), volume: $("spk-volume"),
+      outputRow: $("spk-output-row"), output: $("spk-output"), outputBtn: $("spk-output-btn"), outputNote: $("spk-output-note"),
+    };
+    if (!ui.left) return;
+    if (!AudioCtx) {
+      ui.status.textContent = "This browser can't play test sounds. Try a current version of Safari, Chrome, or Firefox.";
+      [ui.left, ui.right, ui.both, ui.sweep].forEach((b) => (b.disabled = true));
+      return;
+    }
+
+    const ctxSink = "setSinkId" in AudioCtx.prototype;
+    const elSink = !ctxSink && window.HTMLMediaElement && "setSinkId" in HTMLMediaElement.prototype;
+    const canPick = ctxSink || elSink;
+    const firefoxPicker = media && "selectAudioOutput" in media;
+    let ctx = null, master = null, outEl = null, sweepNodes = null, raf = 0, toneTimer = 0, sinkId = "";
+
+    function ensureCtx() {
+      if (ctx) return ctx;
+      ctx = new AudioCtx();
+      master = ctx.createGain();
+      setVolume();
+      if (elSink) {
+        const dest = ctx.createMediaStreamDestination();
+        master.connect(dest);
+        outEl = new Audio();
+        outEl.srcObject = dest.stream;
+        outEl.play().catch(() => {});
+        if (sinkId) outEl.setSinkId(sinkId).catch(() => {});
+      } else {
+        master.connect(ctx.destination);
+        if (ctxSink && sinkId) ctx.setSinkId(sinkId).catch(() => {});
+      }
+      return ctx;
+    }
+
+    function setVolume() {
+      if (!master) return;
+      const v = Number(ui.volume.value) / 100;
+      master.gain.value = v * v * 0.6;
+    }
+    ui.volume.addEventListener("input", setVolume);
+
+    function mark(button) {
+      [ui.left, ui.right, ui.both].forEach((b) => b.classList.toggle("on", b === button));
+      clearTimeout(toneTimer);
+      toneTimer = setTimeout(() => button && button.classList.remove("on"), 1300);
+    }
+
+    async function chime(pan, button, label) {
+      stopSweep();
+      ensureCtx();
+      if (ctx.state === "suspended") await ctx.resume();
+      if (outEl && outEl.paused) outEl.play().catch(() => {});
+      const panner = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+      if (panner) { panner.pan.value = pan; panner.connect(master); }
+      const t0 = ctx.currentTime + 0.03;
+      [523.25, 659.25, 783.99].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const env = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = freq;
+        const start = t0 + i * 0.3;
+        env.gain.setValueAtTime(0.0001, start);
+        env.gain.exponentialRampToValueAtTime(1, start + 0.02);
+        env.gain.exponentialRampToValueAtTime(0.0001, start + 0.5);
+        osc.connect(env).connect(panner || master);
+        osc.start(start);
+        osc.stop(start + 0.55);
+      });
+      mark(button);
+      ui.status.textContent = panner ? label : "This browser can't pan sound, so both sides play together.";
+      ui.status.dataset.played = (Number(ui.status.dataset.played) || 0) + 1;
+    }
+
+    ui.left.addEventListener("click", () => chime(-1, ui.left, "Playing on the left. You should hear it only in your left ear or left speaker."));
+    ui.right.addEventListener("click", () => chime(1, ui.right, "Playing on the right. You should hear it only in your right ear or right speaker."));
+    ui.both.addEventListener("click", () => chime(0, ui.both, "Playing on both sides. It should sound centered, right in front of you."));
+
+    const LOW = 40, HIGH = 16000, SWEEP_S = 8;
+    function stopSweep() {
+      if (!sweepNodes) return;
+      try { sweepNodes.osc.stop(); } catch {}
+      sweepNodes = null;
+      cancelAnimationFrame(raf);
+      ui.sweep.textContent = "Play the sweep";
+      ui.sweepBar.style.width = "0%";
+      ui.hz.textContent = "";
+    }
+
+    async function startSweep() {
+      if (sweepNodes) { stopSweep(); return; }
+      ensureCtx();
+      if (ctx.state === "suspended") await ctx.resume();
+      if (outEl && outEl.paused) outEl.play().catch(() => {});
+      [ui.left, ui.right, ui.both].forEach((b) => b.classList.remove("on"));
+      const osc = ctx.createOscillator();
+      const env = ctx.createGain();
+      const t0 = ctx.currentTime + 0.05;
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(LOW, t0);
+      osc.frequency.exponentialRampToValueAtTime(HIGH, t0 + SWEEP_S);
+      env.gain.setValueAtTime(0.0001, t0);
+      env.gain.exponentialRampToValueAtTime(0.5, t0 + 0.3);
+      env.gain.setValueAtTime(0.5, t0 + SWEEP_S - 0.3);
+      env.gain.exponentialRampToValueAtTime(0.0001, t0 + SWEEP_S);
+      osc.connect(env).connect(master);
+      osc.start(t0);
+      osc.stop(t0 + SWEEP_S + 0.05);
+      sweepNodes = { osc, t0 };
+      osc.onended = () => { if (sweepNodes && sweepNodes.osc === osc) stopSweep(); };
+      ui.sweep.textContent = "Stop";
+      ui.status.textContent = "Sweeping from a low rumble to a high whistle. Listen for rattles, buzzing, or spots that drop out.";
+      const tick = () => {
+        if (!sweepNodes) return;
+        const p = Math.max(0, Math.min(1, (ctx.currentTime - t0) / SWEEP_S));
+        ui.sweepBar.style.width = `${p * 100}%`;
+        const hz = LOW * Math.pow(HIGH / LOW, p);
+        ui.hz.textContent = hz >= 1000 ? `${(hz / 1000).toFixed(1)} kHz` : `${Math.round(hz)} Hz`;
+        raf = requestAnimationFrame(tick);
+      };
+      tick();
+    }
+    ui.sweep.addEventListener("click", startSweep);
+
+    async function useSink(id, label) {
+      sinkId = id;
+      try {
+        if (ctx && ctxSink) await ctx.setSinkId(id);
+        if (outEl) await outEl.setSinkId(id);
+        ui.outputNote.textContent = label ? `Test sounds now play on ${label}.` : "Test sounds play on your Mac's current output.";
+      } catch {
+        ui.outputNote.textContent = "Couldn't switch to that output. Try another one.";
+      }
+    }
+
+    async function listOutputs() {
+      const devices = (await media.enumerateDevices()).filter((d) => d.kind === "audiooutput");
+      const named = devices.some((d) => d.label);
+      ui.output.innerHTML = "";
+      const def = document.createElement("option");
+      def.value = "";
+      def.textContent = "Current output (system default)";
+      ui.output.append(def);
+      devices.filter((d) => d.deviceId && d.deviceId !== "default" && d.deviceId !== "communications").forEach((d, i) => {
+        const o = document.createElement("option");
+        o.value = d.deviceId;
+        o.textContent = d.label || `Output ${i + 1}`;
+        ui.output.append(o);
+      });
+      ui.output.value = sinkId;
+      return named;
+    }
+
+    if (!canPick) {
+      ui.outputRow.hidden = true;
+      ui.outputNote.textContent = "This browser plays on your Mac's current output. To change it, open System Settings › Sound › Output, or the Sound menu in Control Center.";
+    } else if (firefoxPicker) {
+      ui.output.hidden = true;
+      ui.outputBtn.hidden = false;
+      ui.outputBtn.textContent = "Choose output";
+      ui.outputBtn.addEventListener("click", async () => {
+        try {
+          const device = await media.selectAudioOutput();
+          await useSink(device.deviceId, device.label);
+        } catch { /* closed the picker */ }
+      });
+    } else {
+      listOutputs().then((named) => {
+        ui.output.disabled = false;
+        if (!named) {
+          ui.outputBtn.hidden = false;
+          ui.outputBtn.textContent = "Show device names";
+          ui.outputNote.textContent = "Your browser only shares output names after you allow the microphone. It's never recorded.";
+        }
+      }).catch(() => (ui.outputRow.hidden = true));
+      ui.output.addEventListener("change", () => useSink(ui.output.value, ui.output.value ? ui.output.selectedOptions[0].textContent : ""));
+      ui.outputBtn.addEventListener("click", async () => {
+        try {
+          const s = await media.getUserMedia({ audio: true });
+          stopStream(s);
+          await listOutputs();
+          ui.outputBtn.hidden = true;
+          ui.outputNote.textContent = "Pick where the test sounds should play.";
+        } catch {
+          ui.outputNote.textContent = "Without that permission, the browser keeps output names hidden. The test still plays on your current output.";
+        }
+      });
+      media.addEventListener && media.addEventListener("devicechange", () => listOutputs().catch(() => {}));
+    }
+  }
+
   micTest();
   camTest();
+  speakerTest();
 })();

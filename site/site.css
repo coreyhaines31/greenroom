@@ -563,6 +563,8 @@ button.pill:disabled { opacity: 0.5; cursor: default; }
 .sweep-scale { display: flex; justify-content: space-between; font: 12px var(--mono); color: var(--muted); }
 .volume { display: flex; align-items: center; gap: 12px; flex: 1 1 220px; min-width: 0; }
 .volume input { flex: 1; accent-color: var(--green-500); min-width: 0; }
+.spk-status { color: var(--muted); font-size: 15px; min-height: 3em; }
+.tool-card [hidden] { display: none !important; }
 
 /* Green Room card on tool pages */
 .gr-card {
