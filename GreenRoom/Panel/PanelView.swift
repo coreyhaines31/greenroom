@@ -6,10 +6,9 @@ struct PanelView: View {
     let monitor: DeviceMonitor
     let checks: Checks
     let updater: Updater
-    let callWatcher: CallWatcher
-    let hotKey: HotKey
     let showHistory: () -> Void
     let closePanel: () -> Void
+    let showSettings: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -147,39 +146,22 @@ struct PanelView: View {
             }
             Button("History") { showHistory() }
             Spacer()
-            OptionsMenu(monitor: monitor, updater: updater, callWatcher: callWatcher, hotKey: hotKey)
+            OptionsMenu(updater: updater, showSettings: showSettings)
         }
     }
 }
 
+/// Settings, updates, and quit. The toggles live in the Settings window.
 struct OptionsMenu: View {
-    let monitor: DeviceMonitor
     let updater: Updater
-    let callWatcher: CallWatcher
-    let hotKey: HotKey
-    @State private var useHotKey = HotKey.isEnabled
-    @State private var checkCalls = CallWatcher.isEnabled && CallWatcher.hasAccess
-    @State private var alerts = Alerts.isEnabled
-    @State private var keepSetup = KeepSetup.isEnabled
-    @State private var openAtLogin = LoginItem.isEnabled
+    let showSettings: () -> Void
 
     var body: some View {
         Menu {
-            Toggle("Alert me when devices change", isOn: $alerts)
-            Toggle("Switch back when AirPods take over", isOn: $keepSetup)
-            Toggle("Check before calendar calls", isOn: $checkCalls)
-            Toggle(hotKey.isTaken ? "Open with \(HotKey.label) (another app has it)" : "Open with \(HotKey.label)",
-                   isOn: $useHotKey)
-            Toggle("Open at login", isOn: $openAtLogin)
-            if !monitor.ignoredApps.isEmpty {
-                Menu("Ignored Apps") {
-                    ForEach(monitor.ignoredApps.sorted(), id: \.self) { app in
-                        Button("Stop Ignoring \(app)") { monitor.stopIgnoring(app: app) }
-                    }
-                }
-            }
-            Divider()
+            Button("Settings…", action: showSettings)
+                .keyboardShortcut(",")
             Button("Check for Updates…") { updater.checkForUpdates() }
+            Divider()
             Button("Quit Green Room") { NSApp.terminate(nil) }
         } label: {
             Image(systemName: "gearshape")
@@ -187,17 +169,6 @@ struct OptionsMenu: View {
         .menuIndicator(.hidden)
         .fixedSize()
         .accessibilityLabel("Options")
-        .onChange(of: alerts) { Alerts.isEnabled = alerts }
-        .onChange(of: keepSetup) { KeepSetup.isEnabled = keepSetup }
-        .onChange(of: useHotKey) {
-            HotKey.isEnabled = useHotKey
-            hotKey.apply()
-        }
-        .onChange(of: checkCalls) {
-            guard checkCalls != (CallWatcher.isEnabled && CallWatcher.hasAccess) else { return }
-            Task { checkCalls = await callWatcher.setEnabled(checkCalls) }
-        }
-        .onChange(of: openAtLogin) { openAtLogin = LoginItem.set(openAtLogin) }
     }
 }
 
