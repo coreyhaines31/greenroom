@@ -288,6 +288,7 @@ h1 em { display: block; }
 .state-icon svg { width: 20px; height: 18px; }
 .cam-outline { fill: none; stroke: #fff; stroke-width: 1.6; stroke-linejoin: round; }
 .cam-solid { fill: #fff; stroke: #fff; stroke-width: 1.2; stroke-linejoin: round; }
+.state-icon .warn-fill { fill: #fff; stroke: #fff; }
 .state-icon .warn-mark { stroke: var(--ink); }
 @media (prefers-color-scheme: dark) { .state-icon { background: #3a3a3c; } .state-icon .warn-mark { stroke: #3a3a3c; } }
 
@@ -331,6 +332,18 @@ h1 em { display: block; }
 .diag .try b { color: var(--ink); font-weight: 600; }
 .day-one { margin-top: 32px; max-width: 46em; color: var(--muted); font-size: 16px; }
 .day-one b { color: var(--ink); font-weight: 600; }
+
+/* During the call */
+.live-dot { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--menu-muted); }
+.live-dot::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #30d158; }
+.call-mode { background: color-mix(in srgb, var(--menu-orange) 9%, var(--menu)); }
+.cm-title { display: flex; gap: 6px; align-items: center; font-weight: 600; color: var(--menu-orange); font-size: 13px; }
+.cm-title svg { width: 14px; height: 13px; flex: none; }
+.cm-title .warn-fill { fill: var(--menu-orange); stroke: var(--menu-orange); }
+.cm-title .warn-mark { stroke: #fff; }
+.cm-body { font-size: 12px; color: var(--menu-muted); }
+.t-action { align-self: center; flex: none; margin-left: auto; padding: 4px 10px; border-radius: 7px; font-size: 12px; background: var(--control); box-shadow: 0 0 0 0.5px var(--control-line); }
+@media (max-width: 520px) { .t-action { display: none; } }
 
 /* Mic warnings */
 .meters { display: grid; gap: 12px; }
