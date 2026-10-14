@@ -8,8 +8,12 @@ let usage = """
     Usage: greenroom <command> [--json]
 
       status     The camera, mic, and speaker in use, and anything to fix (exits 2 if so)
+                 --recording adds camera format, mic quality, disk space, and power,
+                 and exits 2 if anything would spoil a recording
       devices    Everything connected, and devices that are usually here but missing
       history    Recent plug-ins, unplugs, and switches (--limit N, default 20)
+      setups     Your saved setups, and which one fits what's plugged in
+      use NAME   Switch the Mac's mic and speaker to a setup's devices
 
     """
 
@@ -38,7 +42,8 @@ let ignoredApps = Set(appDefaults?.stringArray(forKey: "ignoredApps") ?? [])
 let snapshot = DeviceScanner.snapshot().ignoring(apps: ignoredApps)
 let history = Storage.loadHistory()
 let usb = USBDevices.productNames()
-let setup = Setup.bestMatch(appDefaults.map(Storage.loadSetups) ?? [], snapshot: snapshot)
+let setups = appDefaults.map(Storage.loadSetups) ?? []
+let setup = Setup.bestMatch(setups, snapshot: snapshot)
 
 switch arguments.first {
 case "status":
@@ -46,8 +51,30 @@ case "status":
         snapshot: snapshot, setup: setup, history: history, usbProducts: usb,
         micProblem: snapshot.active(.microphone).flatMap(AudioHardware.micProblem), now: .now
     )
-    if json { printJSON(report) } else { print(report.text) }
-    exit(report.ready ? 0 : 2)
+    let recording = arguments.contains("--recording") ? RecordingCheck.evaluate(RecordingCheck.currentInputs(
+        camera: snapshot.active(.camera) ?? snapshot.devices(.camera).first, mic: snapshot.active(.microphone),
+        sampleRates: snapshot.sampleRates
+    )) : nil
+    if json {
+        // The status fields stay at the top level either way; --recording adds one key.
+        if let recording,
+           let base = try? JSONSerialization.jsonObject(with: JSONEncoder().encode(report)) as? [String: Any],
+           let extra = try? JSONSerialization.jsonObject(with: JSONEncoder().encode(recording)) {
+            var merged = base
+            merged["recording"] = extra
+            let data = try? JSONSerialization.data(withJSONObject: merged, options: [.prettyPrinted, .sortedKeys])
+            print(data.flatMap { String(bytes: $0, encoding: .utf8) } ?? "{}")
+        } else {
+            printJSON(report)
+        }
+    } else {
+        print(report.text)
+        if let recording {
+            print("\nReady to record? \(recording.ready ? "Yes" : "Not yet")")
+            for item in recording.items { print("\(item.passed ? "✓" : "!") \(item.title): \(item.detail)") }
+        }
+    }
+    exit(report.ready && recording?.ready != false ? 0 : 2)
 
 case "devices":
     struct Listed: Encodable {
@@ -114,6 +141,61 @@ case "history":
             print("\(time)  \(change)\(event.device.name)")
         }
     }
+
+case "setups":
+    struct Listed: Encodable {
+        let name: String, fits: Bool, connected: Int, devices: [String: String]
+    }
+    let listed = setups.map { item in
+        Listed(
+            name: item.name, fits: item.name == setup?.name, connected: item.connectedCount(in: snapshot),
+            devices: Dictionary(uniqueKeysWithValues: item.devices.map { ($0.key.rawValue, $0.value.name) })
+        )
+    }
+    if json {
+        printJSON(listed)
+    } else if listed.isEmpty {
+        print("No setups saved yet. Open Green Room and click Save as my setup.")
+    } else {
+        for item in setups {
+            let mark = item.name == setup?.name ? "●" : " "
+            let names = DeviceKind.allCases.compactMap { item.devices[$0]?.name }
+            print("\(mark) \(item.name): \(names.joined(separator: ", "))")
+        }
+    }
+
+case "use":
+    let name = arguments.dropFirst().joined(separator: " ")
+    guard let chosen = setups.first(where: { $0.name.localizedCaseInsensitiveCompare(name) == .orderedSame }) else {
+        fail("No setup named \"\(name)\". Run `greenroom setups` to see them.")
+    }
+    var switched: [String] = []
+    var missing: [String] = []
+    for kind in [DeviceKind.microphone, .speaker] {
+        guard let device = chosen.devices[kind] else { continue }
+        guard let connected = snapshot.device(device.id, kind: kind) else {
+            missing.append(device.name)
+            continue
+        }
+        if AudioHardware.setDefault(connected) {
+            switched.append("\(kind.title): \(connected.name)")
+        } else {
+            missing.append("\(connected.name) (macOS refused the switch)")
+        }
+    }
+    if json {
+        printJSON([
+            "setup": chosen.name, "switched": switched.joined(separator: "; "),
+            "missing": missing.joined(separator: ", ")
+        ])
+    } else {
+        print("Using \(chosen.name).")
+        switched.forEach { print("  \($0)") }
+        if !missing.isEmpty { print("  Not connected: \(missing.joined(separator: ", "))") }
+        // Cameras: each app keeps its own choice, so a command can't set it for them.
+        if let camera = chosen.devices[.camera] { print("  Pick \(camera.name) as the camera in your call app.") }
+    }
+    exit(missing.isEmpty && !switched.isEmpty ? 0 : 2)
 
 case "--version", "-v":
     print(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "dev")
