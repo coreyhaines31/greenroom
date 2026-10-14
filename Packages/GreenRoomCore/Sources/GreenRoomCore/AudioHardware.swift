@@ -160,40 +160,88 @@ public enum AudioHardware {
     }
 }
 
-/// Calls back on the main queue when a device is plugged in or removed, or a default changes.
+/// Calls back on the main queue when a device is plugged in or removed, a default changes, or an
+/// app starts or stops using a device. Call `stop()` when done.
+@MainActor
 public final class AudioChangeListener {
     private let handler: @MainActor @Sendable () -> Void
-    private var registered: [(AudioObjectPropertyAddress, AudioObjectPropertyListenerBlock)] = []
+    private var system: [(AudioObjectPropertyAddress, AudioObjectPropertyListenerBlock)] = []
+    private struct Registration {
+        let object: AudioObjectID
+        let address: AudioObjectPropertyAddress
+        let block: AudioObjectPropertyListenerBlock
+    }
+
+    /// Listeners on each device and app, rebuilt whenever either list changes.
+    private var perObject: [Registration] = []
 
     public init(handler: @escaping @MainActor @Sendable () -> Void) {
         self.handler = handler
     }
 
     public func start() {
-        let selectors = [
+        var selectors = [
             kAudioHardwarePropertyDevices,
             kAudioHardwarePropertyDefaultInputDevice,
             kAudioHardwarePropertyDefaultOutputDevice
         ]
+        if #available(macOS 14.2, *) { selectors.append(kAudioHardwarePropertyProcessObjectList) }
         for selector in selectors {
             var addr = AudioHardware.address(selector)
-            let handler = self.handler
-            let block: AudioObjectPropertyListenerBlock = { _, _ in
-                MainActor.assumeIsolated { handler() }
-            }
+            let block = makeBlock(rebuilding: true)
             if AudioObjectAddPropertyListenerBlock(AudioHardware.system, &addr, .main, block) == noErr {
-                registered.append((addr, block))
+                system.append((addr, block))
             }
         }
+        rebuild()
     }
 
     public func stop() {
-        for (addr, block) in registered {
+        for (addr, block) in system {
             var addr = addr
             AudioObjectRemovePropertyListenerBlock(AudioHardware.system, &addr, .main, block)
         }
-        registered = []
+        system = []
+        removePerObject()
     }
 
-    deinit { stop() }
+    private func makeBlock(rebuilding: Bool) -> AudioObjectPropertyListenerBlock {
+        let handler = self.handler
+        return { [weak self] _, _ in
+            MainActor.assumeIsolated {
+                if rebuilding { self?.rebuild() }
+                handler()
+            }
+        }
+    }
+
+    private func rebuild() {
+        removePerObject()
+        var targets: [(AudioObjectID, AudioObjectPropertySelector)] = []
+        for device in AudioHardware.deviceIDs() {
+            targets.append((device, kAudioDevicePropertyDeviceIsRunningSomewhere))
+            targets.append((device, kAudioDevicePropertyNominalSampleRate))
+        }
+        if #available(macOS 14.2, *) {
+            for process in AudioHardware.objectList(AudioHardware.system, kAudioHardwarePropertyProcessObjectList) {
+                targets.append((process, kAudioProcessPropertyIsRunningInput))
+                targets.append((process, kAudioProcessPropertyIsRunningOutput))
+            }
+        }
+        for (object, selector) in targets {
+            var addr = AudioHardware.address(selector)
+            let block = makeBlock(rebuilding: false)
+            if AudioObjectAddPropertyListenerBlock(object, &addr, .main, block) == noErr {
+                perObject.append(Registration(object: object, address: addr, block: block))
+            }
+        }
+    }
+
+    private func removePerObject() {
+        for registration in perObject {
+            var addr = registration.address
+            AudioObjectRemovePropertyListenerBlock(registration.object, &addr, .main, registration.block)
+        }
+        perObject = []
+    }
 }
