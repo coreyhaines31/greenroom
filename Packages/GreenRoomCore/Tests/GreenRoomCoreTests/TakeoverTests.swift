@@ -5,13 +5,13 @@ import Testing
 struct TakeoverTests {
     let monitors = Device(id: "mon", name: "Studio Monitors", kind: .speaker, transport: .usb)
     let pods = Device(id: "pods-out", name: "AirPods Pro", kind: .speaker, transport: .bluetooth)
-    let t0 = Date(timeIntervalSince1970: 1000)
+    let start = Date(timeIntervalSince1970: 1000)
 
     var setup: Setup { Setup(name: "Desk", devices: [.speaker: monitors]) }
     var podsActive: Snapshot { Snapshot(devices: [.speaker: [monitors, pods]], active: [.speaker: pods]) }
 
     func event(_ change: DeviceHistory.Change, _ device: Device, after seconds: TimeInterval) -> DeviceHistory.Event {
-        DeviceHistory.Event(time: t0.addingTimeInterval(seconds), change: change, device: device)
+        DeviceHistory.Event(time: start.addingTimeInterval(seconds), change: change, device: device)
     }
 
     @Test func switchesBackWhenANewlyConnectedDeviceTakesOver() {
