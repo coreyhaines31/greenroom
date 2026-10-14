@@ -18,6 +18,9 @@ final class Alerts: NSObject, UNUserNotificationCenterDelegate {
     static let enabledKey = "alertsEnabled"
     static let settleSeconds = 3.0
     nonisolated static let fixAction = "fix"
+    nonisolated static let keepAction = "keep"
+    /// Called when "Use <device>" is picked on a takeover alert.
+    var onKeep: ((DeviceKind, String) -> Void)?
     /// Wired devices only. iPhones, AirPods, and display speakers come and go all day.
     static let alertable: Set<Transport> = [.usb, .external, .thunderbolt]
 
@@ -91,7 +94,25 @@ final class Alerts: NSObject, UNUserNotificationCenterDelegate {
         }
     }
 
-    private func send(title: String, body: String, fix: Device? = nil, verb: String = "Switch to") {
+    /// The before-the-call heads-up. Sent whether or not other alerts are on, since you turned
+    /// this check on by itself.
+    func sendCallCheck(title: String, body: String, fix: Device?) {
+        send(title: title, body: body, fix: fix)
+    }
+
+    /// Tells you Green Room switched back, with a button to keep the device that took over.
+    func sendTakeover(_ takeover: Takeover) {
+        let lead = takeover.kind == .speaker ? "took over the sound" : "took over the mic"
+        send(
+            title: "\(takeover.intruder.name) \(lead)",
+            body: "Switched back to \(takeover.restore.name), your setup's \(takeover.kind.title.lowercased()).",
+            fix: takeover.intruder, verb: "Use", action: Self.keepAction
+        )
+    }
+
+    private func send(
+        title: String, body: String, fix: Device? = nil, verb: String = "Switch to", action: String = Alerts.fixAction
+    ) {
         let center = UNUserNotificationCenter.current()
         let content = UNMutableNotificationContent()
         content.title = title
@@ -99,11 +120,11 @@ final class Alerts: NSObject, UNUserNotificationCenterDelegate {
         content.sound = .default
         if let fix {
             let label = "\(verb) \(fix.name)"
-            let category = "fix:\(label)"
+            let category = "\(action):\(label)"
             if categories[category] == nil {
                 categories[category] = UNNotificationCategory(
                     identifier: category,
-                    actions: [UNNotificationAction(identifier: Self.fixAction, title: label)],
+                    actions: [UNNotificationAction(identifier: action, title: label)],
                     intentIdentifiers: []
                 )
                 center.setNotificationCategories(Set(categories.values))
@@ -131,10 +152,15 @@ final class Alerts: NSObject, UNUserNotificationCenterDelegate {
     nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse
     ) async {
-        guard response.actionIdentifier == Self.fixAction else { return }
+        let action = response.actionIdentifier
+        guard action == Self.fixAction || action == Self.keepAction else { return }
         let info = response.notification.request.content.userInfo
         guard let kind = (info["kind"] as? String).flatMap(DeviceKind.init(rawValue:)),
               let deviceID = info["deviceID"] as? String else { return }
+        if action == Self.keepAction {
+            await MainActor.run { onKeep?(kind, deviceID) }
+            return
+        }
         await MainActor.run {
             monitor.refresh(force: true)
             // An old banner shouldn't switch devices if the problem is already gone.

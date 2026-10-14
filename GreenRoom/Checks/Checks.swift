@@ -10,6 +10,7 @@ final class Checks {
     let camera = CameraSession()
     let meter = MicMeter()
     let tone = TestTone()
+    let playback = PlaybackTest()
     private(set) var cameraAccess = AVCaptureDevice.authorizationStatus(for: .video)
     private(set) var micAccess = AVCaptureDevice.authorizationStatus(for: .audio)
     @ObservationIgnored private let monitor: DeviceMonitor
@@ -36,8 +37,15 @@ final class Checks {
         }
     }
 
+    /// The meter and the recording both want the mic, so the meter pauses for the test.
+    func hearYourself() {
+        meter.stop()
+        playback.start { [weak self] in self?.restartMeter() }
+    }
+
     func stop() {
         isRunning = false
+        playback.cancel()
         camera.stop()
         meter.stop()
     }

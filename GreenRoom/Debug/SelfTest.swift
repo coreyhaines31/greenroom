@@ -42,11 +42,27 @@ enum SelfTest {
                 peak = max(peak, meter.level)
             }
             meter.stop()
+            // The Hear Yourself recording path, without playing anything back.
+            let recording = PlaybackTest.Recording()
+            let recorder = AVAudioEngine()
+            let format = recorder.inputNode.outputFormat(forBus: 0)
+            if mic, format.sampleRate > 0 {
+                recorder.inputNode.installTap(
+                    onBus: 0, bufferSize: 4096, format: format, block: PlaybackTest.tap(into: recording)
+                )
+                try? recorder.start()
+                try? await Task.sleep(for: .seconds(2))
+                recorder.inputNode.removeTap(onBus: 0)
+                recorder.stop()
+            }
+            let frames = recording.all.reduce(0.0) { $0 + Double($1.frameLength) }
+            let recordedSeconds = frames / max(format.sampleRate, 1)
             box.queue.async { box.session.stopRunning() }
             let result: [String: Any] = [
                 "cameraAccess": camera, "micAccess": mic,
                 "camera": device?.name ?? "none", "cameraFrames": counter.frames,
-                "microphone": monitor.snapshot.active(.microphone)?.name ?? "none", "micPeakLevel": peak
+                "microphone": monitor.snapshot.active(.microphone)?.name ?? "none", "micPeakLevel": peak,
+                "recordedSeconds": recordedSeconds
             ]
             if let data = try? JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys]) {
                 try? data.write(to: URL(fileURLWithPath: path))

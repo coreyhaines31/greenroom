@@ -13,7 +13,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
 
     private let windows: Windows
 
-    init(monitor: DeviceMonitor, checks: Checks, windows: Windows, updater: Updater) {
+    init(monitor: DeviceMonitor, checks: Checks, windows: Windows, updater: Updater, callWatcher: CallWatcher) {
         self.monitor = monitor
         self.checks = checks
         self.windows = windows
@@ -22,13 +22,18 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         statusItem.autosaveName = "GreenRoomStatusItem"
         statusItem.button?.target = self
         statusItem.button?.action = #selector(statusItemClicked)
+        statusItem.button?.sendAction(on: [.leftMouseUp, .rightMouseUp])
 
         popover.behavior = .transient
         popover.delegate = self
-        let panel = PanelView(monitor: monitor, checks: checks, updater: updater) { [weak self] in
-            self?.popover.performClose(nil)
-            self?.windows.showHistory()
-        }
+        let panel = PanelView(
+            monitor: monitor, checks: checks, updater: updater, callWatcher: callWatcher,
+            showHistory: { [weak self] in
+                self?.popover.performClose(nil)
+                self?.windows.showHistory()
+            },
+            closePanel: { [weak self] in self?.popover.performClose(nil) }
+        )
         let hosting = NSHostingController(rootView: panel)
         // The panel's height changes while it's open (permission prompts, the preview, a missing
         // device). Tracking it keeps the popover anchored under the menu bar instead of growing
@@ -40,7 +45,24 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         refreshButton()
     }
 
-    @objc private func statusItemClicked() { toggle(pinned: false) }
+    /// Click opens the panel. Right-click or Control-click opens a quick menu that switches
+    /// devices without starting the camera.
+    @objc private func statusItemClicked() {
+        let event = NSApp.currentEvent
+        if event?.type == .rightMouseUp || event?.modifierFlags.contains(.control) == true {
+            showQuickMenu()
+        } else {
+            toggle(pinned: false)
+        }
+    }
+
+    private func showQuickMenu() {
+        if popover.isShown { popover.performClose(nil) }
+        monitor.refresh(force: true)
+        statusItem.menu = QuickMenu.make(monitor: monitor) { [weak self] in self?.toggle(pinned: false) }
+        statusItem.button?.performClick(nil)
+        statusItem.menu = nil
+    }
 
     /// `pinned` keeps the panel open when another app takes focus (debug screenshots).
     func toggle(pinned: Bool) {

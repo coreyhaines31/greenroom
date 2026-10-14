@@ -38,7 +38,7 @@ let ignoredApps = Set(appDefaults?.stringArray(forKey: "ignoredApps") ?? [])
 let snapshot = DeviceScanner.snapshot().ignoring(apps: ignoredApps)
 let history = Storage.loadHistory()
 let usb = USBDevices.productNames()
-let setup = appDefaults.flatMap(Storage.loadSetup)
+let setup = Setup.bestMatch(appDefaults.map(Storage.loadSetups) ?? [], snapshot: snapshot)
 
 switch arguments.first {
 case "status":
