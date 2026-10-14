@@ -2,18 +2,22 @@ import Foundation
 import GreenRoomCore
 import UserNotifications
 
-/// Sends a notification when your setup stops matching, or a usual device disappears.
-/// Waits a few seconds first: devices often drop and come back while reconnecting.
+/// Sends a notification when your setup stops matching, a usual device disappears, or a headset
+/// drops into call mode. Waits a few seconds first: devices often drop and come back while
+/// reconnecting. Alerts that have a fix carry a button that applies it.
 @MainActor
-final class Alerts {
+final class Alerts: NSObject, UNUserNotificationCenterDelegate {
     private let monitor: DeviceMonitor
     private var buffered: [DeviceHistory.Event] = []
     private var pending: Task<Void, Never>?
-    /// Mismatches already announced, so each one alerts once until it's fixed.
+    /// Problems already announced, so each one alerts once until it's gone.
     private var announced: Set<String> = []
+    /// One category per fix, since a notification's button title comes from its category.
+    private var categories: [String: UNNotificationCategory] = [:]
 
     static let enabledKey = "alertsEnabled"
     static let settleSeconds = 3.0
+    nonisolated static let fixAction = "fix"
     /// Wired devices only. iPhones, AirPods, and display speakers come and go all day.
     static let alertable: Set<Transport> = [.usb, .external, .thunderbolt]
 
@@ -24,11 +28,14 @@ final class Alerts {
 
     init(monitor: DeviceMonitor) {
         self.monitor = monitor
-        announced = Set(Self.mismatches(monitor.readiness).map(\.message))
+        super.init()
+        announced = currentProblems()
     }
 
     func start() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
+        let center = UNUserNotificationCenter.current()
+        center.delegate = self
+        center.requestAuthorization(options: [.alert, .sound]) { _, _ in }
     }
 
     func devicesChanged(_ events: [DeviceHistory.Event]) {
@@ -41,21 +48,30 @@ final class Alerts {
         }
     }
 
+    private func currentProblems() -> Set<String> {
+        Set(Self.mismatches(monitor.readiness).map(\.message) + monitor.advisories.map(\.title))
+    }
+
     private func check() {
         let events = buffered
         buffered = []
         let mismatches = Self.mismatches(monitor.readiness)
-        let fresh = mismatches.filter { !announced.contains($0.message) }
-        announced = Set(mismatches.map(\.message))
+        let advisories = monitor.advisories
+        let freshMismatches = mismatches.filter { !announced.contains($0.message) }
+        let freshAdvisories = advisories.filter { !announced.contains($0.title) }
+        announced = currentProblems()
         guard Self.isEnabled else { return }
 
-        for mismatch in fresh {
+        for mismatch in freshMismatches {
             let detail = mismatch.problem == .missing
                 ? monitor.missingDevice(mismatch.expected, lastSeen: nil).reason.advice
-                : "Open Green Room to switch back."
-            send(title: mismatch.message, body: detail)
+                : mismatch.advice ?? "Switch back from here, or in Green Room."
+            send(title: mismatch.message, body: detail, fix: mismatch.fix, verb: "Switch to")
         }
-        let covered = Set(fresh.map(\.expected.id))
+        for advisory in freshAdvisories {
+            send(title: advisory.title, body: advisory.message, fix: advisory.fix, verb: "Use")
+        }
+        let covered = Set(freshMismatches.map(\.expected.id))
         var seen = Set<String>()
         let gone = events.filter { event in
             let device = event.device
@@ -75,18 +91,55 @@ final class Alerts {
         }
     }
 
-    private func send(title: String, body: String) {
+    private func send(title: String, body: String, fix: Device? = nil, verb: String = "Switch to") {
+        let center = UNUserNotificationCenter.current()
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body
         content.sound = .default
-        UNUserNotificationCenter.current().add(
-            UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
-        )
+        if let fix {
+            let label = "\(verb) \(fix.name)"
+            let category = "fix:\(label)"
+            if categories[category] == nil {
+                categories[category] = UNNotificationCategory(
+                    identifier: category,
+                    actions: [UNNotificationAction(identifier: Self.fixAction, title: label)],
+                    intentIdentifiers: []
+                )
+                center.setNotificationCategories(Set(categories.values))
+            }
+            content.categoryIdentifier = category
+            content.userInfo = ["kind": fix.kind.rawValue, "deviceID": fix.id]
+        }
+        center.add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil))
     }
 
     private static func mismatches(_ readiness: Readiness) -> [Mismatch] {
         if case .notReady(let mismatches) = readiness { return mismatches }
         return []
+    }
+
+    // MARK: UNUserNotificationCenterDelegate
+
+    /// Show alerts even while Green Room's panel is open.
+    nonisolated func userNotificationCenter(
+        _ center: UNUserNotificationCenter, willPresent notification: UNNotification
+    ) async -> UNNotificationPresentationOptions {
+        [.banner, .sound]
+    }
+
+    nonisolated func userNotificationCenter(
+        _ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse
+    ) async {
+        guard response.actionIdentifier == Self.fixAction else { return }
+        let info = response.notification.request.content.userInfo
+        guard let kind = (info["kind"] as? String).flatMap(DeviceKind.init(rawValue:)),
+              let deviceID = info["deviceID"] as? String else { return }
+        await MainActor.run {
+            monitor.refresh()
+            if let device = monitor.snapshot.device(deviceID, kind: kind) {
+                monitor.select(device)
+            }
+        }
     }
 }
