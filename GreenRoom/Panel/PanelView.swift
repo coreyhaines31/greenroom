@@ -5,6 +5,7 @@ import SwiftUI
 struct PanelView: View {
     let monitor: DeviceMonitor
     let checks: Checks
+    let updater: Updater
     let showHistory: () -> Void
 
     var body: some View {
@@ -107,12 +108,13 @@ struct PanelView: View {
             }
             Button("History") { showHistory() }
             Spacer()
-            OptionsMenu()
+            OptionsMenu(updater: updater)
         }
     }
 }
 
 struct OptionsMenu: View {
+    let updater: Updater
     @State private var alerts = Alerts.isEnabled
     @State private var openAtLogin = LoginItem.isEnabled
 
@@ -121,6 +123,7 @@ struct OptionsMenu: View {
             Toggle("Alert me when devices change", isOn: $alerts)
             Toggle("Open at login", isOn: $openAtLogin)
             Divider()
+            Button("Check for Updates…") { updater.checkForUpdates() }
             Button("Quit Green Room") { NSApp.terminate(nil) }
         } label: {
             Image(systemName: "gearshape")

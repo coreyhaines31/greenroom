@@ -1,5 +1,6 @@
 included:
   - GreenRoom
+  - GreenRoomCLI
   - Packages/GreenRoomCore/Sources
   - Packages/GreenRoomCore/Tests
 excluded:

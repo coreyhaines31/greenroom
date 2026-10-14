@@ -132,34 +132,11 @@ struct MissingDevice: Identifiable {
 }
 
 enum HistoryStore {
-    static var url: URL {
-        URL.applicationSupportDirectory.appending(path: "Green Room/history.json")
-    }
-
-    static func load() -> DeviceHistory {
-        (try? Data(contentsOf: url)).flatMap { try? JSONDecoder().decode(DeviceHistory.self, from: $0) }
-            ?? DeviceHistory()
-    }
-
-    static func save(_ history: DeviceHistory) {
-        guard let data = try? JSONEncoder().encode(history) else { return }
-        try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
-        try? data.write(to: url, options: .atomic)
-    }
+    static func load() -> DeviceHistory { Storage.loadHistory() }
+    static func save(_ history: DeviceHistory) { Storage.saveHistory(history) }
 }
 
 enum SetupStore {
-    private static let key = "setup"
-
-    static func load() -> Setup? {
-        UserDefaults.standard.data(forKey: key).flatMap { try? JSONDecoder().decode(Setup.self, from: $0) }
-    }
-
-    static func save(_ setup: Setup?) {
-        if let setup, let data = try? JSONEncoder().encode(setup) {
-            UserDefaults.standard.set(data, forKey: key)
-        } else {
-            UserDefaults.standard.removeObject(forKey: key)
-        }
-    }
+    static func load() -> Setup? { Storage.loadSetup(.standard) }
+    static func save(_ setup: Setup?) { Storage.saveSetup(setup, .standard) }
 }
