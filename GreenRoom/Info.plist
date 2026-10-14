@@ -30,5 +30,11 @@
 	<string>Copyright © 2026 Corey Haines. FSL-1.1-MIT.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Green Room shows a level meter so you can check your microphone before a call. Audio never leaves your Mac and is never saved.</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUFeedURL</key>
+	<string>https://github.com/coreyhaines31/greenroom/releases/latest/download/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>5MTMTktA0NUipG5n3iJy+27VbXN9uKgO2BbCgK8yUKU=</string>
 </dict>
 </plist>
