@@ -11,6 +11,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var recordingWatcher = RecordingWatcher(monitor: monitor, alerts: alerts)
     private let updater = Updater()
     private var statusItemController: StatusItemController?
+    private lazy var hotKey = HotKey { [weak self] in self?.statusItemController?.toggle(pinned: false) }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         monitor.start()
@@ -23,8 +24,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         callWatcher.start()
         statusItemController = StatusItemController(
-            monitor: monitor, checks: checks, windows: windows, updater: updater, callWatcher: callWatcher
+            monitor: monitor, checks: checks, windows: windows, updater: updater, callWatcher: callWatcher,
+            hotKey: hotKey
         )
+        hotKey.apply()
         #if DEBUG
         // Opens the panel on launch, for screenshots and testing without clicking.
         if CommandLine.arguments.contains("--open-panel") {
