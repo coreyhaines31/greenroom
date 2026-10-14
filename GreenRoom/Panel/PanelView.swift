@@ -98,15 +98,11 @@ struct PanelView: View {
 
     private var footer: some View {
         HStack {
-            if monitor.setup == nil {
+            if monitor.setups.isEmpty {
                 Button("Save as my setup") { monitor.saveSetup() }
                     .help("Remember these devices and warn when something's different")
             } else {
-                Menu("Setup") {
-                    Button("Update to current devices") { monitor.saveSetup() }
-                    Button("Forget setup") { monitor.forgetSetup() }
-                }
-                .fixedSize()
+                SetupMenu(monitor: monitor)
             }
             Button("History") { showHistory() }
             Spacer()
