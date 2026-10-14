@@ -107,8 +107,29 @@ struct PanelView: View {
             }
             Button("History") { showHistory() }
             Spacer()
-            Button("Quit") { NSApp.terminate(nil) }
+            OptionsMenu()
         }
+    }
+}
+
+struct OptionsMenu: View {
+    @State private var alerts = Alerts.isEnabled
+    @State private var openAtLogin = LoginItem.isEnabled
+
+    var body: some View {
+        Menu {
+            Toggle("Alert me when devices change", isOn: $alerts)
+            Toggle("Open at login", isOn: $openAtLogin)
+            Divider()
+            Button("Quit Green Room") { NSApp.terminate(nil) }
+        } label: {
+            Image(systemName: "gearshape")
+        }
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .accessibilityLabel("Options")
+        .onChange(of: alerts) { Alerts.isEnabled = alerts }
+        .onChange(of: openAtLogin) { openAtLogin = LoginItem.set(openAtLogin) }
     }
 }
 
