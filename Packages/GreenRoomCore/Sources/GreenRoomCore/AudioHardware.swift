@@ -63,8 +63,8 @@ public enum AudioHardware {
         guard AudioObjectHasProperty(id, &addr) else { return nil }
         var value: T = 0
         var size = UInt32(MemoryLayout<T>.size)
-        guard AudioObjectGetPropertyData(id, &addr, 0, nil, &size, &value) == noErr else { return nil }
-        return value
+        let status = withUnsafeMutablePointer(to: &value) { AudioObjectGetPropertyData(id, &addr, 0, nil, &size, $0) }
+        return status == noErr ? value : nil
     }
 
     static func device(for id: AudioObjectID, kind: DeviceKind) -> Device? {
@@ -101,13 +101,32 @@ public enum AudioHardware {
         AudioObjectPropertyAddress(mSelector: selector, mScope: scope, mElement: kAudioObjectPropertyElementMain)
     }
 
-    static func deviceIDs() -> [AudioObjectID] {
-        var addr = address(kAudioHardwarePropertyDevices)
+    static func deviceIDs() -> [AudioObjectID] { objectList(system, kAudioHardwarePropertyDevices) }
+
+    static func objectList(
+        _ object: AudioObjectID, _ selector: AudioObjectPropertySelector,
+        scope: AudioObjectPropertyScope = kAudioObjectPropertyScopeGlobal
+    ) -> [AudioObjectID] {
+        var addr = address(selector, scope: scope)
         var size: UInt32 = 0
-        guard AudioObjectGetPropertyDataSize(system, &addr, 0, nil, &size) == noErr else { return [] }
+        guard AudioObjectGetPropertyDataSize(object, &addr, 0, nil, &size) == noErr, size > 0 else { return [] }
         var ids = [AudioObjectID](repeating: 0, count: Int(size) / MemoryLayout<AudioObjectID>.size)
-        guard AudioObjectGetPropertyData(system, &addr, 0, nil, &size, &ids) == noErr else { return [] }
+        guard AudioObjectGetPropertyData(object, &addr, 0, nil, &size, &ids) == noErr else { return [] }
         return ids
+    }
+
+    /// Nominal sample rate of each microphone, keyed by device UID.
+    public static func microphoneSampleRates() -> [String: Double] {
+        var rates: [String: Double] = [:]
+        for id in deviceIDs() where hasStreams(id, scope: kAudioObjectPropertyScopeInput) {
+            var addr = address(kAudioDevicePropertyNominalSampleRate)
+            var rate: Float64 = 0
+            var size = UInt32(MemoryLayout<Float64>.size)
+            if let uid = uid(id), AudioObjectGetPropertyData(id, &addr, 0, nil, &size, &rate) == noErr {
+                rates[uid] = rate
+            }
+        }
+        return rates
     }
 
     static func uid(_ id: AudioObjectID) -> String? { string(id, kAudioDevicePropertyDeviceUID) }
