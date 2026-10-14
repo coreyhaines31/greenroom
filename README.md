@@ -1,0 +1,97 @@
+<h1 align="center">Green Room</h1>
+
+<p align="center">Check your camera, mic, and speakers before you go on. A free, source-available menu bar app for macOS.</p>
+
+<p align="center">
+  <a href="https://greenroomformac.com">greenroomformac.com</a> ·
+  <a href="https://github.com/coreyhaines31/greenroom/releases/latest">Download</a> ·
+  <a href="https://github.com/coreyhaines31/greenroom/issues">Report a bug</a>
+</p>
+
+---
+
+Two minutes before a call, you want three answers: which camera, which mic, and which speakers your Mac will use, and whether they work. Green Room shows all three in one click, with a live camera preview, a mic level meter, and a left-right speaker test. Save your usual devices as your setup, and it warns you when something changes: AirPods grabbing the sound, a USB mic that isn't plugged in, a capture card that dropped off.
+
+## Install
+
+Requires macOS 14 Sonoma or later.
+
+**Download:** get the DMG from [Releases](https://github.com/coreyhaines31/greenroom/releases/latest), open it, and drag **Green Room** to Applications. It's signed and notarized by Apple, and it updates itself.
+
+**Or with Homebrew:**
+
+```sh
+brew install --cask coreyhaines31/tap/greenroom
+```
+
+## Using it
+
+1. **Click the camera icon** in the menu bar. The first time, macOS asks for camera and microphone access. Green Room only uses them while the panel is open, and nothing is recorded or sent anywhere.
+2. **Pick your devices.** Choosing a mic or speaker makes it the Mac's default, the same as System Settings › Sound. Choosing a camera sets the one macOS suggests to apps; Zoom and Meet keep their own camera setting.
+3. **Check them.** Watch the preview, talk and watch the meter move, and click **Test** to hear a tone on the left, then the right.
+4. **Click Save as my setup.** From then on the icon turns into a warning when your setup doesn't match, and the panel says what's wrong.
+
+## When a device is missing
+
+Green Room keeps a history of every camera, mic, and speaker it sees. A device that's been connected on most recent days counts as usual, and when one goes missing the panel tells you why:
+
+| You see | It means | Try |
+| --- | --- | --- |
+| Not plugged in | Your Mac doesn't see it on USB at all | The cable, the hub, or another port |
+| Plugged in, but not working | It's on USB, but not working as a camera or mic | Unplug it and plug it back in |
+| Not connected (Bluetooth) | It's off or not paired right now | Turn it on, or connect it in Bluetooth settings |
+
+It also uses macOS's own memory of USB audio devices, so a mic you've used before shows up from the first day, before Green Room has any history of its own.
+
+Under the mic meter you'll see a warning if macOS has the mic muted, its input volume is at zero, or no sound has come in for five seconds (usually the mic's own mute button or gain knob).
+
+**Alerts:** a notification when your setup stops matching or a usual device disconnects. Turn them off in the gear menu.
+
+**History:** every device, connected or not, and a timeline of plug-ins, unplugs, and switches.
+
+## Command line
+
+The `greenroom` command reads your devices from Terminal, so you, a script, or an AI agent can check them without clicking anything.
+
+```sh
+greenroom status           # the camera, mic, and speaker in use, and whether your setup matches
+greenroom devices          # everything connected, and usual devices that are missing
+greenroom history          # recent plug-ins, unplugs, and switches
+```
+
+Add `--json` to any of them. `status` exits with 2 when something doesn't match your setup or a usual device is missing. Homebrew links the command for you; from the DMG, link it once:
+
+```sh
+sudo mkdir -p /usr/local/bin
+sudo ln -sf "/Applications/Green Room.app/Contents/MacOS/greenroom" /usr/local/bin/greenroom
+```
+
+**For AI agents**, add a line like this to your `CLAUDE.md` or `AGENTS.md`:
+
+```text
+Before I record or join a call, or when I say my mic or camera isn't working, run `greenroom status --json` and tell me anything that doesn't match my setup, and why.
+```
+
+## Privacy
+
+- **No analytics, no account, no network.** Green Room never connects to the internet except to check for updates.
+- **Camera and mic** only run while the panel is open. Nothing is recorded or saved.
+- **History** stays on your Mac, in `~/Library/Application Support/Green Room/`.
+
+## Build it yourself
+
+You need Xcode 16 or later and [XcodeGen](https://github.com/yonaskolb/XcodeGen). No Apple Developer account required.
+
+```sh
+git clone https://github.com/coreyhaines31/greenroom.git
+cd greenroom
+brew install xcodegen swiftlint
+Scripts/run-local.sh        # builds, signs to run locally, and opens the app
+cd Packages/GreenRoomCore && swift test
+```
+
+`swift run greenroom-dev` in the package prints your devices and why any are missing, without the app.
+
+## License
+
+Green Room is source available under the [Functional Source License, Version 1.1, MIT Future License](LICENSE) (FSL-1.1-MIT): use it, change it, and run it for anything except a competing product. Each version becomes MIT two years after it's released. The name and icon are covered by the [trademark policy](TRADEMARK.md).
