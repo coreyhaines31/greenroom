@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Webcam Test: Check Your Camera Online, Free · Green Room</title>
+  <meta name="description" content="Free online camera test. See a live preview, the real resolution and frame rate your webcam sends, and whether your lighting is too dark. Runs in your browser.">
+  <meta property="og:title" content="Webcam Test: Check Your Camera Online, Free">
+  <meta property="og:description" content="See a live preview, the real resolution and frame rate your webcam sends, and whether your lighting works. Runs in your browser; nothing is uploaded.">
+  <meta property="og:image" content="https://greenroomformac.com/images/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:url" content="https://greenroomformac.com/webcam-test">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#f5f5f7">
+  <link rel="icon" href="/images/icon.png">
+  <link rel="apple-touch-icon" href="/images/icon.png">
+  <link rel="canonical" href="https://greenroomformac.com/webcam-test">
+  <link rel="stylesheet" href="/site.css">
+  <script src="/nav.js" defer></script>
+  <script src="/tools.js" defer></script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "WebApplication", "name": "Webcam Test", "url": "https://greenroomformac.com/webcam-test", "description": "A free camera test that runs in your browser: a live preview, the real resolution and frame rate your webcam sends, and a lighting check.", "applicationCategory": "UtilitiesApplication", "operatingSystem": "Any", "browserRequirements": "Requires JavaScript and camera access", "isAccessibleForFree": true, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "author": {"@type": "Person", "name": "Corey Haines", "url": "https://corey.co"}}, {"@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Is this webcam test private?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. The preview and the checks run in your browser. No video is uploaded, saved, or sent anywhere."}}, {"@type": "Question", "name": "Why is my resolution lower than my webcam's box says?", "acceptedAnswer": {"@type": "Answer", "text": "This test asks for 1080p, and the camera sends the closest size it can right now. A camera can send less because of what it supports, a busy USB hub, or another app holding it. When the browser reports it, the page also shows the most the camera can do."}}, {"@type": "Question", "name": "Do other people see me mirrored?", "acceptedAnswer": {"@type": "Answer", "text": "The preview is mirrored by default so it feels like a mirror. Video apps usually send the unmirrored picture, so others see you the way a camera does. Turn off Mirror the preview to see that view."}}, {"@type": "Question", "name": "Does the webcam test work on Windows and phones?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. It works in any current browser that can use a camera. The fixes in our guides are written for Macs."}}]}]}</script>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap">
+      <a class="brand" href="/"><img src="/images/icon.png" alt="" width="30" height="30"> Green Room</a>
+      <nav>
+        <a href="/#how">How it works</a>
+        <details class="menu"><summary>Free tests</summary><div class="menu-list"><span>Test in your browser</span><a href="/mic-test">Microphone test</a><a href="/webcam-test" aria-current="page">Webcam test</a><a href="/speaker-test">Speaker test</a><span>Mac guides</span><a href="/mac-microphone-not-working">Mac microphone not working</a><a href="/mac-camera-not-working">Mac camera not working</a><a href="/how-to-test-microphone-on-mac">How to test your mic on a Mac</a></div></details>
+        <a href="https://github.com/coreyhaines31/greenroom">GitHub</a>
+        <a class="pill" href="https://github.com/coreyhaines31/greenroom/releases/latest">Download</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="sub-hero">
+      <div class="wrap narrow">
+        <p class="kicker"><span class="dot"></span>Free camera test · Nothing leaves your browser</p>
+        <h1>Test your webcam. <em>See what they see.</em></h1>
+        <p class="lede">A live preview, plus the numbers that matter: the resolution and frame rate your camera really sends, and whether your light is good enough.</p>
+      </div>
+    </section>
+
+    <section class="tool">
+      <div class="wrap narrow">
+        <div class="tool-card">
+          <div class="tool-row">
+            <div class="field">
+              <label for="cam-device">Camera</label>
+              <select class="select" id="cam-device" disabled><option>Click Start to list your cameras</option></select>
+            </div>
+            <button class="pill big" id="cam-start" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="13" height="12" rx="3"/><path d="M16 10.5 21 8v8l-5-2.5"/></svg>Start camera test</button>
+          </div>
+
+          <div class="preview flip" id="cam-preview">
+            <video id="cam-video" playsinline muted autoplay></video>
+            <div class="preview-empty" id="cam-empty"><div><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="13" height="12" rx="3"/><path d="M16 10.5 21 8v8l-5-2.5"/></svg>Your camera preview shows here</div></div>
+          </div>
+          <label class="check"><input type="checkbox" id="cam-flip" checked> Mirror the preview</label>
+
+          <div class="readouts">
+            <div class="readout"><small>Resolution</small><b id="cam-res">-</b><small id="cam-res-note">&nbsp;</small></div>
+            <div class="readout"><small>Frame rate</small><b id="cam-fps">-</b><small id="cam-fps-note">&nbsp;</small></div>
+            <div class="readout"><small>Brightness</small><b id="cam-light">-</b><small>Of full white</small></div>
+          </div>
+
+          <div class="verdict" id="cam-verdict" data-state="idle" aria-live="polite"><div><b>Not started</b><span>Click Start. Your browser will ask to use the camera.</span></div></div>
+
+          <p class="tool-note" id="cam-face-row" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="10" r="4"/><path d="M5 20a7 7 0 0 1 14 0"/></svg><span id="cam-face">Looking for your face…</span></p>
+          <p class="tool-note"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Runs entirely in your browser. No video is uploaded, saved, or sent anywhere.</p>
+        </div>
+
+        <div class="gr-card">
+          <div>
+            <img src="/images/icon.png" alt="" width="52" height="52">
+            <h2>On a Mac? Green Room checks all three from your menu bar and warns you when something changes.</h2>
+            <p>One click next to the clock shows your camera, mic, and speakers. Before you record, it checks the camera's resolution and frame rate, and flags a dark room or a backlit face. Free, with no account.</p>
+            <div class="actions">
+              <a class="pill big" href="https://github.com/coreyhaines31/greenroom/releases/latest"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14"/></svg>Download free</a>
+              <a class="pill ghost" href="/">See how it works</a>
+            </div>
+          </div>
+          <div class="meters" role="img" aria-label="A Green Room camera card: Cam Link 4K with a live preview, and a tip that says You're backlit, so your face is dark. Face the window or a lamp instead.">
+            <div class="meter-card">
+              <span class="popup static">Cam Link 4K · External<i></i></span>
+              <div class="cam" aria-hidden="true">
+                <span class="cam-lamp"></span><span class="cam-frame"></span><span class="cam-plant"></span>
+                <span class="cam-neck"></span><span class="cam-body"></span><span class="cam-head"></span>
+              </div>
+            </div>
+            <div class="meter-card">
+              <p class="tip"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5a5.5 5.5 0 0 0-3.2 10c.5.4.7.9.7 1.5v.5h5v-.5c0-.6.2-1.1.7-1.5a5.5 5.5 0 0 0-3.2-10Z"/><path d="M8 17.5h4"/></svg>You're backlit, so your face is dark. Face the window or a lamp instead.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="article">
+      <div class="wrap narrow prose">
+        <h2>How to read your result</h2>
+        <ul>
+          <li><strong>Resolution</strong> is the size of the picture your camera is sending right now. 1920×1080 (1080p) looks sharp on a call. 1280×720 (720p) is fine. Anything smaller looks soft.</li>
+          <li><strong>Frame rate</strong> is how many pictures a second arrive. 30 fps looks smooth. Many webcams drop to 15 fps or less in a dim room, because each frame needs more light.</li>
+          <li><strong>Brightness</strong> is how light the picture is overall. Under about 20% you'll look dim and grainy. The check also compares your face with the background, so it can tell when a window behind you is doing the lighting.</li>
+        </ul>
+        <p>The easiest upgrade for any webcam is light: a lamp or a window in front of you, a little above eye level.</p>
+
+        <h2>Camera test not working?</h2>
+        <p>If the preview stays black or the test won't start, it's usually one of three things:</p>
+        <ol class="fixes">
+          <li><b>The site isn't allowed to use the camera.</b>Click the icon at the left of the address bar (Chrome) or open Safari › Settings › Websites › Camera, and set this site to Allow.</li>
+          <li><b>Your browser isn't allowed to use the camera.</b>On a Mac, open System Settings › Privacy & Security › Camera and turn on your browser. You may need to quit and reopen it.</li>
+          <li><b>Another app has the camera.</b>Quit Zoom, Teams, FaceTime, or anything else that might be using it, then click Restart.</li>
+        </ol>
+        <p>Still stuck on a Mac? Read <a href="/mac-camera-not-working">Mac camera not working</a> for the full list of fixes.</p>
+
+        <div class="tool-links">
+          <a href="/mic-test"><b>Microphone test</b><span>Live meter, then hear yourself back.</span></a>
+          <a href="/speaker-test"><b>Speaker test</b><span>Left, right, and a low-to-high sweep.</span></a>
+          <a href="/mac-camera-not-working"><b>Mac camera not working?</b><span>The fixes, in the order to try them.</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="faq after-article">
+      <div class="wrap narrow">
+        <h2>Questions</h2>
+        <details><summary>Is this webcam test private?</summary><p>Yes. The preview and the checks run in your browser. No video is uploaded, saved, or sent anywhere.</p></details>
+        <details><summary>Why is my resolution lower than my webcam's box says?</summary><p>This test asks for 1080p, and the camera sends the closest size it can right now. A camera can send less because of what it supports, a busy USB hub, or another app holding it. When the browser reports it, the page also shows the most the camera can do.</p></details>
+        <details><summary>Do other people see me mirrored?</summary><p>The preview is mirrored by default so it feels like a mirror. Video apps usually send the unmirrored picture, so others see you the way a camera does. Turn off Mirror the preview to see that view.</p></details>
+        <details><summary>Does the webcam test work on Windows and phones?</summary><p>Yes. It works in any current browser that can use a camera. The fixes in our guides are written for Macs.</p></details>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="footer-links">
+        <div><b>Free tests</b><a href="/mic-test">Microphone test</a><a href="/webcam-test">Webcam test</a><a href="/speaker-test">Speaker test</a></div>
+        <div><b>Mac guides</b><a href="/mac-microphone-not-working">Mac microphone not working</a><a href="/mac-camera-not-working">Mac camera not working</a><a href="/how-to-test-microphone-on-mac">How to test your mic on a Mac</a></div>
+        <div><b>Green Room</b><a href="/">How it works</a><a href="/#faq">Questions</a><a href="https://github.com/coreyhaines31/greenroom/releases/latest">Download</a></div>
+      </div>
+      <span>© 2026 Corey Haines · Source available under <a href="https://github.com/coreyhaines31/greenroom/blob/main/LICENSE">FSL-1.1-MIT</a></span>
+      <span><a href="https://github.com/coreyhaines31/greenroom">GitHub</a> · <a href="https://github.com/coreyhaines31/greenroom/issues">Report a bug</a> · Also by Corey: <a href="https://wifiorisp.com">WiFi or ISP</a>, <a href="https://midnightoil.app">Midnight Oil</a></span>
+    </div>
+  </footer>
+</body>
+</html>
