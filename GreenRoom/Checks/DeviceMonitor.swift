@@ -14,6 +14,13 @@ final class DeviceMonitor {
     private(set) var micProblem: MicProblem?
 
     var readiness: Readiness { Readiness.evaluate(snapshot, setup: setup) }
+    var advisories: [Advisory] { Advisory.evaluate(snapshot) }
+    /// What "Save as my setup" saves before there is one: the devices used most, from history.
+    var proposedSetup: Setup { Setup.proposed(history: history, snapshot: snapshot, now: .now) }
+    var needsAttention: Bool {
+        if case .notReady = readiness { return true }
+        return !advisories.isEmpty
+    }
 
     @ObservationIgnored var onChange: (() -> Void)?
     /// New timeline events from each device change, for alerts.
@@ -21,16 +28,22 @@ final class DeviceMonitor {
     @ObservationIgnored private var audioListener: AudioChangeListener?
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
     @ObservationIgnored private var dayTimer: Timer?
+    @ObservationIgnored private var cameraObservations: [NSKeyValueObservation] = []
+    @ObservationIgnored private var pendingRefresh = false
 
     func start() {
-        let listener = AudioChangeListener { [weak self] in self?.refresh() }
+        let listener = AudioChangeListener { [weak self] in self?.scheduleRefresh() }
         listener.start()
         audioListener = listener
         for name in [AVCaptureDevice.wasConnectedNotification, AVCaptureDevice.wasDisconnectedNotification] {
             observers.append(NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { _ in
-                MainActor.assumeIsolated { [weak self] in self?.refresh() }
+                MainActor.assumeIsolated { [weak self] in
+                    self?.observeCameras()
+                    self?.scheduleRefresh()
+                }
             })
         }
+        observeCameras()
         // Keeps "seen today" right for devices that stay plugged in for days.
         dayTimer = Timer.scheduledTimer(withTimeInterval: 30 * 60, repeats: true) { _ in
             MainActor.assumeIsolated { [weak self] in self?.recordHistory() }
@@ -40,9 +53,32 @@ final class DeviceMonitor {
 
     func stop() {
         dayTimer?.invalidate()
+        cameraObservations = []
         audioListener?.stop()
         observers.forEach(NotificationCenter.default.removeObserver)
         observers = []
+    }
+
+    /// Core Audio sends changes in bursts (a call starting touches several devices), so
+    /// they're folded into one refresh.
+    func scheduleRefresh() {
+        guard !pendingRefresh else { return }
+        pendingRefresh = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+            MainActor.assumeIsolated {
+                self?.pendingRefresh = false
+                self?.refresh()
+            }
+        }
+    }
+
+    /// Cameras say when another app starts or stops using them.
+    private func observeCameras() {
+        cameraObservations = Cameras.captureDevices().map { camera in
+            camera.observe(\.isInUseByAnotherApplication) { _, _ in
+                DispatchQueue.main.async { MainActor.assumeIsolated { [weak self] in self?.scheduleRefresh() } }
+            }
+        }
     }
 
     func refresh(force: Bool = false) {
@@ -103,8 +139,9 @@ final class DeviceMonitor {
         refresh()
     }
 
+    /// The first save takes the proposal from history; later saves take what's in use now.
     func saveSetup() {
-        setup = Setup.current(snapshot)
+        setup = setup == nil ? proposedSetup : Setup.current(snapshot)
         SetupStore.save(setup)
         onChange?()
     }
