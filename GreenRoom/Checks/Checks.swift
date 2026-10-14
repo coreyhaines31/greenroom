@@ -54,6 +54,6 @@ final class Checks {
     func restartMeter() {
         guard isRunning, micAccess == .authorized else { return }
         meter.stop()
-        meter.start()
+        meter.start(bluetooth: monitor.snapshot.active(.microphone)?.transport == .bluetooth)
     }
 }
