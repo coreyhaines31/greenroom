@@ -29,7 +29,12 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
             self?.popover.performClose(nil)
             self?.windows.showHistory()
         }
-        popover.contentViewController = NSHostingController(rootView: panel)
+        let hosting = NSHostingController(rootView: panel)
+        // The panel's height changes while it's open (permission prompts, the preview, a missing
+        // device). Tracking it keeps the popover anchored under the menu bar instead of growing
+        // up past the top of the screen.
+        hosting.sizingOptions = .preferredContentSize
+        popover.contentViewController = hosting
 
         monitor.onChange = { [weak self] in self?.refreshButton() }
         refreshButton()
@@ -45,6 +50,10 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         } else if let button = statusItem.button {
             monitor.refresh()
             checks.start()
+            if let view = popover.contentViewController?.view {
+                view.layoutSubtreeIfNeeded()
+                popover.contentSize = view.fittingSize
+            }
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             popover.contentViewController?.view.window?.makeKey()
         }
