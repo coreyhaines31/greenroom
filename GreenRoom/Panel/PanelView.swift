@@ -115,11 +115,13 @@ struct OptionsMenu: View {
     let monitor: DeviceMonitor
     let updater: Updater
     @State private var alerts = Alerts.isEnabled
+    @State private var keepSetup = KeepSetup.isEnabled
     @State private var openAtLogin = LoginItem.isEnabled
 
     var body: some View {
         Menu {
             Toggle("Alert me when devices change", isOn: $alerts)
+            Toggle("Switch back when AirPods take over", isOn: $keepSetup)
             Toggle("Open at login", isOn: $openAtLogin)
             if !monitor.ignoredApps.isEmpty {
                 Menu("Ignored Apps") {
@@ -138,6 +140,7 @@ struct OptionsMenu: View {
         .fixedSize()
         .accessibilityLabel("Options")
         .onChange(of: alerts) { Alerts.isEnabled = alerts }
+        .onChange(of: keepSetup) { KeepSetup.isEnabled = keepSetup }
         .onChange(of: openAtLogin) { openAtLogin = LoginItem.set(openAtLogin) }
     }
 }

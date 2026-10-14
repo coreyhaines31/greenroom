@@ -6,13 +6,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var checks = Checks(monitor: monitor)
     private lazy var windows = Windows(monitor: monitor)
     private lazy var alerts = Alerts(monitor: monitor)
+    private lazy var keepSetup = KeepSetup(monitor: monitor, alerts: alerts)
     private let updater = Updater()
     private var statusItemController: StatusItemController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         monitor.start()
         alerts.start()
-        monitor.onEvents = { [weak self] events in self?.alerts.devicesChanged(events) }
+        monitor.onEvents = { [weak self] events in
+            // Switch back first, so the alerts see the fixed state.
+            self?.keepSetup.devicesChanged(events)
+            self?.alerts.devicesChanged(events)
+        }
         statusItemController = StatusItemController(
             monitor: monitor, checks: checks, windows: windows, updater: updater
         )
