@@ -449,6 +449,13 @@ footer a:hover { color: var(--ink); }
 .nav summary::after { content: ""; width: 6px; height: 6px; border: solid currentColor; border-width: 0 1.5px 1.5px 0; transform: translateY(-2px) rotate(45deg); }
 .nav details[open] summary::after { transform: translateY(1px) rotate(225deg); }
 @media (max-width: 680px) { .nav nav { gap: 14px; } }
+@media (max-width: 420px) {
+  .nav .wrap { padding: 0 7px 0 12px; gap: 8px; }
+  .nav nav { gap: 12px; }
+  .nav .brand { gap: 8px; font-size: 16px; }
+  .nav .brand img { width: 26px; height: 26px; }
+  .nav nav > .pill { padding: 7px 13px; font-size: 14px; }
+}
 .nav summary:hover, .nav details[open] summary { color: var(--ink); }
 .menu-list {
   position: absolute; top: calc(100% + 18px); right: -12px; z-index: 20; min-width: 248px;
@@ -508,6 +515,7 @@ button.pill:disabled { opacity: 0.5; cursor: default; }
 .readout { padding: 12px 14px; border-radius: 14px; background: var(--bg); min-width: 0; }
 .readout b { display: block; margin-top: 2px; font-size: 22px; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .readout small { display: block; color: var(--muted); font-size: 12.5px; }
+@media (max-width: 520px) { .readout { padding: 12px; } .readout b { font-size: 19px; } }
 
 .verdict { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: 14px; background: var(--bg); }
 .verdict::before { content: ""; flex: none; width: 10px; height: 10px; margin-top: 8px; border-radius: 50%; background: var(--muted); }
