@@ -25,6 +25,7 @@ struct PanelView: View {
             if !monitor.flaky.isEmpty {
                 flakySection
             }
+            RecordingSection(monitor: monitor)
             Divider()
             footer
         }

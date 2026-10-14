@@ -8,6 +8,7 @@ let usage = """
     Usage: greenroom <command> [--json]
 
       status     The camera, mic, and speaker in use, and anything to fix (exits 2 if so)
+                 --recording adds camera format, mic quality, disk space, and power
       devices    Everything connected, and devices that are usually here but missing
       history    Recent plug-ins, unplugs, and switches (--limit N, default 20)
       setups     Your saved setups, and which one fits what's plugged in
@@ -49,8 +50,21 @@ case "status":
         snapshot: snapshot, setup: setup, history: history, usbProducts: usb,
         micProblem: snapshot.active(.microphone).flatMap(AudioHardware.micProblem), now: .now
     )
-    if json { printJSON(report) } else { print(report.text) }
-    exit(report.ready ? 0 : 2)
+    let recording = arguments.contains("--recording") ? RecordingCheck.evaluate(RecordingCheck.currentInputs(
+        camera: snapshot.active(.camera) ?? snapshot.devices(.camera).first, mic: snapshot.active(.microphone),
+        sampleRates: snapshot.sampleRates
+    )) : nil
+    if json {
+        struct Combined: Encodable { let status: StatusReport; let recording: RecordingCheck? }
+        printJSON(Combined(status: report, recording: recording))
+    } else {
+        print(report.text)
+        if let recording {
+            print("\nReady to record? \(recording.ready ? "Yes" : "Not yet")")
+            for item in recording.items { print("\(item.passed ? "✓" : "!") \(item.title): \(item.detail)") }
+        }
+    }
+    exit(report.ready && recording?.ready != false ? 0 : 2)
 
 case "devices":
     struct Listed: Encodable {
