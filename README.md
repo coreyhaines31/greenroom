@@ -47,6 +47,12 @@ Click **Hear Yourself** next to the mic meter to record five seconds and hear th
 
 Turn on **Switch back when AirPods take over** in the gear menu. When a device that just connected, like AirPods coming out of the case or an iPhone nearby, takes over your mic or sound, Green Room switches back to your setup's device and tells you. If you meant it, click **Use AirPods** in the alert and Green Room leaves them alone until they disconnect. Anything you pick yourself is never switched back.
 
+## Before you record
+
+Open **Ready to record?** at the bottom of the panel, or run `greenroom status --recording`, for the things that ruin a take but don't matter on a call: the camera's resolution and frame rate (and whether an app picked a smaller size or the camera can't do better), the mic's quality, free disk space, and whether you're on battery or in Low Power Mode.
+
+Under the camera preview, Green Room also tells you about light and framing in one line: a covered lens, a dark room, a backlit face, or being off-center, too close, or too far. It looks at about one frame a second on your Mac and never keeps any.
+
 ## During a call
 
 Your Mac's default devices and what a call is really using can differ: Zoom and Meet keep their own device choices. Green Room shows the truth:
@@ -75,6 +81,8 @@ Under the mic meter you'll see a warning if macOS has the mic muted, its input v
 
 **Alerts:** a notification when your setup stops matching or a usual device disconnects. Turn them off in the gear menu.
 
+**Keeps disconnecting:** a device that drops five or more times in a week gets a note with what to try, like another cable or port.
+
 **History:** every device, connected or not, and a timeline of plug-ins, unplugs, and switches.
 
 ## Command line
@@ -85,6 +93,9 @@ The `greenroom` command reads your devices from Terminal, so you, a script, or a
 greenroom status           # the camera, mic, and speaker in use, and whether your setup matches
 greenroom devices          # everything connected, and usual devices that are missing
 greenroom history          # recent plug-ins, unplugs, and switches
+greenroom setups           # your setups, and which one fits what's plugged in
+greenroom use Studio       # switch the mic and speaker to a setup
+greenroom status --recording   # adds camera format, mic quality, disk space, and power
 ```
 
 Add `--json` to any of them. `status` exits with 2 when something doesn't match your setup or a usual device is missing. Homebrew links the command for you; from the DMG, link it once:
@@ -93,6 +104,8 @@ Add `--json` to any of them. `status` exits with 2 when something doesn't match 
 sudo mkdir -p /usr/local/bin
 sudo ln -sf "/Applications/Green Room.app/Contents/MacOS/greenroom" /usr/local/bin/greenroom
 ```
+
+**Shortcuts and Siri:** Green Room adds **Check My Setup** (returns true or false, and says what to fix) and **Use Setup** to the Shortcuts app, so you can run them from Siri, a Focus, or an automation.
 
 **For AI agents**, add a line like this to your `CLAUDE.md` or `AGENTS.md`:
 
