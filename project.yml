@@ -24,6 +24,11 @@ targets:
       - GreenRoom
     dependencies:
       - package: GreenRoomCore
+      # The `greenroom` command; the Homebrew cask links it onto the PATH.
+      - target: GreenRoomCLI
+        copy:
+          destination: executables
+        codeSignOnCopy: true
     entitlements:
       path: GreenRoom/GreenRoom.entitlements
       properties:
@@ -45,6 +50,20 @@ targets:
         PRODUCT_NAME: Green Room
         PRODUCT_MODULE_NAME: GreenRoom
         PRODUCT_BUNDLE_IDENTIFIER: com.greenroomformac.GreenRoom
+  GreenRoomCLI:
+    type: tool
+    platform: macOS
+    sources: [GreenRoomCLI]
+    dependencies:
+      - package: GreenRoomCore
+    settings:
+      base:
+        PRODUCT_NAME: greenroom
+        PRODUCT_BUNDLE_IDENTIFIER: com.greenroomformac.GreenRoom.CLI
+        SKIP_INSTALL: YES
+        GENERATE_INFOPLIST_FILE: YES
+        CREATE_INFOPLIST_SECTION_IN_BINARY: YES
+        INFOPLIST_KEY_CFBundleShortVersionString: $(MARKETING_VERSION)
 schemes:
   GreenRoom:
     build:
