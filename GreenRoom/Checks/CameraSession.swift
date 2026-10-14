@@ -15,18 +15,22 @@ final class CameraSession {
 
     var session: AVCaptureSession { box.session }
 
+    /// Every session change runs on the session's queue: AVFoundation doesn't allow
+    /// reconfiguring on one thread while `startRunning` is in progress on another.
     func start(_ device: AVCaptureDevice) {
         let box = box
-        if deviceID != device.uniqueID {
-            box.session.beginConfiguration()
-            box.session.inputs.forEach(box.session.removeInput)
-            if let input = try? AVCaptureDeviceInput(device: device), box.session.canAddInput(input) {
-                box.session.addInput(input)
+        let newID = deviceID == device.uniqueID ? nil : device.uniqueID
+        deviceID = device.uniqueID
+        box.queue.async {
+            if let newID, let device = AVCaptureDevice(uniqueID: newID),
+               let input = try? AVCaptureDeviceInput(device: device) {
+                box.session.beginConfiguration()
+                box.session.inputs.forEach(box.session.removeInput)
+                if box.session.canAddInput(input) { box.session.addInput(input) }
+                box.session.commitConfiguration()
             }
-            box.session.commitConfiguration()
-            deviceID = device.uniqueID
+            if !box.session.isRunning { box.session.startRunning() }
         }
-        box.queue.async { if !box.session.isRunning { box.session.startRunning() } }
     }
 
     func stop() {
