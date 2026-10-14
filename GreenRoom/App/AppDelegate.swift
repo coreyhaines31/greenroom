@@ -6,13 +6,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var checks = Checks(monitor: monitor)
     private lazy var windows = Windows(monitor: monitor)
     private lazy var alerts = Alerts(monitor: monitor)
+    private let updater = Updater()
     private var statusItemController: StatusItemController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         monitor.start()
         alerts.start()
         monitor.onEvents = { [weak self] events in self?.alerts.devicesChanged(events) }
-        statusItemController = StatusItemController(monitor: monitor, checks: checks, windows: windows)
+        statusItemController = StatusItemController(
+            monitor: monitor, checks: checks, windows: windows, updater: updater
+        )
         #if DEBUG
         // Opens the panel on launch, for screenshots and testing without clicking.
         if CommandLine.arguments.contains("--open-panel") {

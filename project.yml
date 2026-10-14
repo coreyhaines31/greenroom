@@ -16,6 +16,9 @@ settings:
 packages:
   GreenRoomCore:
     path: Packages/GreenRoomCore
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    exactVersion: "2.10.0"
 targets:
   GreenRoom:
     type: application
@@ -24,6 +27,7 @@ targets:
       - GreenRoom
     dependencies:
       - package: GreenRoomCore
+      - package: Sparkle
       # The `greenroom` command; the Homebrew cask links it onto the PATH.
       - target: GreenRoomCLI
         copy:
@@ -45,6 +49,9 @@ targets:
         NSHumanReadableCopyright: Copyright © 2026 Corey Haines. FSL-1.1-MIT.
         NSCameraUsageDescription: Green Room shows a live preview so you can check your camera before a call. Video never leaves your Mac and is never saved.
         NSMicrophoneUsageDescription: Green Room shows a level meter so you can check your microphone before a call. Audio never leaves your Mac and is never saved.
+        SUFeedURL: https://github.com/coreyhaines31/greenroom/releases/latest/download/appcast.xml
+        SUPublicEDKey: 5MTMTktA0NUipG5n3iJy+27VbXN9uKgO2BbCgK8yUKU=
+        SUEnableAutomaticChecks: true
     settings:
       base:
         PRODUCT_NAME: Green Room
