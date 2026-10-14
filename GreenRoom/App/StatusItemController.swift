@@ -13,10 +13,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
 
     private let windows: Windows
 
-    init(
-        monitor: DeviceMonitor, checks: Checks, windows: Windows, updater: Updater, callWatcher: CallWatcher,
-        hotKey: HotKey
-    ) {
+    init(monitor: DeviceMonitor, checks: Checks, windows: Windows, updater: Updater) {
         self.monitor = monitor
         self.checks = checks
         self.windows = windows
@@ -30,12 +27,16 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         popover.behavior = .transient
         popover.delegate = self
         let panel = PanelView(
-            monitor: monitor, checks: checks, updater: updater, callWatcher: callWatcher, hotKey: hotKey,
+            monitor: monitor, checks: checks, updater: updater,
             showHistory: { [weak self] in
                 self?.popover.performClose(nil)
                 self?.windows.showHistory()
             },
-            closePanel: { [weak self] in self?.popover.performClose(nil) }
+            closePanel: { [weak self] in self?.popover.performClose(nil) },
+            showSettings: { [weak self] in
+                self?.popover.performClose(nil)
+                self?.windows.showSettings()
+            }
         )
         let hosting = NSHostingController(rootView: panel)
         // The panel's height changes while it's open (permission prompts, the preview, a missing
@@ -62,7 +63,10 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
     private func showQuickMenu() {
         if popover.isShown { popover.performClose(nil) }
         monitor.refresh(force: true)
-        statusItem.menu = QuickMenu.make(monitor: monitor) { [weak self] in self?.toggle(pinned: false) }
+        statusItem.menu = QuickMenu.make(
+            monitor: monitor, openPanel: { [weak self] in self?.toggle(pinned: false) },
+            openSettings: { [weak self] in self?.windows.showSettings() }
+        )
         statusItem.button?.performClick(nil)
         statusItem.menu = nil
     }

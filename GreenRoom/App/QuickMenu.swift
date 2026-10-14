@@ -4,7 +4,9 @@ import GreenRoomCore
 /// The right-click menu: setups and devices, switched in one click without opening the panel.
 @MainActor
 enum QuickMenu {
-    static func make(monitor: DeviceMonitor, openPanel: @escaping () -> Void) -> NSMenu {
+    static func make(
+        monitor: DeviceMonitor, openPanel: @escaping () -> Void, openSettings: @escaping () -> Void
+    ) -> NSMenu {
         let menu = NSMenu()
         if !monitor.setups.isEmpty {
             menu.addItem(.sectionHeader(title: "Setups"))
@@ -30,6 +32,7 @@ enum QuickMenu {
             menu.addItem(.separator())
         }
         menu.addItem(ClosureMenuItem("Open Green Room", handler: openPanel))
+        menu.addItem(ClosureMenuItem("Settings…", keyEquivalent: ",", handler: openSettings))
         menu.addItem(ClosureMenuItem("Quit Green Room", keyEquivalent: "q") { NSApp.terminate(nil) })
         return menu
     }
