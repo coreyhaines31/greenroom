@@ -97,11 +97,12 @@ spctl --assess --type exec -v "$MOUNT/$APP_NAME.app"
 hdiutil detach -quiet "$MOUNT"
 
 echo "▶ Signing the update and writing the appcast"
-SPARKLE_BIN=$(find build/DerivedData/SourcePackages/artifacts -type d -path "*Sparkle/bin" | head -1)
+# On a fresh checkout the folder doesn't exist yet, and with pipefail a failing find would end the script.
+SPARKLE_BIN=$(find build/DerivedData/SourcePackages/artifacts -type d -path "*Sparkle/bin" 2>/dev/null | head -1 || true)
 if [ -z "$SPARKLE_BIN" ]; then
   xcodebuild -project GreenRoom.xcodeproj -scheme GreenRoom -derivedDataPath build/DerivedData \
     -resolvePackageDependencies -quiet
-  SPARKLE_BIN=$(find build/DerivedData/SourcePackages/artifacts -type d -path "*Sparkle/bin" | head -1)
+  SPARKLE_BIN=$(find build/DerivedData/SourcePackages/artifacts -type d -path "*Sparkle/bin" 2>/dev/null | head -1 || true)
 fi
 mkdir -p "$BUILD/appcast" && cp "$DMG" "$BUILD/appcast/"
 "$SPARKLE_BIN/generate_appcast" ${SPARKLE_KEY_ARGS[@]+"${SPARKLE_KEY_ARGS[@]}"} \
