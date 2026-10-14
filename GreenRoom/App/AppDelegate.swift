@@ -28,6 +28,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             hotKey: hotKey
         )
         hotKey.apply()
+        windows.callWatcher = callWatcher
+        windows.showWelcomeIfNew()
         #if DEBUG
         // Opens the panel on launch, for screenshots and testing without clicking.
         if CommandLine.arguments.contains("--open-panel") {
@@ -44,6 +46,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
                 self.statusItemController?.writeSnapshot(to: path)
                 self.windows.writeHistorySnapshot(to: path.replacingOccurrences(of: ".png", with: "-history.png"))
+                self.windows.writeWelcomeSnapshot(to: path.replacingOccurrences(of: ".png", with: "-welcome.png"))
             }
         }
         #endif

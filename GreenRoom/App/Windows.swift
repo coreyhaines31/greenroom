@@ -7,9 +7,32 @@ import SwiftUI
 final class Windows {
     private let monitor: DeviceMonitor
     private var history: NSWindow?
+    private var welcome: NSWindow?
+    var callWatcher: CallWatcher?
+
+    static let seenWelcomeKey = "hasSeenWelcome"
 
     init(monitor: DeviceMonitor) {
         self.monitor = monitor
+    }
+
+    /// Once, on first launch.
+    func showWelcomeIfNew() {
+        guard !UserDefaults.standard.bool(forKey: Self.seenWelcomeKey), let callWatcher else { return }
+        let view = WelcomeView(monitor: monitor, callWatcher: callWatcher) { [weak self] in
+            UserDefaults.standard.set(true, forKey: Self.seenWelcomeKey)
+            self?.welcome?.close()
+            self?.welcome = nil
+        }
+        let window = NSWindow(contentViewController: NSHostingController(rootView: view))
+        window.title = "Welcome"
+        window.styleMask.remove(.resizable)
+        window.isReleasedWhenClosed = false
+        window.center()
+        welcome = window
+        monitor.refresh(force: true)
+        NSApp.activate()
+        window.makeKeyAndOrderFront(nil)
     }
 
     func showHistory() {
@@ -28,6 +51,13 @@ final class Windows {
     }
 
     #if DEBUG
+    func writeWelcomeSnapshot(to path: String) {
+        guard let view = welcome?.contentView,
+              let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { return }
+        view.cacheDisplay(in: view.bounds, to: rep)
+        try? rep.representation(using: .png, properties: [:])?.write(to: URL(fileURLWithPath: path))
+    }
+
     func writeHistorySnapshot(to path: String) {
         guard let view = history?.contentView,
               let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { return }
