@@ -22,6 +22,9 @@ struct PanelView: View {
             if !monitor.missing.isEmpty {
                 missingSection
             }
+            if !monitor.flaky.isEmpty {
+                flakySection
+            }
             Divider()
             footer
         }
@@ -76,6 +79,19 @@ struct PanelView: View {
                 if let problem = monitor.micProblem ?? (checks.meter.isSilent ? .silent : nil) {
                     Label(problem.message, systemImage: "exclamationmark.triangle.fill")
                         .font(.caption).foregroundStyle(.orange)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+    }
+
+    private var flakySection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Keeps disconnecting").font(.caption).foregroundStyle(.secondary)
+            ForEach(monitor.flaky, id: \.device.id) { flaky in
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(flaky.message).font(.callout.weight(.medium))
+                    Text(flaky.advice).font(.caption).foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }

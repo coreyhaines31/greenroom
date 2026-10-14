@@ -22,6 +22,8 @@ public struct StatusReport: Codable, Sendable, Equatable {
     public let setup: String?
     public let inUse: [InUse]
     public let problems: [Problem]
+    /// Devices that keep disconnecting. Worth fixing, but they don't make you not ready.
+    public let flaky: [String]
 
     // swiftlint:disable:next function_parameter_count
     public static func make(
@@ -70,7 +72,8 @@ public struct StatusReport: Codable, Sendable, Equatable {
                 InUse(kind: kind, name: $0.name, transport: $0.transport, liveIn: snapshot.liveApps($0))
             }
         }
-        return StatusReport(ready: problems.isEmpty, setup: setup?.name, inUse: inUse, problems: problems)
+        let flaky = FlakyDevice.find(in: history, now: now).map { "\($0.message). \($0.advice)" }
+        return StatusReport(ready: problems.isEmpty, setup: setup?.name, inUse: inUse, problems: problems, flaky: flaky)
     }
 
     public var text: String {
@@ -94,6 +97,10 @@ public struct StatusReport: Codable, Sendable, Equatable {
                 lines.append("! \(problem.message)")
                 if problem.advice != problem.message { lines.append("  \(problem.advice)") }
             }
+        }
+        if !flaky.isEmpty {
+            lines.append("")
+            lines += flaky.map { "~ \($0)" }
         }
         return lines.joined(separator: "\n")
     }
