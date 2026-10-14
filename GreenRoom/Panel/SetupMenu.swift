@@ -6,6 +6,8 @@ import SwiftUI
 /// another applies its devices.
 struct SetupMenu: View {
     let monitor: DeviceMonitor
+    /// The name dialog is modal, so the panel closes first instead of vanishing under it.
+    let closePanel: () -> Void
 
     var body: some View {
         Menu(monitor.setup?.name ?? "Setup") {
@@ -25,6 +27,7 @@ struct SetupMenu: View {
                 Button("Update \(current.name) to Current Devices") { monitor.saveSetup() }
             }
             Button("Save Current Devices as New Setup…") {
+                closePanel()
                 if let name = NamePrompt.ask(suggestion: suggestedName) { monitor.saveNewSetup(named: name) }
             }
             if let current = monitor.setup {

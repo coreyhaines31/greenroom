@@ -27,11 +27,13 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         popover.behavior = .transient
         popover.delegate = self
         let panel = PanelView(
-            monitor: monitor, checks: checks, updater: updater, callWatcher: callWatcher
-        ) { [weak self] in
-            self?.popover.performClose(nil)
-            self?.windows.showHistory()
-        }
+            monitor: monitor, checks: checks, updater: updater, callWatcher: callWatcher,
+            showHistory: { [weak self] in
+                self?.popover.performClose(nil)
+                self?.windows.showHistory()
+            },
+            closePanel: { [weak self] in self?.popover.performClose(nil) }
+        )
         let hosting = NSHostingController(rootView: panel)
         // The panel's height changes while it's open (permission prompts, the preview, a missing
         // device). Tracking it keeps the popover anchored under the menu bar instead of growing
