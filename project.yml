@@ -1,0 +1,55 @@
+name: GreenRoom
+options:
+  bundleIdPrefix: com.greenroomformac
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    ENABLE_HARDENED_RUNTIME: YES
+    DEVELOPMENT_TEAM: KPQU8X839X
+    CODE_SIGN_STYLE: Automatic
+    DEAD_CODE_STRIPPING: YES
+packages:
+  GreenRoomCore:
+    path: Packages/GreenRoomCore
+targets:
+  GreenRoom:
+    type: application
+    platform: macOS
+    sources:
+      - GreenRoom
+    dependencies:
+      - package: GreenRoomCore
+    entitlements:
+      path: GreenRoom/GreenRoom.entitlements
+      properties:
+        com.apple.security.device.camera: true
+        com.apple.security.device.audio-input: true
+    info:
+      path: GreenRoom/Info.plist
+      properties:
+        CFBundleDisplayName: Green Room
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSUIElement: true
+        LSApplicationCategoryType: public.app-category.utilities
+        NSHumanReadableCopyright: Copyright © 2026 Corey Haines. FSL-1.1-MIT.
+        NSCameraUsageDescription: Green Room shows a live preview so you can check your camera before a call. Video never leaves your Mac and is never saved.
+        NSMicrophoneUsageDescription: Green Room shows a level meter so you can check your microphone before a call. Audio never leaves your Mac and is never saved.
+    settings:
+      base:
+        PRODUCT_NAME: Green Room
+        PRODUCT_MODULE_NAME: GreenRoom
+        PRODUCT_BUNDLE_IDENTIFIER: com.greenroomformac.GreenRoom
+schemes:
+  GreenRoom:
+    build:
+      targets:
+        GreenRoom: all
+    test:
+      targets:
+        - package: GreenRoomCore/GreenRoomCoreTests
