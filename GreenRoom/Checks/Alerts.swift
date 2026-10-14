@@ -14,6 +14,8 @@ final class Alerts {
 
     static let enabledKey = "alertsEnabled"
     static let settleSeconds = 3.0
+    /// Wired devices only. iPhones, AirPods, and display speakers come and go all day.
+    static let alertable: Set<Transport> = [.usb, .external, .thunderbolt]
 
     static var isEnabled: Bool {
         get { UserDefaults.standard.object(forKey: enabledKey) as? Bool ?? true }
@@ -54,13 +56,22 @@ final class Alerts {
             send(title: mismatch.message, body: detail)
         }
         let covered = Set(fresh.map(\.expected.id))
-        for event in events where event.change == .disconnected && !covered.contains(event.device.id) {
+        var seen = Set<String>()
+        let gone = events.filter { event in
             let device = event.device
-            guard !monitor.snapshot.contains(device.id, kind: device.kind),
-                  let record = monitor.history.record(for: device),
-                  monitor.history.isUsual(record, now: .now) else { continue }
+            guard event.change == .disconnected, Self.alertable.contains(device.transport),
+                  !covered.contains(device.id), seen.insert(device.name).inserted,
+                  !monitor.snapshot.contains(device.id, kind: device.kind),
+                  let record = monitor.history.record(for: device) else { return false }
+            return monitor.history.isUsual(record, now: .now)
+        }.map(\.device)
+        if gone.count == 1, let device = gone.first {
             let reason = monitor.missingDevice(device, lastSeen: nil).reason
             send(title: "\(device.name) disconnected", body: "\(reason.headline). \(reason.advice)")
+        } else if gone.count > 1 {
+            // Usually a dock or hub coming out: one alert, not one per device.
+            let names = ListFormatter.localizedString(byJoining: gone.map(\.name))
+            send(title: "\(gone.count) devices disconnected", body: "\(names). Check the dock or hub they share.")
         }
     }
 
