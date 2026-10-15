@@ -38,6 +38,14 @@ Save more than one setup, like **Desk**, **Studio**, and **Travel**, from the Se
 
 **Right-click** the menu bar icon (or Control-click) for a quick menu of setups and devices that switches without opening the panel or turning on the camera.
 
+## Which mic hears you
+
+Click **Compare** next to the microphone picker to see a live level for every mic at once. Talk, and the one that's hearing you moves; click it to switch. Bluetooth headsets and iPhone mics say **Switch to test** instead, because just opening their mic drops AirPods to call quality or wakes your phone. The mics are only open while the list is showing.
+
+## Name your devices
+
+In **Settings › Devices**, rename anything from its ⋯ menu ("Lapel mic" instead of "USB Audio Device"), and the name shows everywhere: the panel, alerts, history, setups, and the `greenroom` command. **Hide from Lists** takes devices you never use, like virtual cameras, out of the pickers. A hidden device still shows while it's the one in use.
+
 ## Before the call
 
 Turn on **Check before calendar calls** in Settings. Two minutes before an event with a Zoom, Meet, Teams, Webex, or similar link, Green Room checks your setup. If you're ready it says nothing; if not, you get one alert with the fix. It needs calendar access, only reads when events start and whether they have a meeting link, and never changes your calendar.
