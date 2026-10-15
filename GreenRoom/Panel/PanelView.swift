@@ -33,6 +33,7 @@ struct PanelView: View {
         .frame(width: 340)
         .onChange(of: monitor.previewCamera) { checks.restartCamera() }
         .onChange(of: monitor.snapshot.active(.microphone)) { checks.restartMeter() }
+        .onChange(of: monitor.snapshot.devices(.microphone)) { checks.restartCompare() }
     }
 
     private var cameraSection: some View {
@@ -68,7 +69,16 @@ struct PanelView: View {
 
     private var microphoneSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            DevicePicker(kind: .microphone, monitor: monitor, selected: monitor.snapshot.active(.microphone))
+            DevicePicker(kind: .microphone, monitor: monitor, selected: monitor.snapshot.active(.microphone)) {
+                if checks.micAccess == .authorized, monitor.snapshot.devices(.microphone).count > 1 {
+                    Button(checks.inputs.isOn ? "Done" : "Compare") { checks.toggleCompare() }
+                        .help("Shows a live level for every mic, so you can see which one hears you")
+                }
+            }
+            if checks.inputs.isOn {
+                MicComparison(mics: checks.comparableMics, active: monitor.snapshot.active(.microphone),
+                              levels: checks.inputs.levels) { monitor.select($0) }
+            }
             if checks.micAccess == .denied || checks.micAccess == .restricted {
                 Text("Allow microphone access in System Settings › Privacy & Security")
                     .font(.caption).foregroundStyle(.secondary)
@@ -215,7 +225,8 @@ struct DevicePicker<Trailing: View>: View {
     }
 
     var body: some View {
-        let devices = monitor.snapshot.devices(kind)
+        // A hidden device still shows while it's the one in use.
+        let devices = monitor.snapshot.devices(kind).filter { !monitor.names.isHidden($0) || $0.id == selected?.id }
         VStack(alignment: .leading, spacing: 4) {
             Text(kind.title).font(.caption).foregroundStyle(.secondary)
             HStack {
@@ -246,6 +257,48 @@ struct DevicePicker<Trailing: View>: View {
 extension DevicePicker where Trailing == EmptyView {
     init(kind: DeviceKind, monitor: DeviceMonitor, selected: Device?) {
         self.init(kind: kind, monitor: monitor, selected: selected) { EmptyView() }
+    }
+}
+
+/// Every mic with its own live level. Click one to use it.
+struct MicComparison: View {
+    let mics: [Device]
+    let active: Device?
+    let levels: [String: Float]
+    let select: (Device) -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ForEach(mics) { device in
+                Button { select(device) } label: { row(device) }
+                    .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 4)
+        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
+    }
+
+    private func row(_ device: Device) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "checkmark")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.tint)
+                .opacity(device.id == active?.id ? 1 : 0)
+            Text(device.name).lineLimit(1).truncationMode(.tail)
+            Spacer(minLength: 8)
+            if InputMeters.canMeter(device) {
+                LevelMeter(level: levels[device.id] ?? 0).frame(width: 72)
+            } else if device.id != active?.id {
+                Text("Switch to test").font(.caption).foregroundStyle(.secondary)
+                    .help(device.transport == .bluetooth
+                        ? "Opening a headset's mic drops it to call quality, so it's only tested once you use it."
+                        : "Opening the iPhone mic wakes your phone, so it's only tested once you use it.")
+            }
+        }
+        .font(.callout)
+        .padding(.vertical, 5)
+        .contentShape(Rectangle())
     }
 }
 

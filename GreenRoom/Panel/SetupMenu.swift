@@ -47,11 +47,15 @@ struct SetupMenu: View {
 
 enum NamePrompt {
     @MainActor
-    static func ask(suggestion: String) -> String? {
+    static func ask(
+        title: String = "Name this setup",
+        info: String = "Green Room picks the setup whose devices are plugged in, "
+            + "so name it for the place, like Desk or Travel.",
+        suggestion: String
+    ) -> String? {
         let alert = NSAlert()
-        alert.messageText = "Name this setup"
-        alert.informativeText = "Green Room picks the setup whose devices are plugged in, "
-            + "so name it for the place, like Desk or Travel."
+        alert.messageText = title
+        alert.informativeText = info
         let field = NSTextField(string: suggestion)
         field.frame = NSRect(x: 0, y: 0, width: 240, height: 24)
         alert.accessoryView = field
