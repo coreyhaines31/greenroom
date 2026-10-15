@@ -465,7 +465,7 @@
       if (!running) return;
       const r = running;
       running = null;
-      r.button.textContent = r.label;
+      r.button.innerHTML = r.label;
       if (r.cleanup) r.cleanup();
     }
 
@@ -475,7 +475,7 @@
       if (mine) return;
       await ready();
       sides.forEach((b) => b.classList.remove("on"));
-      const r = { button, label: button.textContent, cleanup: null };
+      const r = { button, label: button.innerHTML, cleanup: null };
       running = r;
       button.textContent = "Stop";
       r.cleanup = play(() => { if (running === r) stopRunning(); });
