@@ -618,6 +618,6 @@ section.article { padding: 48px 0 24px; }
 
 /* Footer: tests and guides */
 .footer-links { width: 100%; display: grid; gap: 20px; padding-bottom: 24px; margin-bottom: 8px; border-bottom: 1px solid var(--line); grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-.footer-links div { display: grid; gap: 6px; justify-items: start; }
+.footer-links div { display: grid; gap: 6px; justify-items: start; align-content: start; }
 .footer-links b { color: var(--ink); font-weight: 600; margin-bottom: 4px; }
 .footer-links a { white-space: normal; }
