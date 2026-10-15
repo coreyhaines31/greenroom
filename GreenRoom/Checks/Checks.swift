@@ -11,6 +11,7 @@ final class Checks {
     let meter = MicMeter()
     let tone = TestTone()
     let playback = PlaybackTest()
+    let inputs = InputMeters()
     private(set) var cameraAccess = AVCaptureDevice.authorizationStatus(for: .video)
     private(set) var micAccess = AVCaptureDevice.authorizationStatus(for: .audio)
     @ObservationIgnored private let monitor: DeviceMonitor
@@ -48,6 +49,25 @@ final class Checks {
         playback.cancel()
         camera.stop()
         meter.stop()
+        inputs.stop()
+    }
+
+    func toggleCompare() {
+        if inputs.isOn {
+            inputs.stop()
+        } else if isRunning, micAccess == .authorized {
+            inputs.start(comparableMics)
+        }
+    }
+
+    /// Mics come and go while the comparison is open.
+    func restartCompare() {
+        guard inputs.isOn else { return }
+        inputs.start(comparableMics)
+    }
+
+    var comparableMics: [Device] {
+        monitor.snapshot.devices(.microphone).filter { !monitor.names.isHidden($0) }
     }
 
     func restartCamera() {
