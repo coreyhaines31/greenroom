@@ -14,7 +14,7 @@ import re
 import subprocess
 import tempfile
 
-SITE = os.path.join(os.path.dirname(__file__), "..")
+SITE = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 BASE = "https://greenroomformac.com"
 
