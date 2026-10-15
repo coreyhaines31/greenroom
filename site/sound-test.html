@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sound Test: Is My Sound Working? Free Online Check · Green Room</title>
+  <meta name="description" content="Free sound test. Press play and hear a tone to know your sound works, then check each side and sweep the range. If you hear nothing, follow the fixes.">
+  <meta property="og:title" content="Sound Test: Is My Sound Working? Free Online Check">
+  <meta property="og:description" content="Press play and hear a tone to know your sound works. Hear nothing? The fixes are right below. Runs in your browser.">
+  <meta property="og:image" content="https://greenroomformac.com/images/og/sound-test.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:url" content="https://greenroomformac.com/sound-test">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#f5f5f7">
+  <link rel="icon" href="/images/icon.png">
+  <link rel="apple-touch-icon" href="/images/icon.png">
+  <link rel="canonical" href="https://greenroomformac.com/sound-test">
+  <link rel="stylesheet" href="/site.css">
+  <script src="/nav.js" defer></script>
+  <script src="/tools.js" defer></script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "WebApplication", "name": "Sound Test", "url": "https://greenroomformac.com/sound-test", "description": "A free sound test that runs in your browser: play a steady tone to check that sound works, then check each side and sweep the range.", "applicationCategory": "UtilitiesApplication", "operatingSystem": "Any", "browserRequirements": "Requires JavaScript and Web Audio", "isAccessibleForFree": true, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "author": {"@type": "Person", "name": "Corey Haines", "url": "https://corey.co"}}, {"@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "I hear the tone here but not in my video or game. Why?", "acceptedAnswer": {"@type": "Answer", "text": "Then your sound works and the problem is in that one app or page. Check its own volume and mute controls, and in Safari make sure the tab isn't muted. Some apps also keep their own output choice in their settings."}}, {"@type": "Question", "name": "Is the test tone loud?", "acceptedAnswer": {"@type": "Answer", "text": "It starts at half volume on the slider, which is gentle on most speakers. If you're wearing headphones, turn your volume down first, then bring it up until the tone is comfortable."}}, {"@type": "Question", "name": "Does the sound test record anything?", "acceptedAnswer": {"@type": "Answer", "text": "No. The sounds are made in your browser and nothing is recorded. In Chrome, the optional Show device names button asks for the microphone only so the browser will share output names."}}, {"@type": "Question", "name": "Does the sound test work on phones and Windows?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. It works in any current browser that can play sound. On a phone, make sure the ringer switch or silent mode isn't muting the page."}}]}]}</script>
+  <script src="https://cdn.usefathom.com/script.js" data-site="WDVXMJRM" defer></script>
+  <meta name="twitter:image" content="https://greenroomformac.com/images/og/sound-test.png">
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap">
+      <a class="brand" href="/"><img src="/images/icon.png" alt="" width="30" height="30"> Green Room</a>
+      <nav>
+        <a href="/#how">How it works</a>
+        <details class="menu"><summary>Free tests</summary><div class="menu-list"><span>Test in your browser</span><a href="/mic-test">Microphone test</a><a href="/webcam-test">Webcam test</a><a href="/speaker-test">Speaker test</a><a href="/sound-test" aria-current="page">Sound test</a><a href="/headphone-test">Headphone test</a><a href="/left-right-audio-test">Left/right audio test</a><span>Mac guides</span><a href="/mac-microphone-not-working">Mac microphone not working</a><a href="/mac-camera-not-working">Mac camera not working</a><a href="/how-to-test-microphone-on-mac">How to test your mic on a Mac</a><span>App fixes</span><a href="/fix">Fix it in Zoom, Teams, Meet, and more</a></div></details>
+        <a href="https://github.com/coreyhaines31/greenroom">GitHub</a>
+        <a class="pill" href="https://github.com/coreyhaines31/greenroom/releases/latest">Download</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="sub-hero">
+      <div class="wrap narrow">
+        <p class="kicker"><span class="dot"></span>Free sound test · Works in any browser</p>
+        <h1>Is your sound working? <em>Press play.</em></h1>
+        <p class="lede">If you hear a steady tone, your sound works. If you hear nothing, the fixes are right below the test.</p>
+      </div>
+    </section>
+
+    <section class="tool">
+      <div class="wrap narrow">
+        <div class="tool-card">
+          <div class="tool-row">
+            <button class="pill big" id="spk-tone" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18.5 6.5a8 8 0 0 1 0 11"/></svg>Play a test tone</button>
+            <div class="volume"><span class="t-label">Volume</span><input type="range" id="spk-volume" min="0" max="100" value="50" aria-label="Test volume"></div>
+          </div>
+          <p class="spk-status" id="spk-status" aria-live="polite">Press Play a test tone. It plays for 20 seconds, or until you stop it.</p>
+
+          <div class="tool-row" id="spk-output-row">
+            <div class="field">
+              <label for="spk-output">Play on</label>
+              <select class="select" id="spk-output" disabled><option>Current output (system default)</option></select>
+            </div>
+            <button class="btn" id="spk-output-btn" type="button" hidden>Show device names</button>
+          </div>
+          <p class="tool-note" id="spk-output-note"></p>
+
+          <div class="sweep">
+            <h3>Is it coming from both sides?</h3>
+            <p>Three quick notes on one side at a time. Handy when sound seems thin or lopsided.</p>
+            <div class="lr">
+              <button class="play" id="spk-left" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6"/></svg>Left<small>Left only</small></button>
+              <button class="play" id="spk-both" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9.5h3L10 6v12l-4-3.5H3z"/><path d="M21 9.5h-3L14 6v12l4-3.5h3z"/></svg>Both<small>Centered</small></button>
+              <button class="play" id="spk-right" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 9.5h-3.5L12 5.5v13l4.5-4H20z"/><path d="M8.5 9a4 4 0 0 0 0 6"/></svg>Right<small>Right only</small></button>
+            </div>
+          </div>
+
+          <div class="sweep">
+            <h3>Range check</h3>
+            <p>A deep hum that rises to a high whistle over eight seconds. It's normal not to hear the very start on a laptop or phone.</p>
+            <div class="sweep-bar"><i id="spk-sweep-bar"></i></div>
+            <div class="sweep-scale"><span>40 Hz</span><span>1 kHz</span><span>16 kHz</span></div>
+            <div class="tool-row">
+              <button class="btn" id="spk-sweep" type="button">Play the range check</button>
+              <span class="countdown" id="spk-hz" aria-live="off"></span>
+            </div>
+          </div>
+
+          <p class="tool-note"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>The sounds are made in your browser. Nothing is recorded or sent anywhere.</p>
+        </div>
+
+        <div class="gr-card">
+          <div>
+            <img src="/images/icon.png" alt="" width="52" height="52">
+            <h2>On a Mac? Green Room shows where your sound is going before anyone asks.</h2>
+            <p>One click from the menu bar shows your speaker and a Test button. If AirPods or another device takes your sound, it tells you and can switch back. Free, with no account.</p>
+            <div class="actions">
+              <a class="pill big" href="https://github.com/coreyhaines31/greenroom/releases/latest"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14"/></svg>Download free</a>
+              <a class="pill ghost" href="/">See how it works</a>
+            </div>
+          </div>
+          <div class="meters" role="img" aria-label="A Green Room speaker card showing MacBook Pro Speakers with a Test button, and an alert that says Sound is going to Beats Flex, not MacBook Pro Speakers, with a Switch back button.">
+            <div class="meter-card">
+              <span class="p-label">Speaker</span>
+              <span class="popup static">MacBook Pro Speakers<i></i></span>
+              <span class="mac-btn">Test</span>
+            </div>
+            <div class="meter-card">
+              <div class="m-warn"><svg viewBox="0 0 20 18" aria-hidden="true"><path class="warn-fill solid" d="M10 1.6 18.6 16.4H1.4Z"/><path class="warn-mark" d="M10 6.6v4.6M10 13.4v.4"/></svg>Sound is going to Beats Flex, not MacBook Pro Speakers.</div>
+              <span class="mac-btn">Switch back</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="article">
+      <div class="wrap narrow prose">
+        <h2>Can't hear the tone?</h2>
+        <p>Work down this list. Most "no sound" problems are one of the first three.</p>
+        <ol class="fixes">
+          <li><b>Check the volume and mute.</b>Press the volume up key, and look for a mute icon in the menu bar. Turn up any knob on your speakers, and make sure they're switched on.</li>
+          <li><b>Check where the sound is going.</b>On a Mac, open Control Center, click Sound, and pick the speakers or headphones you want. Sound may be going to headphones, a monitor, or AirPods in a case across the room.</li>
+          <li><b>Check this browser tab.</b>In Safari, click the Audio button in the address field to unmute the page. In Chrome, right-click the tab and look for Unmute site.</li>
+          <li><b>Unplug and reconnect.</b>Unplug headphones and USB audio devices, then plug back in what you want to use. For Bluetooth, turn it off and on, or reconnect the device in Bluetooth settings.</li>
+          <li><b>Restart.</b>If nothing plays anywhere, restart your computer. It clears a stuck audio system more often than you'd think.</li>
+        </ol>
+        <p>On a MacBook with no sound from the built-in speakers, read <a href="/macbook-speakers-not-working">MacBook speakers not working</a> for the full list.</p>
+
+        <h2>Hear it here, but not somewhere else?</h2>
+        <p>Then your sound works, and the problem is in one app or page. Check that app's own volume slider and mute button. Video sites like YouTube have their own volume control, and call apps like Zoom keep their own speaker choice in their audio settings.</p>
+
+        <h2>More sound tests</h2>
+        <div class="tool-links">
+          <a href="/speaker-test"><b>Speaker test</b><span>Left, right, and a sweep to catch rattles.</span></a>
+          <a href="/headphone-test"><b>Headphone test</b><span>Left and right, a moving sound, and bass.</span></a>
+          <a href="/left-right-audio-test"><b>Left/right audio test</b><span>Just the channel check, big buttons.</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="faq after-article">
+      <div class="wrap narrow">
+        <h2>Questions</h2>
+        <details><summary>I hear the tone here but not in my video or game. Why?</summary><p>Then your sound works and the problem is in that one app or page. Check its own volume and mute controls, and in Safari make sure the tab isn't muted. Some apps also keep their own output choice in their settings.</p></details>
+        <details><summary>Is the test tone loud?</summary><p>It starts at half volume on the slider, which is gentle on most speakers. If you're wearing headphones, turn your volume down first, then bring it up until the tone is comfortable.</p></details>
+        <details><summary>Does the sound test record anything?</summary><p>No. The sounds are made in your browser and nothing is recorded. In Chrome, the optional Show device names button asks for the microphone only so the browser will share output names.</p></details>
+        <details><summary>Does the sound test work on phones and Windows?</summary><p>Yes. It works in any current browser that can play sound. On a phone, make sure the ringer switch or silent mode isn't muting the page.</p></details>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="footer-links">
+        <div><b>Free tests</b><a href="/mic-test">Microphone test</a><a href="/webcam-test">Webcam test</a><a href="/speaker-test">Speaker test</a><a href="/sound-test">Sound test</a><a href="/headphone-test">Headphone test</a><a href="/left-right-audio-test">Left/right audio test</a></div>
+        <div><b>Mac guides</b><a href="/mac-microphone-not-working">Mac microphone not working</a><a href="/mac-camera-not-working">Mac camera not working</a><a href="/how-to-test-microphone-on-mac">How to test your mic on a Mac</a><a href="/airpods-not-connecting-to-mac">AirPods not connecting to Mac</a><a href="/airpods-mic-not-working">AirPods mic not working</a><a href="/continuity-camera-not-working">Continuity Camera not working</a><a href="/macbook-speakers-not-working">MacBook speakers not working</a><a href="/zoom-lighting">Lighting for Zoom calls</a></div>
+        <div><b>App fixes</b><a href="/fix/zoom-camera-not-working">Zoom camera not working</a><a href="/fix/teams-camera-not-working">Teams camera not working</a><a href="/fix/discord-mic-not-working">Discord mic not working</a><a href="/fix/google-meet-camera-not-working">Google Meet camera not working</a><a href="/fix/zoom-microphone-not-working">Zoom microphone not working</a><a href="/fix">Every app and device</a></div>
+        <div><b>Green Room</b><a href="/">How it works</a><a href="/#faq">Questions</a><a href="https://github.com/coreyhaines31/greenroom/releases/latest">Download</a></div>
+      </div>
+      <span>© 2026 Corey Haines · Source available under <a href="https://github.com/coreyhaines31/greenroom/blob/main/LICENSE">FSL-1.1-MIT</a></span>
+      <span><a href="https://github.com/coreyhaines31/greenroom">GitHub</a> · <a href="https://github.com/coreyhaines31/greenroom/issues">Report a bug</a> · Also by Corey: <a href="https://wifiorisp.com">WiFi or ISP</a>, <a href="https://midnightoil.app">Midnight Oil</a></span>
+    </div>
+  </footer>
+</body>
+</html>

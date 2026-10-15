@@ -7,7 +7,7 @@
   <meta name="description" content="Free online mic test. Pick your microphone, watch a live level meter, then record 5 seconds and hear yourself back. Runs in your browser; nothing is uploaded.">
   <meta property="og:title" content="Microphone Test: Check Your Mic Online, Free">
   <meta property="og:description" content="Pick your mic, watch a live level meter, and record 5 seconds to hear yourself back. Runs in your browser; nothing is uploaded.">
-  <meta property="og:image" content="https://greenroomformac.com/images/og.png">
+  <meta property="og:image" content="https://greenroomformac.com/images/og/mic-test.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:url" content="https://greenroomformac.com/mic-test">
@@ -22,6 +22,7 @@
   <script src="/tools.js" defer></script>
   <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "WebApplication", "name": "Microphone Test", "url": "https://greenroomformac.com/mic-test", "description": "A free microphone test that runs in your browser: pick a mic, watch a live level meter, and record 5 seconds to hear yourself back.", "applicationCategory": "UtilitiesApplication", "operatingSystem": "Any", "browserRequirements": "Requires JavaScript and microphone access", "isAccessibleForFree": true, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "author": {"@type": "Person", "name": "Corey Haines", "url": "https://corey.co"}}, {"@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Is this mic test private?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. The meter and the recording run in your browser. Nothing is uploaded, saved, or sent anywhere, and the recording is gone when you close the tab."}}, {"@type": "Question", "name": "Why doesn't my microphone show up in the list?", "acceptedAnswer": {"@type": "Answer", "text": "Browsers only show mic names after you allow access, so click Start first. If it's still missing, your computer doesn't see it: unplug it, plug it back in, and try another port or skip the hub."}}, {"@type": "Question", "name": "Why do I sound different in Zoom or Google Meet?", "acceptedAnswer": {"@type": "Answer", "text": "Call apps clean up your voice with noise suppression and automatic volume. This test turns those off in the browser, so you hear what the mic itself picks up."}}, {"@type": "Question", "name": "Does the mic test work on Windows and phones?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. It works in any current browser that can use a microphone. The fixes in our guides are written for Macs."}}]}]}</script>
   <script src="https://cdn.usefathom.com/script.js" data-site="WDVXMJRM" defer></script>
+  <meta name="twitter:image" content="https://greenroomformac.com/images/og/mic-test.png">
 </head>
 <body>
   <header class="nav">
@@ -29,7 +30,7 @@
       <a class="brand" href="/"><img src="/images/icon.png" alt="" width="30" height="30"> Green Room</a>
       <nav>
         <a href="/#how">How it works</a>
-        <details class="menu"><summary>Free tests</summary><div class="menu-list"><span>Test in your browser</span><a href="/mic-test" aria-current="page">Microphone test</a><a href="/webcam-test">Webcam test</a><a href="/speaker-test">Speaker test</a><span>Mac guides</span><a href="/mac-microphone-not-working">Mac microphone not working</a><a href="/mac-camera-not-working">Mac camera not working</a><a href="/how-to-test-microphone-on-mac">How to test your mic on a Mac</a></div></details>
+        <details class="menu"><summary>Free tests</summary><div class="menu-list"><span>Test in your browser</span><a href="/mic-test" aria-current="page">Microphone test</a><a href="/webcam-test">Webcam test</a><a href="/speaker-test">Speaker test</a><a href="/sound-test">Sound test</a><a href="/headphone-test">Headphone test</a><a href="/left-right-audio-test">Left/right audio test</a><span>Mac guides</span><a href="/mac-microphone-not-working">Mac microphone not working</a><a href="/mac-camera-not-working">Mac camera not working</a><a href="/how-to-test-microphone-on-mac">How to test your mic on a Mac</a><span>App fixes</span><a href="/fix">Fix it in Zoom, Teams, Meet, and more</a></div></details>
         <a href="https://github.com/coreyhaines31/greenroom">GitHub</a>
         <a class="pill" href="https://github.com/coreyhaines31/greenroom/releases/latest">Download</a>
       </nav>
@@ -99,7 +100,7 @@
             <div class="meter-card">
               <span class="popup static">Shure MV7 · USB<i></i></span>
               <div class="meter still"><span style="width:2%"></span></div>
-              <p class="m-warn"><svg viewBox="0 0 20 18" aria-hidden="true"><path class="warn-fill solid" d="M10 1.6 18.6 16.4H1.4Z"/><path class="warn-mark" d="M10 6.6v4.6M10 13.4v.4"/></svg>No sound coming in. Check the mic's own mute button or gain knob.</p>
+              <div class="m-warn"><svg viewBox="0 0 20 18" aria-hidden="true"><path class="warn-fill solid" d="M10 1.6 18.6 16.4H1.4Z"/><path class="warn-mark" d="M10 6.6v4.6M10 13.4v.4"/></svg>No sound coming in. Check the mic's own mute button or gain knob.</div>
             </div>
           </div>
         </div>
@@ -148,8 +149,9 @@
   <footer>
     <div class="wrap">
       <div class="footer-links">
-        <div><b>Free tests</b><a href="/mic-test">Microphone test</a><a href="/webcam-test">Webcam test</a><a href="/speaker-test">Speaker test</a></div>
-        <div><b>Mac guides</b><a href="/mac-microphone-not-working">Mac microphone not working</a><a href="/mac-camera-not-working">Mac camera not working</a><a href="/how-to-test-microphone-on-mac">How to test your mic on a Mac</a></div>
+        <div><b>Free tests</b><a href="/mic-test">Microphone test</a><a href="/webcam-test">Webcam test</a><a href="/speaker-test">Speaker test</a><a href="/sound-test">Sound test</a><a href="/headphone-test">Headphone test</a><a href="/left-right-audio-test">Left/right audio test</a></div>
+        <div><b>Mac guides</b><a href="/mac-microphone-not-working">Mac microphone not working</a><a href="/mac-camera-not-working">Mac camera not working</a><a href="/how-to-test-microphone-on-mac">How to test your mic on a Mac</a><a href="/airpods-not-connecting-to-mac">AirPods not connecting to Mac</a><a href="/airpods-mic-not-working">AirPods mic not working</a><a href="/continuity-camera-not-working">Continuity Camera not working</a><a href="/macbook-speakers-not-working">MacBook speakers not working</a><a href="/zoom-lighting">Lighting for Zoom calls</a></div>
+        <div><b>App fixes</b><a href="/fix/zoom-camera-not-working">Zoom camera not working</a><a href="/fix/teams-camera-not-working">Teams camera not working</a><a href="/fix/discord-mic-not-working">Discord mic not working</a><a href="/fix/google-meet-camera-not-working">Google Meet camera not working</a><a href="/fix/zoom-microphone-not-working">Zoom microphone not working</a><a href="/fix">Every app and device</a></div>
         <div><b>Green Room</b><a href="/">How it works</a><a href="/#faq">Questions</a><a href="https://github.com/coreyhaines31/greenroom/releases/latest">Download</a></div>
       </div>
       <span>© 2026 Corey Haines · Source available under <a href="https://github.com/coreyhaines31/greenroom/blob/main/LICENSE">FSL-1.1-MIT</a></span>
