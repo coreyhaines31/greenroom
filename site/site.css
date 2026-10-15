@@ -412,6 +412,7 @@ h1 em { display: block; }
 /* Before you go on */
 .extras .trust-grid { margin-top: 40px; }
 .extras .day-one { margin-top: 36px; }
+.extras .day-one + .day-one, .day-one + .day-one { margin-top: 14px; }
 
 /* Trust */
 .trust h2 { max-width: 14em; }
