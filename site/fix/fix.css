@@ -1,0 +1,13 @@
+/* App fix pages: the hub grid and a linked breadcrumb in the kicker. Builds on /site.css. */
+.kicker a.crumb { color: inherit; text-decoration-color: color-mix(in srgb, var(--muted) 40%, transparent); }
+.kicker a.crumb:hover { color: var(--ink); }
+
+.fix-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); }
+.fix-app { padding: 22px 22px 14px; border-radius: var(--radius); background: var(--surface); box-shadow: 0 0 0 1px var(--line); min-width: 0; }
+.fix-app h2 { font-size: 22px; letter-spacing: -0.02em; margin-bottom: 10px; }
+.fix-links { display: grid; }
+.fix-links a { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); color: var(--ink); text-decoration: none; font-size: 16px; }
+.fix-links a:first-child { border-top: 0; }
+.fix-links a span { color: var(--muted); transition: transform 0.15s; }
+.fix-links a:hover { color: var(--mint-ink); }
+.fix-links a:hover span { color: var(--mint-ink); transform: translateX(3px); }
