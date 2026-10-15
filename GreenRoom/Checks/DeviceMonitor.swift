@@ -12,12 +12,16 @@ final class DeviceMonitor {
     private(set) var usbProducts: [String] = []
     private(set) var remembered: [MacAudioMemory.Remembered] = []
     private(set) var micProblem: MicProblem?
+    /// Your names for devices, and the ones hidden from the pickers.
+    private(set) var names = DeviceNames.load(.standard)
+    /// Connected devices under the names macOS gives them, for renaming.
+    private(set) var systemDevices: [Device] = []
 
     /// Apps whose device use never counts as a problem, like a recorder that's always listening.
     private(set) var ignoredApps = Set(UserDefaults.standard.stringArray(forKey: "ignoredApps") ?? [])
 
     /// The saved setup that fits what's plugged in right now.
-    var setup: Setup? { Setup.bestMatch(setups, snapshot: snapshot) }
+    var setup: Setup? { Setup.bestMatch(setups, snapshot: snapshot).map(names.apply) }
     var readiness: Readiness { Readiness.evaluate(snapshot.ignoring(apps: ignoredApps), setup: setup) }
     var advisories: [Advisory] { Advisory.evaluate(snapshot.ignoring(apps: ignoredApps)) }
     /// What "Save as my setup" saves before there is one: the devices used most, from history.
@@ -97,7 +101,10 @@ final class DeviceMonitor {
     }
 
     func refresh(force: Bool = false) {
-        let latest = DeviceScanner.snapshot()
+        let system = DeviceScanner.snapshot()
+        let connected = DeviceKind.allCases.flatMap(system.devices)
+        if connected != systemDevices { systemDevices = connected }
+        let latest = names.apply(system)
         // Apps start and stop sounds all day; only a real change pays for the slower checks.
         guard force || latest != snapshot else { return }
         usbProducts = USBDevices.productNames()
@@ -123,6 +130,18 @@ final class DeviceMonitor {
             HistoryStore.save(history)
             lastSave = .now
         }
+    }
+
+    func rename(_ device: Device, to name: String) {
+        names.setNickname(name, for: device.id)
+        names.save(.standard)
+        refresh(force: true)
+    }
+
+    func setHidden(_ device: Device, _ hidden: Bool) {
+        if hidden { names.hidden.insert(device.id) } else { names.hidden.remove(device.id) }
+        names.save(.standard)
+        onChange?()
     }
 
     func ignore(app: String) {
