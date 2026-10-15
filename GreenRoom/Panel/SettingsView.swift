@@ -113,40 +113,49 @@ struct SettingsView: View {
     }
 }
 
-/// Rename a device, or hide it from the pickers. The name saves when you press Return or
-/// leave the field.
+/// Rename a device, or hide it from the pickers.
 struct DeviceNameRow: View {
     let device: Device
     let monitor: DeviceMonitor
-    @State private var name: String
-    @FocusState private var focused: Bool
-
-    init(device: Device, monitor: DeviceMonitor) {
-        self.device = device
-        self.monitor = monitor
-        _name = State(initialValue: monitor.names.nicknames[device.id] ?? "")
-    }
 
     var body: some View {
+        let nickname = monitor.names.nicknames[device.id]
         let hidden = monitor.names.isHidden(device)
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                TextField("Name", text: $name, prompt: Text(device.name))
-                    .labelsHidden()
-                    .focused($focused)
-                    .onSubmit(save)
-                Text("\(device.kind.title) · \(device.name) · \(device.transport.label)")
+                Text(nickname ?? device.name)
+                Text(caption(renamed: nickname != nil, hidden: hidden))
                     .font(.caption).foregroundStyle(.secondary)
             }
             .opacity(hidden ? 0.5 : 1)
-            Button(hidden ? "Show" : "Hide") { monitor.setHidden(device, !hidden) }
+            Spacer()
+            Menu {
+                Button("Rename…") {
+                    if let name = NamePrompt.ask(
+                        title: "Rename \(device.name)", info: "Green Room shows this name everywhere.",
+                        suggestion: nickname ?? device.name
+                    ) {
+                        monitor.rename(device, to: name)
+                    }
+                }
+                if nickname != nil {
+                    Button("Use “\(device.name)”") { monitor.rename(device, to: "") }
+                }
+                Button(hidden ? "Show in Lists" : "Hide from Lists") { monitor.setHidden(device, !hidden) }
+            } label: {
+                Image(systemName: "ellipsis.circle")
+            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .fixedSize()
+            .accessibilityLabel("Options for \(nickname ?? device.name)")
         }
-        .onChange(of: focused) { if !focused { save() } }
-        .onDisappear(perform: save)
     }
 
-    private func save() {
-        guard name != (monitor.names.nicknames[device.id] ?? "") else { return }
-        monitor.rename(device, to: name)
+    private func caption(renamed: Bool, hidden: Bool) -> String {
+        var parts = [device.kind.title, device.transport.label]
+        if renamed { parts.append(device.name) }
+        if hidden { parts.append("Hidden") }
+        return parts.joined(separator: " · ")
     }
 }
