@@ -7,6 +7,8 @@ Green Room runs on macOS 14 Sonoma and later, is signed and notarized by Apple, 
 ## What it does
 
 - Camera, mic, and speaker in one panel: live camera preview, mic level meter, left/right speaker test, and a five-second "Hear Yourself" record and playback.
+- Compare mics: a live level on every microphone at once, to see which one is hearing you, and one click to switch to it.
+- Device names: rename devices ("Lapel mic" instead of "USB Audio Device") everywhere in the app and the `greenroom` command, and hide ones you never use from the pickers.
 - Saved setups (Desk, Studio, Travel) picked automatically by which devices are plugged in, with warnings when the mic or sound switches away from your setup.
 - Live now: which app (Zoom, Meet, Teams, Chrome, Loom) is using each mic and speaker, and a warning when a call uses a different mic than your setup.
 - Bluetooth call mode: tells you when AirPods or another headset drops to phone-call quality because an app turned on its mic, and offers a better mic.
