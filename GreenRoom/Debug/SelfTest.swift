@@ -57,20 +57,30 @@ enum SelfTest {
                 box.queue.async { box.session.startRunning() }
             }
             let meter = MicMeter()
-            if mic { meter.start() }
+            let inputs = InputMeters()
+            if mic {
+                meter.start()
+                inputs.start(monitor.snapshot.devices(.microphone))
+            }
             var peak: Float = 0
+            var comparePeaks: [String: Float] = [:]
             for _ in 0..<40 {
                 try? await Task.sleep(for: .milliseconds(100))
                 peak = max(peak, meter.level)
+                for device in monitor.snapshot.devices(.microphone) {
+                    guard let level = inputs.levels[device.id] else { continue }
+                    comparePeaks[device.name] = max(comparePeaks[device.name] ?? 0, level)
+                }
             }
             meter.stop()
+            inputs.stop()
             let recordedSeconds = mic ? await recordTwoSeconds() : 0
             box.queue.async { box.session.stopRunning() }
             let result: [String: Any] = [
                 "cameraAccess": camera, "micAccess": mic,
                 "camera": device?.name ?? "none", "cameraFrames": counter.frames,
                 "microphone": monitor.snapshot.active(.microphone)?.name ?? "none", "micPeakLevel": peak,
-                "recordedSeconds": recordedSeconds, "framingAdvice": counter.advice,
+                "recordedSeconds": recordedSeconds, "comparePeaks": comparePeaks, "framingAdvice": counter.advice,
                 "framingMeasured": counter.measurements
             ]
             if let data = try? JSONSerialization.data(withJSONObject: result, options: [.prettyPrinted, .sortedKeys]) {
