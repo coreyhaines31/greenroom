@@ -1,0 +1,31 @@
+# Green Room
+
+> Green Room is a free, source-available macOS menu bar app that checks your camera, microphone, and speakers before calls and recordings, shows which app is really using each device, and tells you why a device is missing. The website also has free in-browser microphone, webcam, and speaker tests.
+
+Green Room runs on macOS 14 Sonoma and later, is signed and notarized by Apple, has no account and no analytics in the app, and never records or uploads audio or video. Install with `brew install --cask coreyhaines31/tap/greenroom` or from https://github.com/coreyhaines31/greenroom/releases/latest.
+
+## What it does
+
+- Camera, mic, and speaker in one panel: live camera preview, mic level meter, left/right speaker test, and a five-second "Hear Yourself" record and playback.
+- Saved setups (Desk, Studio, Travel) picked automatically by which devices are plugged in, with warnings when the mic or sound switches away from your setup.
+- Live now: which app (Zoom, Meet, Teams, Chrome, Loom) is using each mic and speaker, and a warning when a call uses a different mic than your setup.
+- Bluetooth call mode: tells you when AirPods or another headset drops to phone-call quality because an app turned on its mic, and offers a better mic.
+- Missing devices: says whether a usual device isn't plugged in (not on USB at all), is plugged in but not working, or is a Bluetooth device that isn't connected.
+- Before calls and recordings: an optional calendar check two minutes before video calls, and a recording check (camera resolution, mic quality, disk space, power) when Loom, OBS, Screen Studio, or QuickTime starts.
+- A `greenroom` command for Terminal and AI agents: `greenroom status --json` (exits 2 when something is wrong), `greenroom devices`, `greenroom use <setup>`.
+
+## Free tests
+
+- [Microphone test](https://greenroomformac.com/mic-test): live level meter, then record five seconds and play it back, in the browser.
+- [Webcam test](https://greenroomformac.com/webcam-test): live preview with the camera's real resolution, frame rate, and lighting.
+- [Speaker test](https://greenroomformac.com/speaker-test): left, right, both, and a sweep, with an output picker where supported.
+
+## Mac guides
+
+- [Mac microphone not working](https://greenroomformac.com/mac-microphone-not-working)
+- [Mac camera not working](https://greenroomformac.com/mac-camera-not-working)
+- [How to test your microphone on a Mac](https://greenroomformac.com/how-to-test-microphone-on-mac)
+
+## Source
+
+- [GitHub](https://github.com/coreyhaines31/greenroom): source, issues, and releases under FSL-1.1-MIT.
