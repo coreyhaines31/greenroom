@@ -554,6 +554,11 @@ button.pill:disabled { opacity: 0.5; cursor: default; }
 .play small { font-weight: 400; font-size: 13px; color: var(--muted); }
 .play.on { background: color-mix(in srgb, var(--mint) 14%, var(--surface)); box-shadow: 0 0 0 2px var(--mint); }
 @media (max-width: 420px) { .play { padding: 18px 4px 14px; font-size: 15px; } .play svg { width: 28px; height: 28px; } }
+.lr.big { gap: 14px; }
+.lr.big .play { padding: 40px 8px 30px; font-size: 24px; letter-spacing: -0.01em; }
+.lr.big .play svg { width: 56px; height: 56px; }
+.lr.big .play small { font-size: 14px; letter-spacing: 0; }
+@media (max-width: 420px) { .lr.big { gap: 8px; } .lr.big .play { padding: 26px 4px 20px; font-size: 19px; } .lr.big .play svg { width: 40px; height: 40px; } .lr.big .play small { font-size: 12px; } }
 .sweep { display: grid; gap: 10px; padding-top: 22px; border-top: 1px solid var(--line); }
 .sweep h3 { font-size: 17px; }
 .sweep p { color: var(--muted); font-size: 15px; }
