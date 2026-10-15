@@ -1,4 +1,4 @@
-// In-browser device tests for the mic, webcam, and speaker pages.
+// In-browser device tests for the mic, webcam, speaker, sound, headphone, and left/right pages.
 // Everything runs locally: no audio or video ever leaves the page.
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -358,17 +358,21 @@
     });
   }
 
-  // ---------- Speaker test ----------
+  // ---------- Speaker, sound, headphone, and left/right tests ----------
+  // One engine for every audio output page. Each page includes only the controls it needs.
   function speakerTest() {
     const ui = {
       left: $("spk-left"), right: $("spk-right"), both: $("spk-both"), status: $("spk-status"),
       sweep: $("spk-sweep"), sweepBar: $("spk-sweep-bar"), hz: $("spk-hz"), volume: $("spk-volume"),
+      tone: $("spk-tone"), pan: $("spk-pan"), panBar: $("spk-pan-bar"), panPos: $("spk-pan-pos"), bass: $("spk-bass"), bassHz: $("spk-bass-hz"),
       outputRow: $("spk-output-row"), output: $("spk-output"), outputBtn: $("spk-output-btn"), outputNote: $("spk-output-note"),
     };
-    if (!ui.left) return;
+    const sides = [ui.left, ui.right, ui.both].filter(Boolean);
+    const runners = [ui.sweep, ui.tone, ui.pan, ui.bass].filter(Boolean);
+    if (!ui.status || (!sides.length && !runners.length)) return;
     if (!AudioCtx) {
       ui.status.textContent = "This browser can't play test sounds. Try a current version of Safari, Chrome, or Firefox.";
-      [ui.left, ui.right, ui.both, ui.sweep].forEach((b) => (b.disabled = true));
+      [...sides, ...runners].forEach((b) => (b.disabled = true));
       return;
     }
 
@@ -376,7 +380,7 @@
     const elSink = !ctxSink && window.HTMLMediaElement && "setSinkId" in HTMLMediaElement.prototype;
     const canPick = ctxSink || elSink;
     const firefoxPicker = media && "selectAudioOutput" in media;
-    let ctx = null, master = null, outEl = null, sweepNodes = null, raf = 0, toneTimer = 0, sinkId = "";
+    let ctx = null, master = null, outEl = null, running = null, toneTimer = 0, sinkId = "";
 
     function ensureCtx() {
       if (ctx) return ctx;
@@ -397,26 +401,41 @@
       return ctx;
     }
 
+    async function ready() {
+      ensureCtx();
+      if (ctx.state === "suspended") await ctx.resume();
+      if (outEl && outEl.paused) outEl.play().catch(() => {});
+    }
+
     function setVolume() {
-      if (!master) return;
+      if (!master || !ui.volume) return;
       const v = Number(ui.volume.value) / 100;
       master.gain.value = v * v * 0.6;
     }
-    ui.volume.addEventListener("input", setVolume);
+    if (ui.volume) ui.volume.addEventListener("input", setVolume);
+
+    function played() {
+      ui.status.dataset.played = (Number(ui.status.dataset.played) || 0) + 1;
+    }
 
     function mark(button) {
-      [ui.left, ui.right, ui.both].forEach((b) => b.classList.toggle("on", b === button));
+      sides.forEach((b) => b.classList.toggle("on", b === button));
       clearTimeout(toneTimer);
       toneTimer = setTimeout(() => button && button.classList.remove("on"), 1300);
     }
 
+    const makePanner = (pan) => {
+      if (!ctx.createStereoPanner) return null;
+      const panner = ctx.createStereoPanner();
+      panner.pan.value = pan;
+      panner.connect(master);
+      return panner;
+    };
+
     async function chime(pan, button, label) {
-      stopSweep();
-      ensureCtx();
-      if (ctx.state === "suspended") await ctx.resume();
-      if (outEl && outEl.paused) outEl.play().catch(() => {});
-      const panner = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
-      if (panner) { panner.pan.value = pan; panner.connect(master); }
+      stopRunning();
+      await ready();
+      const panner = makePanner(pan);
       const t0 = ctx.currentTime + 0.03;
       [523.25, 659.25, 783.99].forEach((freq, i) => {
         const osc = ctx.createOscillator();
@@ -432,59 +451,173 @@
         osc.stop(start + 0.55);
       });
       mark(button);
-      ui.status.textContent = panner ? label : "This browser can't pan sound, so both sides play together.";
-      ui.status.dataset.played = (Number(ui.status.dataset.played) || 0) + 1;
+      ui.status.textContent = panner || pan === 0 ? label : "This browser can't pan sound, so both sides play together.";
+      played();
     }
 
-    ui.left.addEventListener("click", () => chime(-1, ui.left, "Playing on the left. You should hear it only in your left ear or left speaker."));
-    ui.right.addEventListener("click", () => chime(1, ui.right, "Playing on the right. You should hear it only in your right ear or right speaker."));
-    ui.both.addEventListener("click", () => chime(0, ui.both, "Playing on both sides. It should sound centered, right in front of you."));
+    const sideLabel = (button, fallback) => (button && button.dataset.says) || fallback;
+    if (ui.left) ui.left.addEventListener("click", () => chime(-1, ui.left, sideLabel(ui.left, "Playing on the left. You should hear it only in your left ear or left speaker.")));
+    if (ui.right) ui.right.addEventListener("click", () => chime(1, ui.right, sideLabel(ui.right, "Playing on the right. You should hear it only in your right ear or right speaker.")));
+    if (ui.both) ui.both.addEventListener("click", () => chime(0, ui.both, sideLabel(ui.both, "Playing on both sides. It should sound centered, right in front of you.")));
+
+    // Longer sounds (sweep, tone, pan, bass) share one Play/Stop slot: starting one stops the other.
+    function stopRunning() {
+      if (!running) return;
+      const r = running;
+      running = null;
+      r.button.textContent = r.label;
+      if (r.cleanup) r.cleanup();
+    }
+
+    async function toggle(button, play) {
+      const mine = running && running.button === button;
+      stopRunning();
+      if (mine) return;
+      await ready();
+      sides.forEach((b) => b.classList.remove("on"));
+      const r = { button, label: button.textContent, cleanup: null };
+      running = r;
+      button.textContent = "Stop";
+      r.cleanup = play(() => { if (running === r) stopRunning(); });
+      played();
+    }
+
+    function animate(fn) {
+      let raf = 0;
+      const tick = () => { fn(); raf = requestAnimationFrame(tick); };
+      tick();
+      return () => cancelAnimationFrame(raf);
+    }
+
+    function fade(env, t0, peak, length) {
+      env.gain.setValueAtTime(0.0001, t0);
+      env.gain.exponentialRampToValueAtTime(peak, t0 + 0.3);
+      env.gain.setValueAtTime(peak, t0 + length - 0.3);
+      env.gain.exponentialRampToValueAtTime(0.0001, t0 + length);
+    }
 
     const LOW = 40, HIGH = 16000, SWEEP_S = 8;
-    function stopSweep() {
-      if (!sweepNodes) return;
-      try { sweepNodes.osc.stop(); } catch {}
-      sweepNodes = null;
-      cancelAnimationFrame(raf);
-      ui.sweep.textContent = "Play the sweep";
-      ui.sweepBar.style.width = "0%";
-      ui.hz.textContent = "";
-    }
-
-    async function startSweep() {
-      if (sweepNodes) { stopSweep(); return; }
-      ensureCtx();
-      if (ctx.state === "suspended") await ctx.resume();
-      if (outEl && outEl.paused) outEl.play().catch(() => {});
-      [ui.left, ui.right, ui.both].forEach((b) => b.classList.remove("on"));
+    function playSweep(done) {
       const osc = ctx.createOscillator();
       const env = ctx.createGain();
       const t0 = ctx.currentTime + 0.05;
       osc.type = "sine";
       osc.frequency.setValueAtTime(LOW, t0);
       osc.frequency.exponentialRampToValueAtTime(HIGH, t0 + SWEEP_S);
-      env.gain.setValueAtTime(0.0001, t0);
-      env.gain.exponentialRampToValueAtTime(0.5, t0 + 0.3);
-      env.gain.setValueAtTime(0.5, t0 + SWEEP_S - 0.3);
-      env.gain.exponentialRampToValueAtTime(0.0001, t0 + SWEEP_S);
+      fade(env, t0, 0.5, SWEEP_S);
       osc.connect(env).connect(master);
       osc.start(t0);
       osc.stop(t0 + SWEEP_S + 0.05);
-      sweepNodes = { osc, t0 };
-      osc.onended = () => { if (sweepNodes && sweepNodes.osc === osc) stopSweep(); };
-      ui.sweep.textContent = "Stop";
-      ui.status.textContent = "Sweeping from a low rumble to a high whistle. Listen for rattles, buzzing, or spots that drop out.";
-      const tick = () => {
-        if (!sweepNodes) return;
+      osc.onended = done;
+      ui.status.textContent = ui.sweep.dataset.says || "Sweeping from a low rumble to a high whistle. Listen for rattles, buzzing, or spots that drop out.";
+      const stopAnim = animate(() => {
         const p = Math.max(0, Math.min(1, (ctx.currentTime - t0) / SWEEP_S));
-        ui.sweepBar.style.width = `${p * 100}%`;
+        if (ui.sweepBar) ui.sweepBar.style.width = `${p * 100}%`;
         const hz = LOW * Math.pow(HIGH / LOW, p);
-        ui.hz.textContent = hz >= 1000 ? `${(hz / 1000).toFixed(1)} kHz` : `${Math.round(hz)} Hz`;
-        raf = requestAnimationFrame(tick);
+        if (ui.hz) ui.hz.textContent = hz >= 1000 ? `${(hz / 1000).toFixed(1)} kHz` : `${Math.round(hz)} Hz`;
+      });
+      return () => {
+        osc.onended = null;
+        try { osc.stop(); } catch {}
+        stopAnim();
+        if (ui.sweepBar) ui.sweepBar.style.width = "0%";
+        if (ui.hz) ui.hz.textContent = "";
       };
-      tick();
     }
-    ui.sweep.addEventListener("click", startSweep);
+
+    const TONE_S = 20;
+    function playTone(done) {
+      const osc = ctx.createOscillator();
+      const env = ctx.createGain();
+      const t0 = ctx.currentTime + 0.05;
+      osc.type = "sine";
+      osc.frequency.value = 440;
+      fade(env, t0, 0.5, TONE_S);
+      osc.connect(env).connect(master);
+      osc.start(t0);
+      osc.stop(t0 + TONE_S + 0.05);
+      osc.onended = done;
+      ui.status.textContent = "Playing a steady tone. If you can hear it, your sound works. Drag the volume slider until it's comfortable.";
+      return () => { osc.onended = null; try { osc.stop(); } catch {} };
+    }
+
+    const PAN_S = 7;
+    function playPan(done) {
+      const panner = makePanner(-1);
+      const t0 = ctx.currentTime + 0.05;
+      const osc = ctx.createOscillator();
+      const env = ctx.createGain();
+      const am = ctx.createGain();
+      const pulse = ctx.createOscillator();
+      const depth = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.value = 587.33;
+      pulse.frequency.value = 5;
+      depth.gain.value = 0.3;
+      am.gain.value = 0.7;
+      pulse.connect(depth).connect(am.gain);
+      fade(env, t0, 0.35, PAN_S);
+      if (panner) {
+        panner.pan.setValueAtTime(-1, t0);
+        panner.pan.linearRampToValueAtTime(1, t0 + PAN_S);
+      }
+      osc.connect(am).connect(env).connect(panner || master);
+      [osc, pulse].forEach((o) => { o.start(t0); o.stop(t0 + PAN_S + 0.05); });
+      osc.onended = done;
+      ui.status.textContent = panner
+        ? "The sound starts in your left ear and moves smoothly to your right. It should pass through the middle of your head."
+        : "This browser can't pan sound, so the sound stays centered.";
+      const stopAnim = animate(() => {
+        const p = Math.max(0, Math.min(1, (ctx.currentTime - t0) / PAN_S));
+        if (ui.panBar) ui.panBar.style.width = `${p * 100}%`;
+        if (ui.panPos) ui.panPos.textContent = !panner ? "Center" : p < 0.15 ? "Left" : p < 0.4 ? "Left of center" : p < 0.6 ? "Center" : p < 0.85 ? "Right of center" : "Right";
+      });
+      return () => {
+        osc.onended = null;
+        [osc, pulse].forEach((o) => { try { o.stop(); } catch {} });
+        stopAnim();
+        if (ui.panBar) ui.panBar.style.width = "0%";
+        if (ui.panPos) ui.panPos.textContent = "";
+      };
+    }
+
+    const BASS = [40, 60, 90];
+    function playBass(done) {
+      const t0 = ctx.currentTime + 0.05;
+      const each = 1.6;
+      const oscs = BASS.map((freq, i) => {
+        const osc = ctx.createOscillator();
+        const env = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = freq;
+        const start = t0 + i * each;
+        env.gain.setValueAtTime(0.0001, start);
+        env.gain.exponentialRampToValueAtTime(0.9, start + 0.15);
+        env.gain.setValueAtTime(0.9, start + each - 0.35);
+        env.gain.exponentialRampToValueAtTime(0.0001, start + each - 0.1);
+        osc.connect(env).connect(master);
+        osc.start(start);
+        osc.stop(start + each);
+        return osc;
+      });
+      oscs[oscs.length - 1].onended = done;
+      ui.status.textContent = "Three deep notes, each a little higher. With a good fit you feel them as much as hear them.";
+      const stopAnim = animate(() => {
+        const i = Math.min(BASS.length - 1, Math.floor((ctx.currentTime - t0) / each));
+        if (ui.bassHz) ui.bassHz.textContent = i >= 0 ? `${BASS[i]} Hz` : "";
+      });
+      return () => {
+        oscs[oscs.length - 1].onended = null;
+        oscs.forEach((o) => { try { o.stop(); } catch {} });
+        stopAnim();
+        if (ui.bassHz) ui.bassHz.textContent = "";
+      };
+    }
+
+    if (ui.sweep) ui.sweep.addEventListener("click", () => toggle(ui.sweep, playSweep));
+    if (ui.tone) ui.tone.addEventListener("click", () => toggle(ui.tone, playTone));
+    if (ui.pan) ui.pan.addEventListener("click", () => toggle(ui.pan, playPan));
+    if (ui.bass) ui.bass.addEventListener("click", () => toggle(ui.bass, playBass));
 
     async function useSink(id, label) {
       sinkId = id;
@@ -515,7 +648,9 @@
       return named;
     }
 
-    if (!canPick) {
+    if (!ui.outputRow) {
+      // This page plays on the current output, with no picker.
+    } else if (!canPick) {
       ui.outputRow.hidden = true;
       ui.outputNote.textContent = "This browser plays on your Mac's current output. To change it, open System Settings › Sound › Output, or the Sound menu in Control Center.";
     } else if (firefoxPicker) {
