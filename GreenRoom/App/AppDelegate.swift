@@ -44,6 +44,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if CommandLine.arguments.contains("--open-settings") {
             windows.showSettings()
         }
+        let arguments = CommandLine.arguments
+        if let index = arguments.firstIndex(of: "--render-compare"), index + 1 < arguments.count {
+            CompareSample.write(to: arguments[index + 1])
+        }
         if CommandLine.arguments.contains("--open-history") {
             windows.showHistory()
         }
