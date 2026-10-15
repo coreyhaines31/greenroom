@@ -46,6 +46,8 @@ def short(app):
 def head(title, desc, url, graph, og_type="article"):
     ld = json.dumps({"@context": "https://schema.org", "@graph": graph}, ensure_ascii=False)
     t, d = html.escape(title), html.escape(desc)
+    # The share image og_pages.py renders for this page: /fix -> fix.png, /fix/x -> fix-x.png.
+    image = f"{BASE}/images/og/" + url.removeprefix(BASE + "/").replace("/", "-") + ".png"
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -55,12 +57,13 @@ def head(title, desc, url, graph, og_type="article"):
   <meta name="description" content="{d}">
   <meta property="og:title" content="{t}">
   <meta property="og:description" content="{d}">
-  <meta property="og:image" content="{BASE}/images/og.png">
+  <meta property="og:image" content="{image}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta property="og:url" content="{url}">
   <meta property="og:type" content="{og_type}">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="{image}">
   <meta name="theme-color" content="#f5f5f7">
   <link rel="icon" href="/images/icon.png">
   <link rel="apple-touch-icon" href="/images/icon.png">
