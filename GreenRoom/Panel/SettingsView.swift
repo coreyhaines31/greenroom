@@ -49,7 +49,8 @@ struct SettingsView: View {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(setup.name)
-                            Text(DeviceKind.allCases.compactMap { setup.devices[$0]?.name }.joined(separator: " · "))
+                            Text(DeviceKind.allCases.compactMap { monitor.names.apply(setup).devices[$0]?.name }
+                                .joined(separator: " · "))
                                 .font(.caption).foregroundStyle(.secondary)
                         }
                         Spacer()
@@ -61,6 +62,15 @@ struct SettingsView: View {
                         Button("Forget", role: .destructive) { monitor.forget(setup) }
                     }
                 }
+            }
+            Section {
+                ForEach(uniqueDevices) { device in
+                    DeviceNameRow(device: device, monitor: monitor)
+                }
+            } header: {
+                Text("Devices")
+            } footer: {
+                Text("Your names show everywhere in Green Room. Hidden devices leave the pickers.")
             }
             if !monitor.ignoredApps.isEmpty {
                 Section("Ignored apps") {
@@ -94,5 +104,58 @@ struct SettingsView: View {
             Task { checkCalls = await callWatcher.setEnabled(checkCalls) }
         }
         .onChange(of: autoUpdate) { updater.checksAutomatically = autoUpdate }
+    }
+
+    /// A USB mic with a headphone jack is a mic and a speaker with one ID; it gets one row.
+    private var uniqueDevices: [Device] {
+        var seen = Set<String>()
+        return monitor.systemDevices.filter { seen.insert($0.id).inserted }
+    }
+}
+
+/// Rename a device, or hide it from the pickers.
+struct DeviceNameRow: View {
+    let device: Device
+    let monitor: DeviceMonitor
+
+    var body: some View {
+        let nickname = monitor.names.nicknames[device.id]
+        let hidden = monitor.names.isHidden(device)
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(nickname ?? device.name)
+                Text(caption(renamed: nickname != nil, hidden: hidden))
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            .opacity(hidden ? 0.5 : 1)
+            Spacer()
+            Menu {
+                Button("Rename…") {
+                    if let name = NamePrompt.ask(
+                        title: "Rename \(device.name)", info: "Green Room shows this name everywhere.",
+                        suggestion: nickname ?? device.name
+                    ) {
+                        monitor.rename(device, to: name)
+                    }
+                }
+                if nickname != nil {
+                    Button("Use “\(device.name)”") { monitor.rename(device, to: "") }
+                }
+                Button(hidden ? "Show in Lists" : "Hide from Lists") { monitor.setHidden(device, !hidden) }
+            } label: {
+                Image(systemName: "ellipsis.circle")
+            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .fixedSize()
+            .accessibilityLabel("Options for \(nickname ?? device.name)")
+        }
+    }
+
+    private func caption(renamed: Bool, hidden: Bool) -> String {
+        var parts = [device.kind.title, device.transport.label]
+        if renamed { parts.append(device.name) }
+        if hidden { parts.append("Hidden") }
+        return parts.joined(separator: " · ")
     }
 }

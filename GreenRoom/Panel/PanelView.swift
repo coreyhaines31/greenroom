@@ -215,7 +215,8 @@ struct DevicePicker<Trailing: View>: View {
     }
 
     var body: some View {
-        let devices = monitor.snapshot.devices(kind)
+        // A hidden device still shows while it's the one in use.
+        let devices = monitor.snapshot.devices(kind).filter { !monitor.names.isHidden($0) || $0.id == selected?.id }
         VStack(alignment: .leading, spacing: 4) {
             Text(kind.title).font(.caption).foregroundStyle(.secondary)
             HStack {
