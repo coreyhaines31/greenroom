@@ -11,3 +11,4 @@ build/
 .build/
 .swiftpm/
 site/.vercel
+.claude/
