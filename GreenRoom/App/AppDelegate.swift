@@ -33,6 +33,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         windows.updater = updater
         windows.hotKey = hotKey
         windows.showWelcomeIfNew(isNewUser: isNewUser)
+        #if !DEBUG
+        // Debug builds share the bundle id, so they'd register themselves instead of /Applications.
+        LoginItem.applyDefaultOnce()
+        #endif
         #if DEBUG
         // Opens the panel on launch, for screenshots and testing without clicking.
         if CommandLine.arguments.contains("--open-panel") {
