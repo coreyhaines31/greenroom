@@ -261,7 +261,10 @@ struct DevicePicker<Trailing: View>: View {
                     trailing
                 }
             }
-            LiveCaption(kind: kind, snapshot: monitor.snapshot, selected: selected)
+            let snapshot = monitor.snapshot.ignoring(apps: monitor.ignoredApps)
+            LiveCaption(kind: kind, snapshot: snapshot, selected: selected) {
+                monitor.ignore(app: $0)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
