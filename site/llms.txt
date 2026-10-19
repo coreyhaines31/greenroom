@@ -33,6 +33,7 @@ Green Room runs on macOS 14 Sonoma and later, is signed and notarized by Apple, 
 - [AirPods not connecting to Mac](https://greenroomformac.com/airpods-not-connecting-to-mac)
 - [AirPods mic not working](https://greenroomformac.com/airpods-mic-not-working), including Bluetooth call mode
 - [Continuity Camera not working](https://greenroomformac.com/continuity-camera-not-working)
+- [Logitech webcam not working on Mac](https://greenroomformac.com/logitech-webcam-not-working): C920, Brio, StreamCam, MX Brio
 - [MacBook speakers not working](https://greenroomformac.com/macbook-speakers-not-working)
 - [Lighting for Zoom calls](https://greenroomformac.com/zoom-lighting)
 
