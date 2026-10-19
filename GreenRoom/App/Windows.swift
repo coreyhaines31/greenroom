@@ -9,6 +9,8 @@ final class Windows {
     private var history: NSWindow?
     private var welcome: NSWindow?
     private var settings: NSWindow?
+    private var recordPreview: NSWindow?
+    var checks: Checks?
     var callWatcher: CallWatcher?
     var updater: Updater?
     var hotKey: HotKey?
@@ -69,7 +71,49 @@ final class Windows {
         history?.makeKeyAndOrderFront(nil)
     }
 
+    /// While it's open, the live checks keep running after the panel closes.
+    var isRecordPreviewOpen: Bool { recordPreview?.isVisible == true }
+
+    /// Full screen on the display the panel was on, like a teleprompter.
+    func showRecordPreview(on screen: NSScreen?, fullScreen: Bool = true) {
+        guard let checks else { return }
+        if recordPreview == nil {
+            let view = RecordPreviewView(monitor: monitor, checks: checks) { [weak self] in
+                self?.recordPreview?.close()
+            }
+            let window = NSWindow(contentViewController: NSHostingController(rootView: view))
+            window.title = "Record Preview"
+            window.styleMask.insert(.resizable)
+            window.collectionBehavior.insert(.fullScreenPrimary)
+            window.isReleasedWhenClosed = false
+            NotificationCenter.default.addObserver(
+                forName: NSWindow.willCloseNotification, object: window, queue: .main
+            ) { [weak checks] _ in
+                MainActor.assumeIsolated { checks?.stop() }
+            }
+            recordPreview = window
+        }
+        guard let window = recordPreview else { return }
+        if !window.isVisible, let screen {
+            window.setFrame(screen.visibleFrame, display: false)
+        }
+        monitor.refresh(force: true)
+        checks.start()
+        NSApp.activate()
+        window.makeKeyAndOrderFront(nil)
+        if fullScreen, !window.styleMask.contains(.fullScreen) {
+            window.toggleFullScreen(nil)
+        }
+    }
+
     #if DEBUG
+    func writeRecordPreviewSnapshot(to path: String) {
+        guard let view = recordPreview?.contentView,
+              let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { return }
+        view.cacheDisplay(in: view.bounds, to: rep)
+        try? rep.representation(using: .png, properties: [:])?.write(to: URL(fileURLWithPath: path))
+    }
+
     func writeSettingsSnapshot(to path: String) {
         guard let view = settings?.contentView,
               let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds) else { return }
