@@ -16,6 +16,7 @@ struct PanelView: View {
     let fit: PanelFit
     let showHistory: () -> Void
     let closePanel: () -> Void
+    let showRecordPreview: () -> Void
     let showSettings: () -> Void
     @State private var contentHeight: CGFloat?
 
@@ -70,6 +71,21 @@ struct PanelView: View {
             // 16:9 at the panel's 308pt content width.
             .frame(maxWidth: .infinity)
             .frame(height: 173)
+            .overlay(alignment: .topTrailing) {
+                if monitor.previewCamera != nil {
+                    Button(action: showRecordPreview) {
+                        Image(systemName: "arrow.up.left.and.arrow.down.right")
+                            .font(.callout.weight(.semibold))
+                            .padding(7)
+                            .background(.black.opacity(0.45), in: Circle())
+                            .foregroundStyle(.white)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(8)
+                    .help("Record preview: the camera full screen, with your mic and speaker")
+                    .accessibilityLabel("Record preview")
+                }
+            }
             if let advice = checks.camera.advice {
                 Label(advice, systemImage: "lightbulb")
                     .font(.caption).foregroundStyle(.secondary)
@@ -105,7 +121,7 @@ struct PanelView: View {
             } else {
                 HStack(spacing: 10) {
                     LevelMeter(level: checks.meter.level)
-                    Button(playbackLabel) { checks.hearYourself() }
+                    Button(checks.playback.buttonTitle) { checks.hearYourself() }
                         .controlSize(.small)
                         .fixedSize()
                         .disabled(checks.playback.phase != .idle)
@@ -145,24 +161,8 @@ struct PanelView: View {
 
     private var speakerSection: some View {
         DevicePicker(kind: .speaker, monitor: monitor, selected: monitor.snapshot.active(.speaker)) {
-            Button(toneLabel) { checks.tone.play() }
+            Button(checks.tone.buttonTitle) { checks.tone.play() }
                 .disabled(checks.tone.playing != nil)
-        }
-    }
-
-    private var playbackLabel: String {
-        switch checks.playback.phase {
-        case .idle: "Hear Yourself"
-        case .recording(let left): "Talk… \(left)"
-        case .playing: "Playing…"
-        }
-    }
-
-    private var toneLabel: String {
-        switch checks.tone.playing {
-        case .left: "Left…"
-        case .right: "Right…"
-        case nil: "Test"
         }
     }
 

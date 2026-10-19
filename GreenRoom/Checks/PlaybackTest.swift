@@ -14,6 +14,14 @@ final class PlaybackTest {
     }
 
     private(set) var phase = Phase.idle
+
+    var buttonTitle: String {
+        switch phase {
+        case .idle: "Hear Yourself"
+        case .recording(let left): "Talk… \(left)"
+        case .playing: "Playing…"
+        }
+    }
     @ObservationIgnored private var engine: AVAudioEngine?
     @ObservationIgnored private var task: Task<Void, Never>?
 

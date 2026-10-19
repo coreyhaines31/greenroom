@@ -8,6 +8,14 @@ final class TestTone {
     enum Side { case left, right }
 
     private(set) var playing: Side?
+
+    var buttonTitle: String {
+        switch playing {
+        case .left: "Left…"
+        case .right: "Right…"
+        case nil: "Test"
+        }
+    }
     @ObservationIgnored private var engine: AVAudioEngine?
 
     nonisolated static let toneSeconds = 0.6

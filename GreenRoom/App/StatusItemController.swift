@@ -34,6 +34,12 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
                 self?.windows.showHistory()
             },
             closePanel: { [weak self] in self?.popover.performClose(nil) },
+            showRecordPreview: { [weak self] in
+                guard let self else { return }
+                let screen = statusItem.button?.window?.screen
+                popover.performClose(nil)
+                windows.showRecordPreview(on: screen)
+            },
             showSettings: { [weak self] in
                 self?.popover.performClose(nil)
                 self?.windows.showSettings()
@@ -115,6 +121,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
     #endif
 
     func popoverDidClose(_ notification: Notification) {
+        guard !windows.isRecordPreviewOpen else { return }
         checks.stop()
     }
 

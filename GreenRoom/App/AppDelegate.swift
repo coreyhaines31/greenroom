@@ -30,6 +30,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         hotKey.apply()
         windows.callWatcher = callWatcher
+        windows.checks = checks
         windows.updater = updater
         windows.hotKey = hotKey
         windows.showWelcomeIfNew(isNewUser: isNewUser)
@@ -38,7 +39,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         LoginItem.applyDefaultOnce()
         #endif
         #if DEBUG
-        // Opens the panel on launch, for screenshots and testing without clicking.
+        handleDebugArguments()
+        #endif
+    }
+
+    #if DEBUG
+    /// Launch flags for screenshots and testing without clicking.
+    private func handleDebugArguments() {
         if CommandLine.arguments.contains("--open-panel") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) { self.statusItemController?.toggle(pinned: true) }
         }
@@ -52,6 +59,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if let index = arguments.firstIndex(of: "--render-compare"), index + 1 < arguments.count {
             CompareSample.write(to: arguments[index + 1])
         }
+        if CommandLine.arguments.contains("--open-record-preview") {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                self.windows.showRecordPreview(on: NSScreen.main, fullScreen: false)
+            }
+        }
         if CommandLine.arguments.contains("--open-history") {
             windows.showHistory()
         }
@@ -62,10 +74,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 self.windows.writeHistorySnapshot(to: path.replacingOccurrences(of: ".png", with: "-history.png"))
                 self.windows.writeWelcomeSnapshot(to: path.replacingOccurrences(of: ".png", with: "-welcome.png"))
                 self.windows.writeSettingsSnapshot(to: path.replacingOccurrences(of: ".png", with: "-settings.png"))
+                self.windows.writeRecordPreviewSnapshot(to: path.replacingOccurrences(of: ".png", with: "-preview.png"))
             }
         }
-        #endif
     }
+    #endif
 
     func applicationWillTerminate(_ notification: Notification) {
         checks.stop()
