@@ -16,6 +16,7 @@ struct PanelView: View {
     let fit: PanelFit
     let showHistory: () -> Void
     let closePanel: () -> Void
+    let showRecordPreview: () -> Void
     let showSettings: () -> Void
     @State private var contentHeight: CGFloat?
 
@@ -70,6 +71,21 @@ struct PanelView: View {
             // 16:9 at the panel's 308pt content width.
             .frame(maxWidth: .infinity)
             .frame(height: 173)
+            .overlay(alignment: .topTrailing) {
+                if monitor.previewCamera != nil {
+                    Button(action: showRecordPreview) {
+                        Image(systemName: "arrow.up.left.and.arrow.down.right")
+                            .font(.callout.weight(.semibold))
+                            .padding(7)
+                            .background(.black.opacity(0.45), in: Circle())
+                            .foregroundStyle(.white)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(8)
+                    .help("Record preview: the camera full screen, with your mic and speaker")
+                    .accessibilityLabel("Record preview")
+                }
+            }
             if let advice = checks.camera.advice {
                 Label(advice, systemImage: "lightbulb")
                     .font(.caption).foregroundStyle(.secondary)
