@@ -20,6 +20,8 @@ APPS = {
     "slack": {"name": "Slack", "proc": "Slack", "perm": "Slack"},
     "webex": {"name": "Webex", "proc": "Webex", "perm": "Webex", "shared_cam": True},
     "obs": {"name": "OBS Studio", "short": "OBS", "proc": "OBS", "perm": "OBS"},
+    "loom": {"name": "Loom", "proc": "Loom", "perm": "Loom",
+             "perm_note": "Loom's help says it also needs Accessibility and Screen & System Audio Recording to record."},
 }
 
 # Combinations left out on purpose (reported, and listed on the hub for nobody):
@@ -27,6 +29,8 @@ APPS = {
 #     and the search shows no demand for it.
 #   obs sound: OBS doesn't play a call through your speakers; "OBS audio" problems are about
 #     capturing desktop audio, a different job from the speaker checks these pages cover.
+#   loom sound: same as OBS. Loom records, it doesn't play a call, and missing system audio in
+#     a recording is a capture setting, not a speaker problem.
 
 PAGES = [
     # ---------------------------------------------------------------- Zoom
@@ -530,6 +534,55 @@ PAGES = [
             ("Why isn't OBS picking up my mic on a Mac?", "Turn on OBS under System Settings › Privacy & Security › Microphone, restart OBS, then set Mic/Auxiliary Audio in Settings › Audio."),
             ("Why can't I hear my mic in OBS?", "OBS doesn't monitor your mic unless you ask. Set Audio Monitoring to Monitor and Output in Edit › Advanced Audio Properties."),
             ("Should I use Mic/Auxiliary Audio or Audio Input Capture?", "Either works. Use one, not both, for the same mic, or you'll record it twice."),
+        ],
+    },
+    # ---------------------------------------------------------------- Loom
+    {
+        "slug": "loom-camera-not-working", "app": "loom", "device": "camera", "date": "2026-10-19",
+        "title": "Loom Camera Not Working on Mac? Get Your Bubble Back",
+        "h1": "Loom camera not working?", "em": "Get your bubble back.",
+        "desc": "No camera bubble in Loom on your Mac? Turn the camera on and pick it in the recorder, allow Loom under Privacy & Security › Camera, and fix the Chrome extension's access.",
+        "lede": "When the camera bubble is missing or black, Loom either has the camera turned off, picked the wrong one, or macOS never gave it permission. The desktop app and the Chrome extension each need their own.",
+        "quick": "Open the <a href=\"/webcam-test\">free webcam test</a>. If you see yourself there, the camera works and the fix is in Loom (steps 1 to 3). If it stays black there too, jump to the Mac checks.",
+        "steps": [
+            ("Turn the camera on in the recorder.", "Click the Loom icon in the menu bar to open the recorder. Loom's help says the ON and OFF icons on the far right of the Camera option turn it on and off. If it's off, you record the screen with no bubble."),
+            ("Pick the camera.", "If you have more than one camera, choose yours from the camera dropdown in the recorder. Loom remembers your last choice, so a webcam you unplugged, or your iPhone, can still be selected."),
+            ("Use a mode that shows the camera.", "Record display, Record window, and Record custom size show the bubble when the camera is on. Record camera only records just the camera, which is a quick way to check it works in Loom."),
+        ],
+        "extra": [
+            ("Using the Chrome extension?", "The extension needs Chrome's permission, not the Loom app's. Loom's help says to open <code>chrome://settings/content/siteDetails?site=chrome-extension%3A%2F%2Fliecbddmkiiihnedobmlmillhodjkdmb</code>, set Camera and Microphone to Allow, then restart Chrome. Google Chrome also has to be on under Privacy & Security › Camera on your Mac."),
+            ("Loom isn't in the Camera list", "Loom's help says to restart your Mac and open Loom again. If it still isn't listed, reinstall the desktop app from loom.com/desktop."),
+            ("On an Apple Studio Display", "Loom's help says to unplug the Studio Display from power for at least a minute, then plug it back in, when its camera or mic stops showing up."),
+        ],
+        "faqs": [
+            ("Why is my Loom camera bubble not showing?", "The camera is probably turned off in the recorder. Click the Loom icon and turn the Camera option on. If it's on and still black, check that Loom is allowed under System Settings › Privacy & Security › Camera."),
+            ("How do I test my camera and mic for Loom?", "Loom has a test page at loom.com/webcam-mic-test. Pick your devices and click Test Settings to see your video and a volume bar. Or record a short Record camera only video."),
+            ("My camera works in Zoom but not in Loom. Why?", "Each app keeps its own camera choice and its own permission. Pick the camera in Loom's recorder and make sure Loom is on under Privacy & Security › Camera."),
+            ("Does the Loom Chrome extension use the same permission as the app?", "No. The extension runs in Chrome, so it needs Chrome's camera permission for the Loom extension, and Google Chrome turned on in your Mac's Privacy & Security settings."),
+        ],
+    },
+    {
+        "slug": "loom-microphone-not-working", "app": "loom", "device": "microphone", "date": "2026-10-19",
+        "title": "Loom Microphone Not Working on Mac? Fix Silent Recordings",
+        "h1": "Loom microphone not working?", "em": "Fix it before you record.",
+        "desc": "Loom recording with no sound on your Mac? Pick the mic in the recorder, allow Loom under Privacy & Security › Microphone, and reset the Chrome extension's mic access.",
+        "lede": "Loom can't fix a recording after the fact, so catch it before you hit Record. It's usually the wrong mic, the mic turned off in the recorder, or a permission macOS never gave.",
+        "quick": "Try the <a href=\"/mic-test\">free mic test</a>. If the meter moves there, your mic works and the fix is in Loom (steps 1 to 3). If it stays flat, start with the Mac checks.",
+        "steps": [
+            ("Pick the mic in the recorder.", "Click the Loom icon in the menu bar and choose your mic from the microphone menu. Loom remembers your last choice, so it can still be set to AirPods or a mic you unplugged."),
+            ("Make sure the mic isn't off.", "The recorder lets you turn the mic off entirely. If it's off, Loom records with no voice at all."),
+            ("Watch the level before you record.", "Talk before you start. The extension shows an audio indicator when the mic is picking you up. If it doesn't move, fix the mic first, because Loom's help says recordings with missing audio can't be fixed later."),
+        ],
+        "extra": [
+            ("Extension lists Microphone 1, 2, 3, or records silence", "Loom's fix: open <code>chrome://settings/content/microphone</code>, choose your default mic, turn off Ask before accessing, and remove every site under Allow. Restart Chrome, turn Ask before accessing back on, then click the Loom icon and Allow your microphone. If it still fails, Loom suggests the desktop app."),
+            ("Your voice is there, but not your Mac's sound", "That's a separate setting. In the desktop app, turn on system audio in the recorder. In the extension, record a tab and check Share tab audio."),
+            ("Quiet or muffled voice", "Loom's help points to the Input volume in System Settings › Sound › Input, and suggests recording a quick test in Voice Memos to rule out the mic itself."),
+        ],
+        "faqs": [
+            ("Why does my Loom have no sound?", "Usually the wrong mic was selected, the mic was off in the recorder, or macOS blocked Loom. Check the mic in the recorder and turn on Loom under System Settings › Privacy & Security › Microphone."),
+            ("Can I fix a Loom that recorded with no audio?", "No. Loom's help says existing recordings with missing or poor audio can't be fixed. Check the level before you record next time."),
+            ("Why does Loom sound like a phone call on my AirPods?", "Using the AirPods' mic puts them in call mode, which drops your voice to phone quality. Pick your Mac's mic or a USB mic in Loom and keep the AirPods for listening."),
+            ("How do I test my mic for Loom?", "Use Loom's test at loom.com/webcam-mic-test, or the free mic test on this site. Both show a live level as you talk."),
         ],
     },
 ]
