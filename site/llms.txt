@@ -38,7 +38,7 @@ Green Room runs on macOS 14 Sonoma and later, is signed and notarized by Apple, 
 
 ## App fixes
 
-- [Fix your camera, mic, or sound in any app](https://greenroomformac.com/fix): step-by-step fixes for Zoom, Microsoft Teams, Google Meet, Discord, FaceTime, Slack huddles, Webex, and OBS on a Mac, each starting with that app's own settings.
+- [Fix your camera, mic, or sound in any app](https://greenroomformac.com/fix): step-by-step fixes for Zoom, Microsoft Teams, Google Meet, Discord, FaceTime, Slack huddles, Webex, OBS, and Loom on a Mac, each starting with that app's own settings.
 
 ## Source
 
