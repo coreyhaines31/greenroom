@@ -2,15 +2,34 @@ import AVFoundation
 import GreenRoomCore
 import SwiftUI
 
+/// How tall the panel may get: the room below the menu bar on the screen it opens on.
+@MainActor
+@Observable
+final class PanelFit {
+    var maxHeight: CGFloat = .infinity
+}
+
 struct PanelView: View {
     let monitor: DeviceMonitor
     let checks: Checks
     let updater: Updater
+    let fit: PanelFit
     let showHistory: () -> Void
     let closePanel: () -> Void
     let showSettings: () -> Void
+    @State private var contentHeight: CGFloat?
 
+    /// Scrolls only when the screen is too short for everything, like a teleprompter display.
     var body: some View {
+        ScrollView {
+            content
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentHeight = $0 }
+        }
+        .scrollBounceBehavior(.basedOnSize)
+        .frame(width: 340, height: contentHeight.map { min($0, fit.maxHeight) })
+    }
+
+    private var content: some View {
         VStack(alignment: .leading, spacing: 14) {
             StatusHeader(monitor: monitor)
             ForEach(monitor.advisories, id: \.device.id) { advisory in
@@ -72,6 +91,7 @@ struct PanelView: View {
             DevicePicker(kind: .microphone, monitor: monitor, selected: monitor.snapshot.active(.microphone)) {
                 if checks.micAccess == .authorized, monitor.snapshot.devices(.microphone).count > 1 {
                     Button(checks.inputs.isOn ? "Done" : "Compare") { checks.toggleCompare() }
+                        .fixedSize()
                         .help("Shows a live level for every mic, so you can see which one hears you")
                 }
             }

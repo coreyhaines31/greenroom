@@ -8,6 +8,7 @@ import SwiftUI
 final class StatusItemController: NSObject, NSPopoverDelegate {
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private let popover = NSPopover()
+    private let fit = PanelFit()
     private let monitor: DeviceMonitor
     private let checks: Checks
 
@@ -27,7 +28,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         popover.behavior = .transient
         popover.delegate = self
         let panel = PanelView(
-            monitor: monitor, checks: checks, updater: updater,
+            monitor: monitor, checks: checks, updater: updater, fit: fit,
             showHistory: { [weak self] in
                 self?.popover.performClose(nil)
                 self?.windows.showHistory()
@@ -79,6 +80,7 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         } else if let button = statusItem.button {
             monitor.refresh(force: true)
             checks.start()
+            fit.maxHeight = Self.maxPanelHeight(on: button.window?.screen)
             if let view = popover.contentViewController?.view {
                 view.layoutSubtreeIfNeeded()
                 popover.contentSize = view.fittingSize
@@ -86,6 +88,20 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             popover.contentViewController?.view.window?.makeKey()
         }
+    }
+
+    /// Room for the panel below the menu bar, less the popover's arrow and a small margin.
+    private static func maxPanelHeight(on screen: NSScreen?) -> CGFloat {
+        #if DEBUG
+        // Pretends the screen is short, to check the panel scrolls without a small display.
+        let arguments = CommandLine.arguments
+        if let index = arguments.firstIndex(of: "--panel-max-height"), index + 1 < arguments.count,
+           let height = Double(arguments[index + 1]) {
+            return height
+        }
+        #endif
+        guard let screen else { return .infinity }
+        return screen.visibleFrame.height - 24
     }
 
     #if DEBUG
