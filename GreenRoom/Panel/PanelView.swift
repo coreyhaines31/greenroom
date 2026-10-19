@@ -105,7 +105,7 @@ struct PanelView: View {
             } else {
                 HStack(spacing: 10) {
                     LevelMeter(level: checks.meter.level)
-                    Button(playbackLabel) { checks.hearYourself() }
+                    Button(checks.playback.buttonTitle) { checks.hearYourself() }
                         .controlSize(.small)
                         .fixedSize()
                         .disabled(checks.playback.phase != .idle)
@@ -145,24 +145,8 @@ struct PanelView: View {
 
     private var speakerSection: some View {
         DevicePicker(kind: .speaker, monitor: monitor, selected: monitor.snapshot.active(.speaker)) {
-            Button(toneLabel) { checks.tone.play() }
+            Button(checks.tone.buttonTitle) { checks.tone.play() }
                 .disabled(checks.tone.playing != nil)
-        }
-    }
-
-    private var playbackLabel: String {
-        switch checks.playback.phase {
-        case .idle: "Hear Yourself"
-        case .recording(let left): "Talk… \(left)"
-        case .playing: "Playing…"
-        }
-    }
-
-    private var toneLabel: String {
-        switch checks.tone.playing {
-        case .left: "Left…"
-        case .right: "Right…"
-        case nil: "Test"
         }
     }
 
