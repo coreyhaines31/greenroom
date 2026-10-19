@@ -550,7 +550,7 @@ PAGES = [
             ("Use a mode that shows the camera.", "Record display, Record window, and Record custom size show the bubble when the camera is on. Record camera only records just the camera, which is a quick way to check it works in Loom."),
         ],
         "extra": [
-            ("Using the Chrome extension?", "The extension needs Chrome's permission, not the Loom app's. Loom's help says to open chrome://settings/content/siteDetails?site=chrome-extension%3A%2F%2Fliecbddmkiiihnedobmlmillhodjkdmb, set Camera and Microphone to Allow, then restart Chrome. Google Chrome also has to be on under Privacy & Security › Camera on your Mac."),
+            ("Using the Chrome extension?", "The extension needs Chrome's permission, not the Loom app's. Loom's help says to open <code>chrome://settings/content/siteDetails?site=chrome-extension%3A%2F%2Fliecbddmkiiihnedobmlmillhodjkdmb</code>, set Camera and Microphone to Allow, then restart Chrome. Google Chrome also has to be on under Privacy & Security › Camera on your Mac."),
             ("Loom isn't in the Camera list", "Loom's help says to restart your Mac and open Loom again. If it still isn't listed, reinstall the desktop app from loom.com/desktop."),
             ("On an Apple Studio Display", "Loom's help says to unplug the Studio Display from power for at least a minute, then plug it back in, when its camera or mic stops showing up."),
         ],
@@ -574,7 +574,7 @@ PAGES = [
             ("Watch the level before you record.", "Talk before you start. The extension shows an audio indicator when the mic is picking you up. If it doesn't move, fix the mic first, because Loom's help says recordings with missing audio can't be fixed later."),
         ],
         "extra": [
-            ("Extension lists Microphone 1, 2, 3, or records silence", "Loom's fix: open chrome://settings/content/microphone, choose your default mic, turn off Ask before accessing, and remove every site under Allow. Restart Chrome, turn Ask before accessing back on, then click the Loom icon and Allow your microphone. If it still fails, Loom suggests the desktop app."),
+            ("Extension lists Microphone 1, 2, 3, or records silence", "Loom's fix: open <code>chrome://settings/content/microphone</code>, choose your default mic, turn off Ask before accessing, and remove every site under Allow. Restart Chrome, turn Ask before accessing back on, then click the Loom icon and Allow your microphone. If it still fails, Loom suggests the desktop app."),
             ("Your voice is there, but not your Mac's sound", "That's a separate setting. In the desktop app, turn on system audio in the recorder. In the extension, record a tab and check Share tab audio."),
             ("Quiet or muffled voice", "Loom's help points to the Input volume in System Settings › Sound › Input, and suggests recording a quick test in Voice Memos to rule out the mic itself."),
         ],
