@@ -249,10 +249,17 @@ struct DevicePicker<Trailing: View>: View {
         let devices = monitor.snapshot.devices(kind).filter { !monitor.names.isHidden($0) || $0.id == selected?.id }
         VStack(alignment: .leading, spacing: 4) {
             Text(kind.title).font(.caption).foregroundStyle(.secondary)
-            HStack {
-                picker(devices)
-                Spacer(minLength: 8)
-                trailing
+            ViewThatFits(in: .horizontal) {
+                HStack {
+                    picker(devices).fixedSize()
+                    Spacer(minLength: 8)
+                    trailing
+                }
+                // A long device name gives way, so the buttons beside it stay whole.
+                HStack {
+                    picker(devices)
+                    trailing
+                }
             }
             LiveCaption(kind: kind, snapshot: monitor.snapshot, selected: selected)
         }
@@ -270,7 +277,6 @@ struct DevicePicker<Trailing: View>: View {
             }
         }
         .labelsHidden()
-        .fixedSize()
     }
 }
 
