@@ -82,11 +82,13 @@ final class CameraSession {
 /// Mirrored, like looking in a mirror. Call apps show you to yourself the same way.
 struct CameraPreview: NSViewRepresentable {
     let session: AVCaptureSession
+    /// Fill crops to the panel's 16:9 box. Fit shows the whole frame, as it will be recorded.
+    var gravity: AVLayerVideoGravity = .resizeAspectFill
 
     func makeNSView(context: Context) -> NSView {
         let view = NSView()
         let layer = AVCaptureVideoPreviewLayer(session: session)
-        layer.videoGravity = .resizeAspectFill
+        layer.videoGravity = gravity
         layer.setAffineTransform(CGAffineTransform(scaleX: -1, y: 1))
         view.layer = layer
         view.wantsLayer = true
