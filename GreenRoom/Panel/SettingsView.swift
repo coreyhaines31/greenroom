@@ -73,7 +73,7 @@ struct SettingsView: View {
                 Text("Your names show everywhere in Green Room. Hidden devices leave the pickers.")
             }
             if !monitor.ignoredApps.isEmpty {
-                Section("Ignored apps") {
+                Section {
                     ForEach(monitor.ignoredApps.sorted(), id: \.self) { app in
                         HStack {
                             Text(app)
@@ -81,6 +81,10 @@ struct SettingsView: View {
                             Button("Stop Ignoring") { monitor.stopIgnoring(app: app) }
                         }
                     }
+                } header: {
+                    Text("Ignored apps")
+                } footer: {
+                    Text("Ignored apps don't show as live on a device and never trigger a warning.")
                 }
             }
             Section("Updates") {

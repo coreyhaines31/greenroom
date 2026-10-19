@@ -97,21 +97,50 @@ struct LiveCaption: View {
     let kind: DeviceKind
     let snapshot: Snapshot
     let selected: Device?
+    /// For an app that always listens, like a screen recorder, so it stops crowding out the call.
+    let ignore: (String) -> Void
 
     var body: some View {
-        ForEach(lines, id: \.self) { line in
+        ForEach(snapshot.devices(kind).filter(snapshot.isLive)) { device in
             HStack(spacing: 5) {
                 Circle().fill(.green).frame(width: 6, height: 6)
-                Text(line).font(.caption).foregroundStyle(.secondary)
+                Text(text(device)).font(.caption).foregroundStyle(.secondary)
+                ignoreButton(named(device))
             }
-            .accessibilityElement(children: .combine)
+            .font(.caption)
         }
     }
 
-    private var lines: [String] {
-        snapshot.devices(kind).filter(snapshot.isLive).map { device in
-            let apps = ListFormatter.localizedString(byJoining: snapshot.liveApps(device))
-            return device.id == selected?.id ? "Live in \(apps)" : "\(apps) is using \(device.name)"
+    private func text(_ device: Device) -> String {
+        let apps = ListFormatter.localizedString(byJoining: snapshot.liveApps(device))
+        return device.id == selected?.id ? "Live in \(apps)" : "\(apps) is using \(device.name)"
+    }
+
+    /// Only apps macOS could name can be ignored.
+    private func named(_ device: Device) -> [String] {
+        snapshot.live.filter { $0.kind == device.kind && $0.deviceID == device.id }.compactMap(\.app)
+    }
+
+    @ViewBuilder
+    private func ignoreButton(_ apps: [String]) -> some View {
+        if apps.count == 1, let app = apps.first {
+            Button("Ignore") { ignore(app) }
+                .buttonStyle(.borderless)
+                .foregroundStyle(.tint)
+                .help("Stop showing \(app) here and in warnings. Undo in Settings.")
+        } else if apps.count > 1 {
+            Menu {
+                ForEach(apps, id: \.self) { app in
+                    Button(app) { ignore(app) }
+                }
+            } label: {
+                Text("Ignore").font(.caption).foregroundStyle(Color.accentColor)
+            }
+            .menuStyle(.borderlessButton)
+            .controlSize(.small)
+            .menuIndicator(.hidden)
+            .fixedSize()
+            .help("Stop showing an app here and in warnings. Undo in Settings.")
         }
     }
 }
