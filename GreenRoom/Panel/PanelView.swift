@@ -91,6 +91,7 @@ struct PanelView: View {
             DevicePicker(kind: .microphone, monitor: monitor, selected: monitor.snapshot.active(.microphone)) {
                 if checks.micAccess == .authorized, monitor.snapshot.devices(.microphone).count > 1 {
                     Button(checks.inputs.isOn ? "Done" : "Compare") { checks.toggleCompare() }
+                        .fixedSize()
                         .help("Shows a live level for every mic, so you can see which one hears you")
                 }
             }
