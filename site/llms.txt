@@ -43,6 +43,10 @@ Green Room runs on macOS 14 Sonoma and later, is signed and notarized by Apple, 
 
 - [Fix your camera, mic, or sound in any app](https://greenroomformac.com/fix): step-by-step fixes for Zoom, Microsoft Teams, Google Meet, Discord, FaceTime, Slack huddles, Webex, OBS, and Loom on a Mac, each starting with that app's own settings.
 
+## Comparisons
+
+- [SoundSource alternative](https://greenroomformac.com/soundsource-alternative): SoundSource (per-app volume, routing, EQ; $49) vs Green Room (free; device checks and priority), and when to use both.
+
 ## Source
 
 - [GitHub](https://github.com/coreyhaines31/greenroom): source, issues, and releases under FSL-1.1-MIT.
