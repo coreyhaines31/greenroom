@@ -245,19 +245,17 @@ struct DevicePicker<Trailing: View>: View {
     }
 
     var body: some View {
-        // A hidden device still shows while it's the one in use.
-        let devices = monitor.snapshot.devices(kind).filter { !monitor.names.isHidden($0) || $0.id == selected?.id }
         VStack(alignment: .leading, spacing: 4) {
             Text(kind.title).font(.caption).foregroundStyle(.secondary)
             ViewThatFits(in: .horizontal) {
                 HStack {
-                    picker(devices).fixedSize()
+                    DeviceMenu(kind: kind, monitor: monitor, selected: selected).fixedSize()
                     Spacer(minLength: 8)
                     trailing
                 }
                 // A long device name gives way, so the buttons beside it stay whole.
                 HStack {
-                    picker(devices)
+                    DeviceMenu(kind: kind, monitor: monitor, selected: selected)
                     trailing
                 }
             }
@@ -268,15 +266,26 @@ struct DevicePicker<Trailing: View>: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
+}
 
-    private func picker(_ devices: [Device]) -> some View {
+/// The menu of devices of one kind. Picking one makes it the Mac's default.
+struct DeviceMenu: View {
+    let kind: DeviceKind
+    let monitor: DeviceMonitor
+    let selected: Device?
+    /// "USB", "Built-in": useful in the panel, noise on a full-screen preview.
+    var showsTransport = true
+
+    var body: some View {
+        // A hidden device still shows while it's the one in use.
+        let devices = monitor.snapshot.devices(kind).filter { !monitor.names.isHidden($0) || $0.id == selected?.id }
         Picker(kind.title, selection: Binding(
             get: { selected?.id ?? "" },
             set: { id in devices.first { $0.id == id }.map { monitor.select($0) } }
         )) {
             if selected == nil { Text("None").tag("") }
             ForEach(devices) { device in
-                Text("\(device.name) · \(device.transport.label)").tag(device.id)
+                Text(showsTransport ? "\(device.name) · \(device.transport.label)" : device.name).tag(device.id)
             }
         }
         .labelsHidden()
