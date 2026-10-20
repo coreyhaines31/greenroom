@@ -28,6 +28,8 @@ Green Room runs on macOS 14 Sonoma and later, is signed and notarized by Apple, 
 
 ## Mac guides
 
+- [Hold calls during meetings](https://greenroomformac.com/hold-calls): Focus setup for Mac and iPhone, plus optional automatic holds while a mic, camera, or calendar call is active.
+
 - [Mac microphone not working](https://greenroomformac.com/mac-microphone-not-working)
 - [Mac camera not working](https://greenroomformac.com/mac-camera-not-working)
 - [How to test your microphone on a Mac](https://greenroomformac.com/how-to-test-microphone-on-mac)

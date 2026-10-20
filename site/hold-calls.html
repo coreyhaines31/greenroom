@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stop iPhone Calls Ringing on Mac During Zoom · Green Room</title>
+  <meta name="description" content="Silence calls and texts during video meetings with Do Not Disturb, Share Across Devices, and Green Room’s optional Hold calls mode.">
+  <meta property="og:title" content="Keep calls and texts quiet during your meeting">
+  <meta property="og:description" content="Set up Do Not Disturb on Mac and iPhone, then let Green Room hold notifications during calls.">
+  <meta property="og:image" content="https://greenroomformac.com/images/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:url" content="https://greenroomformac.com/hold-calls">
+  <meta property="og:type" content="article">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#f5f5f7">
+  <link rel="icon" href="/images/icon.png">
+  <link rel="apple-touch-icon" href="/images/icon.png">
+  <link rel="canonical" href="https://greenroomformac.com/hold-calls">
+  <link rel="stylesheet" href="/site.css">
+  <script src="/nav.js" defer></script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Article", "headline": "Stop iPhone calls ringing on Mac during Zoom", "url": "https://greenroomformac.com/hold-calls", "datePublished": "2026-10-20", "dateModified": "2026-10-20", "author": {"@type": "Person", "name": "Corey Haines", "url": "https://corey.co"}, "image": "https://greenroomformac.com/images/og.png"}</script>
+  <script src="https://cdn.usefathom.com/script.js" data-site="WDVXMJRM" defer></script>
+  <meta name="twitter:image" content="https://greenroomformac.com/images/og.png">
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap">
+      <a class="brand" href="/"><img src="/images/icon.png" alt="" width="30" height="30"> Green Room</a>
+      <nav>
+        <a href="/#how">How it works</a>
+        <details class="menu"><summary>Free tests</summary><div class="menu-list"><span>Test in your browser</span><a href="/mic-test">Microphone test</a><a href="/webcam-test">Webcam test</a><a href="/speaker-test">Speaker test</a><a href="/sound-test">Sound test</a><a href="/headphone-test">Headphone test</a><a href="/left-right-audio-test">Left/right audio test</a><span>Mac guides</span><a href="/mac-microphone-not-working">Mac microphone not working</a><a href="/mac-camera-not-working">Mac camera not working</a><a href="/how-to-test-microphone-on-mac">How to test your mic on a Mac</a><span>App fixes</span><a href="/fix">Fix it in Zoom, Teams, Meet, and more</a></div></details>
+        <a href="https://github.com/coreyhaines31/greenroom">GitHub</a>
+        <a class="pill" href="https://github.com/coreyhaines31/greenroom/releases/latest">Download</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="sub-hero">
+      <div class="wrap narrow">
+        <p class="kicker"><span class="dot"></span>Mac guide · Calls, texts, and notifications</p>
+        <h1>You're already on a call. <em>The next one can wait.</em></h1>
+        <p class="lede">An iPhone call ringing through your Mac can interrupt a Zoom meeting. Do Not Disturb quiets notifications; Green Room's optional Hold calls mode can turn it on while you're using your mic or camera.</p>
+      </div>
+    </section>
+    <section class="article">
+      <div class="wrap narrow prose">
+        <div class="tldr"><p><b>To quiet things now:</b> open Control Center on your Mac, choose Focus, and turn on Do Not Disturb. Check its allowed people, apps, and repeated-call exceptions. Turn on Share Across Devices if you want the same Focus on your iPhone.</p></div>
+        <h2>Silence notifications during video calls</h2>
+        <p>In System Settings › Focus › Do Not Disturb, choose which people and apps can interrupt. If you want repeated calls silenced too, turn off Allow repeated calls. These exceptions still apply when an app turns Focus on for you. <a href="https://support.apple.com/en-gb/guide/mac-help/mchl613dc43f/26/mac/26">Apple's Focus setup guide</a> explains the controls.</p>
+        <h2>Keep your iPhone quiet too</h2>
+        <p>Enable <b>Share Across Devices</b> in Focus settings on your Apple devices. Turning Focus on or off on one device then applies across your devices. Green Room cannot verify this setting. See <a href="https://support.apple.com/en-ph/guide/mac-help/mchl74e8c77b/mac">Apple's Focus sharing instructions</a>.</p>
+        <h2>Stop iPhone calls ringing on your Mac entirely</h2>
+        <p>If you never want cellular calls on your Mac, disable this Mac in your iPhone's Settings › Apps › Phone › Calls on Other Devices. On versions with the option, you can also turn off Calls from iPhone in FaceTime settings on the Mac. This changes call forwarding; it doesn't silence texts. <a href="https://support.apple.com/en-ie/guide/facetime/fctm264ce831/mac">Apple documents the iPhone and Mac call settings</a>.</p>
+        <h2>Let Green Room hold notifications during calls</h2>
+        <ol class="fixes">
+          <li><b>Open Settings › Hold calls.</b>Click Install Shortcut, then add Green Room Hold Calls in Apple's Shortcuts app.</li>
+          <li><b>Check setup.</b>Back in Green Room, click Check Setup. It verifies the shortcut without changing your Focus.</li>
+          <li><b>Turn on Hold calls and notifications.</b>When another app uses a mic or camera, Green Room enables Do Not Disturb. Mic detection needs macOS 14.2 or later.</li>
+          <li><b>Optionally include calendar calls.</b>Green Room holds notifications from the start to the end of events with video-call links. It skips all-day, canceled, and declined events. Calendar access is shared with pre-call checks; the switches are separate.</li>
+        </ol>
+        <p>Holds renew while activity continues and expire about one to two minutes after it stops. They also expire if Green Room quits. Recorders count as activity, too. Ignore an always-listening app to exclude its mic activity.</p>
+        <h2>Your Focus stays yours</h2>
+        <p>If a Focus is already active, Green Room leaves it alone for that call. Switching Focus or turning it off pauses automation until call activity has stopped for two minutes. Green Room never sends a global “turn Focus off” command.</p>
+        <p>Changing the duration of the same Do Not Disturb mode cannot be detected, so a renewal can replace that duration. Turn Hold calls off first if you want to manage Do Not Disturb's end time yourself.</p>
+        <h2>What Hold calls can't promise</h2>
+        <ul>
+          <li>Allowed callers, apps, repeated-call exceptions, and other Focus overrides can still interrupt. Review your settings.</li>
+          <li>A meeting tab or recorder that keeps a mic open can keep the hold active after the conversation ends.</li>
+          <li>macOS doesn't identify camera users. Ignored apps can still trigger camera holds. A camera Green Room is previewing is excluded, including another app sharing that camera.</li>
+          <li>Green Room doesn't change your iPhone settings or disable Continuity calls. Those are one-time choices you make.</li>
+        </ul>
+        <div class="actions"><a class="pill big" href="https://github.com/coreyhaines31/greenroom/releases/latest">Download Green Room free</a></div>
+        <p>If Hold calls isn't in your installed version yet, check the release notes for availability. You can use the manual Focus steps above now.</p>
+        <h2>Before your next call</h2>
+        <div class="tool-links">
+          <a href="/mic-test"><b>Test your microphone</b><span>See the level, then hear yourself back.</span></a>
+          <a href="/stop-airpods-switching-devices"><b>Stop AirPods switching</b><span>Keep your audio on the device you chose.</span></a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="footer-links">
+        <div><b>Free tests</b><a href="/mic-test">Microphone test</a><a href="/webcam-test">Webcam test</a><a href="/speaker-test">Speaker test</a><a href="/sound-test">Sound test</a><a href="/headphone-test">Headphone test</a><a href="/left-right-audio-test">Left/right audio test</a></div>
+        <div><b>Mac guides</b><a href="/mac-microphone-not-working">Mac microphone not working</a><a href="/mac-camera-not-working">Mac camera not working</a><a href="/how-to-test-microphone-on-mac">How to test your mic on a Mac</a><a href="/airpods-not-connecting-to-mac">AirPods not connecting to Mac</a><a href="/airpods-mic-not-working">AirPods mic not working</a><a href="/stop-airpods-switching-devices">Stop AirPods switching devices</a><a href="/continuity-camera-not-working">Continuity Camera not working</a><a href="/logitech-webcam-not-working">Logitech webcam not working</a><a href="/macbook-speakers-not-working">MacBook speakers not working</a><a href="/zoom-lighting">Lighting for Zoom calls</a></div>
+        <div><b>App fixes</b><a href="/fix/zoom-camera-not-working">Zoom camera not working</a><a href="/fix/teams-camera-not-working">Teams camera not working</a><a href="/fix/discord-mic-not-working">Discord mic not working</a><a href="/fix/google-meet-camera-not-working">Google Meet camera not working</a><a href="/fix/zoom-microphone-not-working">Zoom microphone not working</a><a href="/fix">Every app and device</a></div>
+        <div><b>Green Room</b><a href="/">How it works</a><a href="/#faq">Questions</a><a href="/soundsource-alternative">Green Room vs SoundSource</a><a href="https://github.com/coreyhaines31/greenroom/releases/latest">Download</a></div>
+      </div>
+      <span>© 2026 Corey Haines · Source available under <a href="https://github.com/coreyhaines31/greenroom/blob/main/LICENSE">FSL-1.1-MIT</a></span>
+      <span><a href="https://github.com/coreyhaines31/greenroom">GitHub</a> · <a href="https://github.com/coreyhaines31/greenroom/issues">Report a bug</a> · Also by Corey: <a href="https://wifiorisp.com">WiFi or ISP</a>, <a href="https://midnightoil.app">Midnight Oil</a>, <a href="https://diskforecast.com">Disk Forecast</a>, <a href="https://spareformac.com">Spare</a>, <a href="https://onhandformac.com">On Hand</a>, <a href="https://coatcheckformac.com">Coat Check</a></span>
+    </div>
+  </footer>
+</body>
+</html>
