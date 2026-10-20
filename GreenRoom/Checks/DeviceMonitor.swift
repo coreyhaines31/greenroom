@@ -14,6 +14,7 @@ final class DeviceMonitor {
     private(set) var micProblem: MicProblem?
     /// Your names for devices, and the ones hidden from the pickers.
     private(set) var names = DeviceNames.load(.standard)
+    private(set) var priorities = DevicePriorities.load(.standard)
     /// Connected devices under the names macOS gives them, for renaming.
     private(set) var systemDevices: [Device] = []
 
@@ -136,6 +137,30 @@ final class DeviceMonitor {
         names.setNickname(name, for: device.id)
         names.save(.standard)
         refresh(force: true)
+    }
+
+    /// Every device of this kind Green Room has seen, in your order, so you can rank ones that
+    /// aren't plugged in right now.
+    func prioritized(_ kind: DeviceKind) -> [Device] {
+        var seen = Set<String>()
+        let known = (snapshot.devices(kind) + history.records.values.map(\.device).filter { $0.kind == kind })
+            .filter { seen.insert($0.id).inserted }
+            .map(names.apply)
+        return priorities.ranked(known, kind: kind)
+    }
+
+    /// Turning priority on keeps the order the list shows.
+    func adoptShownPriorities() {
+        for kind in DeviceKind.allCases {
+            priorities.adopt(prioritized(kind), kind: kind)
+        }
+        priorities.save(.standard)
+    }
+
+    func movePriority(_ device: Device, by offset: Int) {
+        priorities.move(device, by: offset, among: prioritized(device.kind))
+        priorities.save(.standard)
+        onChange?()
     }
 
     func setHidden(_ device: Device, _ hidden: Bool) {
