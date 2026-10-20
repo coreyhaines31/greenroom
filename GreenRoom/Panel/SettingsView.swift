@@ -12,6 +12,7 @@ struct SettingsView: View {
     @State private var useHotKey = HotKey.isEnabled
     @State private var alerts = Alerts.isEnabled
     @State private var keepSetup = KeepSetup.isEnabled
+    @State private var usePriority = UsePriority.isEnabled
     @State private var checkCalls = CallWatcher.isEnabled && CallWatcher.hasAccess
     @State private var autoUpdate = true
 
@@ -34,8 +35,10 @@ struct SettingsView: View {
                 }
                 Toggle(isOn: $keepSetup) {
                     Text("Switch back when AirPods take over")
-                    Text("Only devices that just connected. Anything you pick yourself stays.")
+                    Text(usePriority ? "Your priority order handles this while it's on."
+                         : "Only devices that just connected. Anything you pick yourself stays.")
                 }
+                .disabled(usePriority)
                 Toggle(isOn: $checkCalls) {
                     Text("Check before calendar calls")
                     Text("Two minutes before events with a Zoom, Meet, or Teams link. Needs calendar access.")
@@ -62,6 +65,18 @@ struct SettingsView: View {
                         Button("Forget", role: .destructive) { monitor.forget(setup) }
                     }
                 }
+            }
+            Section {
+                Toggle(isOn: $usePriority) {
+                    Text("Switch to the highest device that's connected")
+                    Text("When something connects or disconnects. A device you pick yourself stays "
+                         + "until the next change.")
+                }
+                ForEach([DeviceKind.microphone, .speaker, .camera], id: \.self) { kind in
+                    PriorityList(kind: kind, monitor: monitor)
+                }
+            } header: {
+                Text("Priority")
             }
             Section {
                 ForEach(uniqueDevices) { device in
@@ -103,6 +118,10 @@ struct SettingsView: View {
         }
         .onChange(of: alerts) { Alerts.isEnabled = alerts }
         .onChange(of: keepSetup) { KeepSetup.isEnabled = keepSetup }
+        .onChange(of: usePriority) {
+            if usePriority { monitor.adoptShownPriorities() }
+            UsePriority.isEnabled = usePriority
+        }
         .onChange(of: checkCalls) {
             guard checkCalls != (CallWatcher.isEnabled && CallWatcher.hasAccess) else { return }
             Task { checkCalls = await callWatcher.setEnabled(checkCalls) }
@@ -161,5 +180,39 @@ struct DeviceNameRow: View {
         if renamed { parts.append(device.name) }
         if hidden { parts.append("Hidden") }
         return parts.joined(separator: " · ")
+    }
+}
+
+/// Your order for one kind of device, top first. Includes devices that aren't plugged in, so a
+/// travel mic can sit below the desk mic before you've packed it.
+struct PriorityList: View {
+    let kind: DeviceKind
+    let monitor: DeviceMonitor
+
+    var body: some View {
+        let devices = monitor.prioritized(kind)
+        VStack(alignment: .leading, spacing: 6) {
+            Text(kind.title).font(.caption).foregroundStyle(.secondary)
+            if devices.isEmpty {
+                Text("None seen yet").foregroundStyle(.secondary)
+            }
+            ForEach(Array(devices.enumerated()), id: \.element.id) { index, device in
+                HStack(spacing: 8) {
+                    Text("\(index + 1)").monospacedDigit().foregroundStyle(.secondary).frame(width: 16)
+                    Text(device.name).lineLimit(1)
+                    if !monitor.snapshot.contains(device.id, kind: kind) {
+                        Text("Not connected").font(.caption).foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Button { monitor.movePriority(device, by: -1) } label: { Image(systemName: "chevron.up") }
+                        .disabled(index == 0)
+                        .accessibilityLabel("Move \(device.name) up")
+                    Button { monitor.movePriority(device, by: 1) } label: { Image(systemName: "chevron.down") }
+                        .disabled(index == devices.count - 1)
+                        .accessibilityLabel("Move \(device.name) down")
+                }
+                .buttonStyle(.borderless)
+            }
+        }
     }
 }
