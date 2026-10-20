@@ -13,8 +13,12 @@ public struct CallHold: Sendable {
 
     public init() {}
 
-    public static func hasDeviceSignal(_ snapshot: Snapshot, ignoring apps: Set<String>) -> Bool {
-        snapshot.ignoring(apps: apps).live.contains { $0.kind == .microphone || $0.kind == .camera }
+    public static func hasDeviceSignal(
+        _ snapshot: Snapshot, ignoring apps: Set<String>, runningCameras: Set<String> = [], previewCamera: String? = nil
+    ) -> Bool {
+        snapshot.ignoring(apps: apps).live.contains {
+            $0.kind == .microphone || ($0.kind == .camera && $0.deviceID != previewCamera)
+        } || runningCameras.contains { $0 != previewCamera }
     }
 
     /// Returns the Focus value the shortcut must match before it changes anything.

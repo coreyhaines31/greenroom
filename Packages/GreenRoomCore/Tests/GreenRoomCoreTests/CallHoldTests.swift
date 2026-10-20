@@ -56,4 +56,15 @@ struct CallHoldTests {
         snapshot.live.append(LiveUse(kind: .camera, deviceID: "camera", app: nil))
         #expect(CallHold.hasDeviceSignal(snapshot, ignoring: ["Recorder"]))
     }
+
+    @Test func ownPreviewDoesNotHoldCallsButOtherDevicesStillDo() {
+        var snapshot = Snapshot()
+        snapshot.live = [LiveUse(kind: .camera, deviceID: "preview", app: nil)]
+        #expect(!CallHold.hasDeviceSignal(
+            snapshot, ignoring: [], runningCameras: ["preview"], previewCamera: "preview"
+        ))
+        #expect(CallHold.hasDeviceSignal(snapshot, ignoring: [], runningCameras: ["other"], previewCamera: "preview"))
+        snapshot.live.append(LiveUse(kind: .microphone, deviceID: "mic", app: "Zoom"))
+        #expect(CallHold.hasDeviceSignal(snapshot, ignoring: [], runningCameras: ["preview"], previewCamera: "preview"))
+    }
 }

@@ -85,9 +85,11 @@ final class HoldCalls {
         let now = Date.now
         var snapshot = monitor.snapshot
         let ownCamera = checks.camera.running ? checks.camera.deviceID : nil
-        snapshot.live.removeAll { $0.kind == .camera && $0.deviceID == ownCamera }
-        let devices = CallHold.hasDeviceSignal(snapshot, ignoring: monitor.ignoredApps)
-            || CameraActivity.runningDeviceIDs().contains { $0 != ownCamera }
+        snapshot.live = LiveDevices.current()
+        let devices = CallHold.hasDeviceSignal(
+            snapshot, ignoring: monitor.ignoredApps,
+            runningCameras: CameraActivity.runningDeviceIDs(), previewCamera: ownCamera
+        )
         let event = usesCalendar && calendar.hasCurrentCall(at: now)
         guard let expected = policy.request(active: devices || event, now: now) else {
             if policy.isPaused {
