@@ -30,7 +30,7 @@ WARN = '<svg viewBox="0 0 20 18" aria-hidden="true"><path class="warn-fill solid
 
 # The nav and footer come from a guide page, so the fix pages always match the rest of the site.
 _GUIDE = (SITE / "mac-microphone-not-working.html").read_text()
-NAV = "  " + re.search(r'<header class="nav">.*?</header>', _GUIDE, re.S).group(0)
+NAV = "  " + re.search(r'<header class="nav">.*?</header>', _GUIDE, re.S).group(0).replace(' aria-current="page"', "")
 FOOTER = "  " + re.search(r"<footer>.*?</footer>", _GUIDE, re.S).group(0)
 
 

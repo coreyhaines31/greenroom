@@ -9,6 +9,7 @@ Green Room runs on macOS 14 Sonoma and later, is signed and notarized by Apple, 
 - Camera, mic, and speaker in one panel: live camera preview, mic level meter, left/right speaker test, and a five-second "Hear Yourself" record and playback.
 - Compare mics: a live level on every microphone at once, to see which one is hearing you, and one click to switch to it.
 - Device names: rename devices ("Lapel mic" instead of "USB Audio Device") everywhere in the app and the `greenroom` command, and hide ones you never use from the pickers.
+- Priority: rank your mics, speakers, and cameras, and Green Room switches to the highest one that's connected whenever something connects or disconnects, so AirPods or an iPhone never take over.
 - Saved setups (Desk, Studio, Travel) picked automatically by which devices are plugged in, with warnings when the mic or sound switches away from your setup.
 - Live now: which app (Zoom, Meet, Teams, Chrome, Loom) is using each mic and speaker, and a warning when a call uses a different mic than your setup.
 - Bluetooth call mode: tells you when AirPods or another headset drops to phone-call quality because an app turned on its mic, and offers a better mic.
@@ -32,6 +33,7 @@ Green Room runs on macOS 14 Sonoma and later, is signed and notarized by Apple, 
 - [How to test your microphone on a Mac](https://greenroomformac.com/how-to-test-microphone-on-mac)
 - [AirPods not connecting to Mac](https://greenroomformac.com/airpods-not-connecting-to-mac)
 - [AirPods mic not working](https://greenroomformac.com/airpods-mic-not-working), including Bluetooth call mode
+- [Stop AirPods from switching devices](https://greenroomformac.com/stop-airpods-switching-devices): Apple's iPhone and Mac steps, plus keeping your Mac on your chosen mic
 - [Continuity Camera not working](https://greenroomformac.com/continuity-camera-not-working)
 - [Logitech webcam not working on Mac](https://greenroomformac.com/logitech-webcam-not-working): C920, Brio, StreamCam, MX Brio
 - [MacBook speakers not working](https://greenroomformac.com/macbook-speakers-not-working)
