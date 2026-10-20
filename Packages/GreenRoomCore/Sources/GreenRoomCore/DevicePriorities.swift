@@ -12,7 +12,8 @@ public struct DevicePriorities: Codable, Sendable, Equatable {
     }
 
     /// Your order first, then devices you haven't placed yet: wired gear you plugged in on
-    /// purpose, then the Mac's own, then headsets and the iPhone that tend to grab the default.
+    /// purpose, then the Mac's own, then displays, then headsets and the iPhone that tend to
+    /// grab the default.
     public func ranked(_ devices: [Device], kind: DeviceKind) -> [Device] {
         let ids = order[kind] ?? []
         let placed = ids.compactMap { id in devices.first { $0.id == id } }
@@ -31,9 +32,10 @@ public struct DevicePriorities: Codable, Sendable, Equatable {
 
     static func rank(_ transport: Transport) -> Int {
         switch transport {
-        case .usb, .thunderbolt, .external, .display: 0
+        case .usb, .thunderbolt, .external: 0
         case .builtIn: 1
-        case .virtual, .aggregate, .other: 2
+        // Monitor speakers are rarely where you want a call.
+        case .display, .virtual, .aggregate, .other: 2
         case .bluetooth, .airPlay: 3
         case .continuity: 4
         }

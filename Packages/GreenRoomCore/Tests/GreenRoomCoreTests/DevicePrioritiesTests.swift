@@ -23,6 +23,13 @@ struct DevicePrioritiesTests {
         #expect(ranked.map(\.id) == ["shure", "mac", "airpods", "iphone"])
     }
 
+    @Test func monitorSpeakersStartBelowTheMacs() {
+        let monitor = Device(id: "lg", name: "LG Ultra HD", kind: .speaker, transport: .display)
+        let speakers = Device(id: "mac", name: "MacBook Pro Speakers", kind: .speaker, transport: .builtIn)
+
+        #expect(DevicePriorities().ranked([monitor, speakers], kind: .speaker).map(\.id) == ["mac", "lg"])
+    }
+
     @Test func adoptingSavesTheShownOrderOnce() {
         var priorities = DevicePriorities()
 
