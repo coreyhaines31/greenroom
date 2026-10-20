@@ -1,3 +1,4 @@
+import AVFoundation
 import GreenRoomCore
 import SwiftUI
 
@@ -12,12 +13,14 @@ struct RecordPreviewView: View {
     @State private var overControls = false
     @State private var showingCheck = false
     @State private var hideTask: Task<Void, Never>?
+    @AppStorage("previewGuides") private var storedGuides = ""
 
     var body: some View {
         ZStack {
             Color.black
             if checks.cameraAccess == .authorized, monitor.previewCamera != nil {
                 CameraPreview(session: checks.camera.session, gravity: .resizeAspect)
+                CompositionOverlay(guides: CompositionGuide.decode(storedGuides), aspect: frameAspect)
             } else {
                 Text(cameraMessage).font(.title3).foregroundStyle(.secondary)
             }
@@ -45,6 +48,36 @@ struct RecordPreviewView: View {
         .onDisappear { hideTask?.cancel() }
         .onChange(of: monitor.previewCamera) { checks.restartCamera() }
         .onChange(of: monitor.snapshot.active(.microphone)) { checks.restartMeter() }
+    }
+
+    /// Width over height of what the camera sends, so the guides line up with the picture.
+    private var frameAspect: CGFloat {
+        guard let capture = monitor.previewCamera.flatMap(Cameras.captureDevice(for:)) else { return 16.0 / 9.0 }
+        let size = CMVideoFormatDescriptionGetDimensions(capture.activeFormat.formatDescription)
+        return size.height > 0 ? CGFloat(size.width) / CGFloat(size.height) : 16.0 / 9.0
+    }
+
+    private var guidesMenu: some View {
+        let guides = CompositionGuide.decode(storedGuides)
+        return Menu {
+            ForEach(CompositionGuide.allCases) { guide in
+                Toggle(guide.title, isOn: Binding(
+                    get: { guides.contains(guide) },
+                    set: { on in
+                        var next = guides
+                        if on { next.insert(guide) } else { next.remove(guide) }
+                        storedGuides = CompositionGuide.encode(next)
+                    }
+                ))
+                .help(guide.help)
+            }
+        } label: {
+            Image(systemName: "squareshape.split.3x3")
+        }
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help("Grid lines and crop guides over the picture. They aren't recorded.")
+        .accessibilityLabel("Guides")
     }
 
     private var cameraMessage: String {
@@ -113,6 +146,8 @@ struct RecordPreviewView: View {
                    width: menuWidth)
             Button(checks.tone.buttonTitle) { checks.tone.play() }
                 .disabled(checks.tone.playing != nil)
+            Divider().frame(height: 20)
+            guidesMenu
             Divider().frame(height: 20)
             Button("Done", action: close)
                 .keyboardShortcut(.cancelAction)
