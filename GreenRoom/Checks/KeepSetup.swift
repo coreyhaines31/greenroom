@@ -26,7 +26,8 @@ final class KeepSetup {
         for event in events where event.change == .disconnected {
             exempt.remove(event.device.id)
         }
-        guard Self.isEnabled else { return }
+        // Your priority order covers takeovers too, and the two would fight.
+        guard Self.isEnabled, !UsePriority.isEnabled else { return }
         let takeovers = Takeover.detect(
             events: events, timeline: monitor.history.events, setup: monitor.setup, snapshot: monitor.snapshot,
             exempt: exempt.union(monitor.chosenRecently(within: Takeover.window))
