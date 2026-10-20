@@ -622,3 +622,16 @@ section.article { padding: 48px 0 24px; }
 .footer-links div { display: grid; gap: 6px; justify-items: start; align-content: start; }
 .footer-links b { color: var(--ink); font-weight: 600; margin-bottom: 4px; }
 .footer-links a { white-space: normal; }
+
+/* Comparison table, for app comparison pages */
+.table-card { background: var(--surface); border: 1px solid var(--line); border-radius: 24px; padding: 4px 18px; margin: 8px 0 0; box-shadow: var(--shadow); }
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.compare { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 15px; }
+.compare th, .compare td { text-align: left; padding: 14px 12px; border-bottom: 1px solid var(--line); vertical-align: top; line-height: 1.45; }
+.compare tbody tr:last-child > * { border-bottom: 0; }
+.compare thead th { font-weight: 600; font-size: 14px; color: var(--muted); }
+.compare tbody th { color: var(--ink); font-weight: 500; width: 34%; }
+.compare .us { color: var(--mint-ink); font-weight: 600; }
+.compare .n { color: var(--muted); }
+.table-foot { font-size: 14px; color: var(--muted); margin: 14px 0 0; }
+@media (max-width: 600px) { .compare { font-size: 14px; } .compare th, .compare td { padding: 12px 8px; } }
