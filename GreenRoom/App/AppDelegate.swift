@@ -7,6 +7,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var windows = Windows(monitor: monitor)
     private lazy var alerts = Alerts(monitor: monitor)
     private lazy var keepSetup = KeepSetup(monitor: monitor, alerts: alerts)
+    private lazy var usePriority = UsePriority(monitor: monitor)
     private lazy var callWatcher = CallWatcher(monitor: monitor, alerts: alerts)
     private lazy var recordingWatcher = RecordingWatcher(monitor: monitor, alerts: alerts)
     private let updater = Updater()
@@ -21,6 +22,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         monitor.onEvents = { [weak self] events in
             // Switch back first, so the alerts see the fixed state.
             self?.keepSetup.devicesChanged(events)
+            self?.usePriority.devicesChanged(events)
             self?.alerts.devicesChanged(events)
             self?.recordingWatcher.devicesChanged()
         }
