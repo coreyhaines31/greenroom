@@ -1,29 +1,48 @@
 import GreenRoomCore
 import SwiftUI
 
-/// The camera as big as the screen, with the mic and speaker underneath, to check a shot
-/// before recording. Shows the whole frame, so nothing at the edges is a surprise.
+/// The camera as big as the screen, to check a shot before recording. Shows the whole frame,
+/// so nothing at the edges is a surprise. The controls fade when the mouse is still, so a
+/// teleprompter shows just the picture and the mic level.
 struct RecordPreviewView: View {
     let monitor: DeviceMonitor
     let checks: Checks
     let close: () -> Void
+    @State private var controlsShown = true
+    @State private var overControls = false
+    @State private var showingCheck = false
+    @State private var hideTask: Task<Void, Never>?
 
     var body: some View {
-        // The controls sit under the picture, not over it, so the whole shot stays visible.
-        VStack(spacing: 0) {
-            Group {
-                if checks.cameraAccess == .authorized, monitor.previewCamera != nil {
-                    CameraPreview(session: checks.camera.session, gravity: .resizeAspect)
-                } else {
-                    Text(cameraMessage).font(.title3).foregroundStyle(.secondary)
-                }
+        ZStack {
+            Color.black
+            if checks.cameraAccess == .authorized, monitor.previewCamera != nil {
+                CameraPreview(session: checks.camera.session, gravity: .resizeAspect)
+            } else {
+                Text(cameraMessage).font(.title3).foregroundStyle(.secondary)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            controls
+            VStack {
+                HStack(alignment: .top) {
+                    readinessPill
+                    Spacer()
+                    if let advice = checks.camera.advice {
+                        Label(advice, systemImage: "lightbulb").pill()
+                    }
+                }
+                Spacer()
+                controls
+                    .onHover { overControls = $0 }
+            }
+            .padding(20)
+            .opacity(controlsShown ? 1 : 0)
+            .allowsHitTesting(controlsShown)
+            micMeter
         }
-        .background(.black)
         .frame(minWidth: 720, minHeight: 480)
         .environment(\.colorScheme, .dark)
+        .onContinuousHover { _ in showControls() }
+        .onAppear { showControls() }
+        .onDisappear { hideTask?.cancel() }
         .onChange(of: monitor.previewCamera) { checks.restartCamera() }
         .onChange(of: monitor.snapshot.active(.microphone)) { checks.restartMeter() }
     }
@@ -36,75 +55,133 @@ struct RecordPreviewView: View {
         }
     }
 
-    /// One row on a wide screen, two on a small one like a teleprompter.
+    /// Brings the controls back, then fades them after three still seconds.
+    private func showControls() {
+        withAnimation(.easeOut(duration: 0.15)) { controlsShown = true }
+        hideTask?.cancel()
+        hideTask = Task {
+            try? await Task.sleep(for: .seconds(3))
+            guard !Task.isCancelled, !overControls, !showingCheck else { return }
+            withAnimation(.easeIn(duration: 0.4)) { controlsShown = false }
+            NSCursor.setHiddenUntilMouseMoves(true)
+        }
+    }
+
+    private var readinessPill: some View {
+        let check = monitor.recordingCheck
+        let problems = check.items.filter { !$0.passed }.count
+        return Button { showingCheck.toggle() } label: {
+            Label {
+                Text(problems == 0 ? "Ready to record" : "\(problems) to check before recording")
+            } icon: {
+                Image(systemName: problems == 0 ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                    .foregroundStyle(problems == 0 ? .green : .orange)
+            }
+            .pill()
+        }
+        .buttonStyle(.plain)
+        .popover(isPresented: $showingCheck, arrowEdge: .bottom) {
+            VStack(alignment: .leading, spacing: 10) {
+                RecordingChecklist(check: check)
+            }
+            .padding(16)
+            .frame(width: 320, alignment: .leading)
+        }
+    }
+
+    /// Stays up when the controls fade, so you can watch your level while you talk.
+    private var micMeter: some View {
+        HStack {
+            VStack(spacing: 8) {
+                SegmentedLevelMeter(level: checks.meter.level)
+                Image(systemName: "mic.fill").font(.caption).foregroundStyle(.secondary)
+            }
+            .padding(.vertical, 12)
+            .padding(.horizontal, 8)
+            .background(.black.opacity(0.45), in: Capsule())
+            Spacer()
+        }
+        .padding(.leading, 20)
+    }
+
+    /// One row. On a narrow screen like a teleprompter, long device names shorten first.
     private var controls: some View {
         ViewThatFits(in: .horizontal) {
-            HStack(alignment: .top, spacing: 28) {
-                cameraColumn
-                micColumn
-                speakerColumn
-                Spacer(minLength: 0)
-                doneColumn
-            }
-            VStack(alignment: .leading, spacing: 14) {
-                HStack(alignment: .top, spacing: 28) {
-                    cameraColumn
-                    micColumn
-                }
-                HStack(alignment: .top, spacing: 28) {
-                    speakerColumn
-                    Spacer(minLength: 0)
-                    doneColumn
-                }
-            }
+            controlRow(menuWidth: nil)
+            controlRow(menuWidth: 150)
         }
-        .padding(18)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
-        .padding(16)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(.regularMaterial, in: Capsule())
     }
 
-    private var cameraColumn: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            DevicePicker(kind: .camera, monitor: monitor, selected: monitor.previewCamera)
-            if let advice = checks.camera.advice {
-                Label(advice, systemImage: "lightbulb").font(.caption).foregroundStyle(.secondary)
-            }
-        }
-        .fixedSize()
-    }
-
-    private var micColumn: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            DevicePicker(kind: .microphone, monitor: monitor, selected: monitor.snapshot.active(.microphone)) {
-                Button(checks.playback.buttonTitle) { checks.hearYourself() }
-                    .fixedSize()
-                    .disabled(checks.micAccess != .authorized || checks.playback.phase != .idle)
-            }
-            LevelMeter(level: checks.meter.level).frame(minWidth: 280)
-            if let problem = monitor.micProblem ?? (checks.meter.isSilent ? .silent : nil) {
-                Label(problem.message, systemImage: "exclamationmark.triangle.fill")
-                    .font(.caption).foregroundStyle(.orange)
-            }
-        }
-        .fixedSize()
-    }
-
-    private var speakerColumn: some View {
-        DevicePicker(kind: .speaker, monitor: monitor, selected: monitor.snapshot.active(.speaker)) {
+    private func controlRow(menuWidth: CGFloat?) -> some View {
+        HStack(spacing: 14) {
+            device(.camera, symbol: "video.fill", selected: monitor.previewCamera, width: menuWidth)
+            Divider().frame(height: 20)
+            device(.microphone, symbol: "mic.fill", selected: monitor.snapshot.active(.microphone), width: menuWidth)
+            Button(checks.playback.buttonTitle) { checks.hearYourself() }
+                .disabled(checks.micAccess != .authorized || checks.playback.phase != .idle)
+                .help("Records five seconds and plays them back. Nothing is saved.")
+            Divider().frame(height: 20)
+            device(.speaker, symbol: "speaker.wave.2.fill", selected: monitor.snapshot.active(.speaker),
+                   width: menuWidth)
             Button(checks.tone.buttonTitle) { checks.tone.play() }
-                .fixedSize()
                 .disabled(checks.tone.playing != nil)
-        }
-        .fixedSize()
-    }
-
-    private var doneColumn: some View {
-        VStack(alignment: .trailing, spacing: 12) {
+            Divider().frame(height: 20)
             Button("Done", action: close)
                 .keyboardShortcut(.cancelAction)
                 .help("Close the preview (Esc)")
-            RecordingSection(monitor: monitor)
         }
         .fixedSize()
+    }
+
+    private func device(_ kind: DeviceKind, symbol: String, selected: Device?, width: CGFloat?) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: symbol).foregroundStyle(.secondary).accessibilityHidden(true)
+            if let width {
+                DeviceMenu(kind: kind, monitor: monitor, selected: selected, showsTransport: false)
+                    .frame(width: width)
+            } else {
+                DeviceMenu(kind: kind, monitor: monitor, selected: selected, showsTransport: false)
+                    .fixedSize()
+            }
+        }
+    }
+}
+
+/// A tall meter in steps: green for talking, yellow when loud, red near clipping.
+struct SegmentedLevelMeter: View {
+    let level: Float
+    private let segments = 24
+
+    var body: some View {
+        VStack(spacing: 3) {
+            ForEach((0..<segments).reversed(), id: \.self) { index in
+                RoundedRectangle(cornerRadius: 1.5)
+                    .fill(color(index).opacity(Float(index) < level * Float(segments) ? 1 : 0.18))
+                    .frame(width: 10, height: 6)
+            }
+        }
+        .animation(.linear(duration: 0.08), value: level)
+        .accessibilityElement()
+        .accessibilityLabel("Microphone level")
+        .accessibilityValue("\(Int(level * 100)) percent")
+    }
+
+    private func color(_ index: Int) -> Color {
+        let position = Double(index) / Double(segments)
+        if position >= 0.9 { return .red }
+        if position >= 0.7 { return .yellow }
+        return .green
+    }
+}
+
+private extension View {
+    func pill() -> some View {
+        font(.callout)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 7)
+            .background(.regularMaterial, in: Capsule())
     }
 }
