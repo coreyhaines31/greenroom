@@ -11,11 +11,32 @@ public struct DevicePriorities: Codable, Sendable, Equatable {
         self.order = order
     }
 
-    /// Your order first, then devices you haven't placed yet, as given.
+    /// Your order first, then devices you haven't placed yet: wired gear you plugged in on
+    /// purpose, then the Mac's own, then headsets and the iPhone that tend to grab the default.
     public func ranked(_ devices: [Device], kind: DeviceKind) -> [Device] {
         let ids = order[kind] ?? []
         let placed = ids.compactMap { id in devices.first { $0.id == id } }
-        return placed + devices.filter { !ids.contains($0.id) }
+        let rest = devices.filter { !ids.contains($0.id) }.enumerated()
+            .sorted { (Self.rank($0.element.transport), $0.offset) < (Self.rank($1.element.transport), $1.offset) }
+            .map(\.element)
+        return placed + rest
+    }
+
+    /// Fills in the shown order for any kind you haven't ordered, so turning priority on does
+    /// what the numbered list says.
+    public mutating func adopt(_ devices: [Device], kind: DeviceKind) {
+        guard order[kind] == nil, !devices.isEmpty else { return }
+        order[kind] = ranked(devices, kind: kind).map(\.id)
+    }
+
+    static func rank(_ transport: Transport) -> Int {
+        switch transport {
+        case .usb, .thunderbolt, .external, .display: 0
+        case .builtIn: 1
+        case .virtual, .aggregate, .other: 2
+        case .bluetooth, .airPlay: 3
+        case .continuity: 4
+        }
     }
 
     /// Moves a device up (negative) or down a step. The order shown becomes your order.

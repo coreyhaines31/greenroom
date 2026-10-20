@@ -15,6 +15,23 @@ struct DevicePrioritiesTests {
         #expect(ranked.map(\.id) == ["shure", "mac", "airpods"])
     }
 
+    @Test func unplacedDevicesStartWiredThenBuiltInThenWireless() {
+        let iPhone = Device(id: "iphone", name: "iPhone Microphone", kind: .microphone, transport: .continuity)
+
+        let ranked = DevicePriorities().ranked([iPhone, airpods, mac, shure], kind: .microphone)
+
+        #expect(ranked.map(\.id) == ["shure", "mac", "airpods", "iphone"])
+    }
+
+    @Test func adoptingSavesTheShownOrderOnce() {
+        var priorities = DevicePriorities()
+
+        priorities.adopt([airpods, mac], kind: .microphone)
+        priorities.adopt([airpods, mac, shure], kind: .microphone)
+
+        #expect(priorities.order[.microphone] == ["mac", "airpods"])
+    }
+
     @Test func movingSavesTheWholeShownOrder() {
         var priorities = DevicePriorities()
 
