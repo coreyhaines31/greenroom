@@ -13,13 +13,15 @@ final class HoldCalls {
     private(set) var status = "Install the shortcut, then check setup."
     @ObservationIgnored private let monitor: DeviceMonitor
     @ObservationIgnored private let calendar: CallWatcher
+    @ObservationIgnored private let checks: Checks
     @ObservationIgnored private var timer: Timer?
     @ObservationIgnored private var policy = CallHold()
     @ObservationIgnored private var generation = 0
 
-    init(monitor: DeviceMonitor, calendar: CallWatcher) {
+    init(monitor: DeviceMonitor, calendar: CallWatcher, checks: Checks) {
         self.monitor = monitor
         self.calendar = calendar
+        self.checks = checks
     }
 
     func start() {
@@ -81,7 +83,11 @@ final class HoldCalls {
     func check() {
         guard isEnabled, shortcutReady, !isBusy else { return }
         let now = Date.now
-        let devices = CallHold.hasDeviceSignal(monitor.snapshot, ignoring: monitor.ignoredApps)
+        var snapshot = monitor.snapshot
+        let ownCamera = checks.camera.running ? checks.camera.deviceID : nil
+        snapshot.live.removeAll { $0.kind == .camera && $0.deviceID == ownCamera }
+        let devices = CallHold.hasDeviceSignal(snapshot, ignoring: monitor.ignoredApps)
+            || CameraActivity.runningDeviceIDs().contains { $0 != ownCamera }
         let event = usesCalendar && calendar.hasCurrentCall(at: now)
         guard let expected = policy.request(active: devices || event, now: now) else {
             if policy.isPaused {
