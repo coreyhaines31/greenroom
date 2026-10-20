@@ -18,7 +18,7 @@ final class CameraSession {
     /// One line about light and framing, while the preview runs.
     private(set) var advice: String?
     /// Callbacks already on their way when the camera stops shouldn't bring advice back.
-    @ObservationIgnored private var running = false
+    @ObservationIgnored private(set) var running = false
 
     var session: AVCaptureSession { box.session }
 

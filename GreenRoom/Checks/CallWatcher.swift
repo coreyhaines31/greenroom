@@ -51,6 +51,12 @@ final class CallWatcher {
             stop()
             return false
         }
+        Self.isEnabled = await requestAccess()
+        start()
+        return Self.isEnabled
+    }
+
+    func requestAccess() async -> Bool {
         if EKEventStore.authorizationStatus(for: .event) == .notDetermined {
             _ = try? await store.requestFullAccessToEvents()
         } else if !Self.hasAccess, let url = URL(
@@ -59,9 +65,17 @@ final class CallWatcher {
             // Asked before and refused: macOS won't ask again, so open the setting instead.
             NSWorkspace.shared.open(url)
         }
-        Self.isEnabled = Self.hasAccess
-        start()
-        return Self.isEnabled
+        return Self.hasAccess
+    }
+
+    func hasCurrentCall(at now: Date) -> Bool {
+        guard Self.hasAccess else { return false }
+        let predicate = store.predicateForEvents(withStart: now, end: now.addingTimeInterval(1), calendars: nil)
+        return store.events(matching: predicate).contains { event in
+            !event.isAllDay && event.status != .canceled && event.startDate <= now && event.endDate > now
+                && !(event.attendees?.contains { $0.isCurrentUser && $0.participantStatus == .declined } ?? false)
+                && CallLinks.isVideoCall([event.location, event.notes, event.url?.absoluteString])
+        }
     }
 
     private func check() {

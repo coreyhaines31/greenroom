@@ -50,7 +50,7 @@ targets:
         NSHumanReadableCopyright: Copyright © 2026 Corey Haines. FSL-1.1-MIT.
         NSCameraUsageDescription: Green Room shows a live preview so you can check your camera before a call. Video never leaves your Mac and is never saved.
         NSMicrophoneUsageDescription: Green Room shows a level meter so you can check your microphone before a call. Audio never leaves your Mac and is never saved.
-        NSCalendarsFullAccessUsageDescription: Green Room checks your camera, mic, and speakers two minutes before calendar events that have a video-call link. It only looks at when events start and whether they have a meeting link, and never changes your calendar.
+        NSCalendarsFullAccessUsageDescription: Green Room checks your devices before calendar calls and can hold notifications during them. It reads event times and video-call links and never changes your calendar.
         SUFeedURL: https://github.com/coreyhaines31/greenroom/releases/latest/download/appcast.xml
         SUPublicEDKey: 5MTMTktA0NUipG5n3iJy+27VbXN9uKgO2BbCgK8yUKU=
         SUEnableAutomaticChecks: true
