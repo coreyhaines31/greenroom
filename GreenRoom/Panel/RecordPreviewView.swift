@@ -36,7 +36,7 @@ struct RecordPreviewView: View {
             .padding(20)
             .opacity(controlsShown ? 1 : 0)
             .allowsHitTesting(controlsShown)
-            micMeter
+            PreviewMicMeter(meter: checks.meter)
         }
         .frame(minWidth: 720, minHeight: 480)
         .environment(\.colorScheme, .dark)
@@ -89,21 +89,6 @@ struct RecordPreviewView: View {
         }
     }
 
-    /// Stays up when the controls fade, so you can watch your level while you talk.
-    private var micMeter: some View {
-        HStack {
-            VStack(spacing: 8) {
-                SegmentedLevelMeter(level: checks.meter.level)
-                Image(systemName: "mic.fill").font(.caption).foregroundStyle(.secondary)
-            }
-            .padding(.vertical, 12)
-            .padding(.horizontal, 8)
-            .background(.black.opacity(0.45), in: Capsule())
-            Spacer()
-        }
-        .padding(.leading, 20)
-    }
-
     /// One row. On a narrow screen like a teleprompter, long device names shorten first.
     private var controls: some View {
         ViewThatFits(in: .horizontal) {
@@ -147,6 +132,26 @@ struct RecordPreviewView: View {
                     .fixedSize()
             }
         }
+    }
+}
+
+/// Stays up when the controls fade, so you can watch your level while you talk. Its own view,
+/// so the level's 15 updates a second redraw just the meter.
+struct PreviewMicMeter: View {
+    let meter: MicMeter
+
+    var body: some View {
+        HStack {
+            VStack(spacing: 8) {
+                SegmentedLevelMeter(level: meter.level)
+                Image(systemName: "mic.fill").font(.caption).foregroundStyle(.secondary)
+            }
+            .padding(.vertical, 12)
+            .padding(.horizontal, 8)
+            .background(.black.opacity(0.45), in: Capsule())
+            Spacer()
+        }
+        .padding(.leading, 20)
     }
 }
 
