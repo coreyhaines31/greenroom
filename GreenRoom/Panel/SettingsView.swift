@@ -7,6 +7,7 @@ struct SettingsView: View {
     let updater: Updater
     let callWatcher: CallWatcher
     let hotKey: HotKey
+    let holdCalls: HoldCalls
 
     @State private var openAtLogin = LoginItem.isEnabled
     @State private var useHotKey = HotKey.isEnabled
@@ -44,6 +45,7 @@ struct SettingsView: View {
                     Text("Two minutes before events with a Zoom, Meet, or Teams link. Needs calendar access.")
                 }
             }
+            HoldCallsSection(hold: holdCalls)
             Section("Setups") {
                 if monitor.setups.isEmpty {
                     Text("No setups yet. Save one from the panel.").foregroundStyle(.secondary)
