@@ -81,9 +81,16 @@ final class MicWatch {
         for id in needed where taps[id] == nil {
             if let device = snapshot.device(id, kind: .microphone) { taps[id] = InputTap(device) }
         }
-        sessions.observe(taps.compactMapValues { $0.readSample() }, now: now)
+        var samples = taps.compactMapValues { $0.readSample() }
+        #if DEBUG
+        samples = MicWatchReport.testSamples(samples)
+        #endif
+        sessions.observe(samples, now: now)
         stopTaps(except: sessions.pendingDeviceIDs)
         showWarning(snapshot)
+        #if DEBUG
+        MicWatchReport.write(sessions, samples: samples, activeTaps: taps.count, warning: shown)
+        #endif
     }
 
     private func stopTaps(except needed: Set<String>) {
