@@ -11,6 +11,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var callWatcher = CallWatcher(monitor: monitor, alerts: alerts)
     private lazy var recordingWatcher = RecordingWatcher(monitor: monitor, alerts: alerts)
     private lazy var holdCalls = HoldCalls(monitor: monitor, calendar: callWatcher, checks: checks)
+    private lazy var micWatch = MicWatch(monitor: monitor)
     private let updater = Updater()
     private var statusItemController: StatusItemController?
     private lazy var hotKey = HotKey { [weak self] in self?.statusItemController?.toggle(pinned: false) }
@@ -30,6 +31,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         callWatcher.start()
         holdCalls.start()
+        micWatch.start()
         statusItemController = StatusItemController(
             monitor: monitor, checks: checks, windows: windows, updater: updater
         )
@@ -39,6 +41,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         windows.updater = updater
         windows.hotKey = hotKey
         windows.holdCalls = holdCalls
+        windows.micWatch = micWatch
         windows.showWelcomeIfNew(isNewUser: isNewUser)
         #if !DEBUG
         // Debug builds share the bundle id, so they'd register themselves instead of /Applications.
@@ -88,6 +91,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         holdCalls.stop()
+        micWatch.stop()
         checks.stop()
         monitor.stop()
     }
