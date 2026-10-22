@@ -27,7 +27,7 @@ brew install --cask coreyhaines31/tap/greenroom
 ## Using it
 
 1. **A welcome window opens the first time.** It proposes your usual devices from what you've used, so saving your setup is one click, and offers the alerts, Keep my setup, calendar checks, and open at login in one place.
-2. **Click the camera icon** in the menu bar, or press **⌃⌥⌘G** from anywhere. The first time, macOS asks for camera and microphone access. Green Room only uses them while the panel is open, and nothing is recorded or sent anywhere.
+2. **Click the camera icon** in the menu bar, or press **⌃⌥⌘G** from anywhere. The first time, macOS asks for camera and microphone access. Live previews run while the panel is open. Optional microphone startup checks also briefly read audio levels when another app opens a mic. Nothing is saved or sent anywhere.
 3. **Pick your devices.** Choosing a mic or speaker makes it the Mac's default, the same as System Settings › Sound. Choosing a camera sets the one macOS suggests to apps; Zoom and Meet keep their own camera setting.
 4. **Check them.** Watch the preview, talk and watch the meter move, and click **Test** to hear a tone on the left, then the right.
 5. **Click Save as my setup.** From then on the icon turns into a warning when your setup doesn't match, and the panel says what's wrong.
@@ -77,6 +77,14 @@ The shortcut accepts the expected current Focus as `focus:<name>` (`focus:` mean
 ## Keep my setup
 
 Turn on **Switch back when AirPods take over** in Settings (gear menu › Settings…). When a device that just connected, like AirPods coming out of the case or an iPhone nearby, takes over your mic or sound, Green Room switches back to your setup's device and tells you. If you meant it, click **Use AirPods** in the alert and Green Room leaves them alone until they disconnect. Anything you pick yourself is never switched back.
+
+## Before you dictate
+
+Enable **Settings › Microphone check › Warn when an app starts with a silent mic**. Green Room checks the microphone an app actually opens, including dictation apps such as Monologue, Codex, and Claude. It samples audio levels for up to four seconds (ten for Bluetooth), stopping early if sound arrives. A camera-connected mic can still appear connected when the camera is off; this checks for audio, not just a connection.
+
+If no sound arrives, a small warning appears without taking keyboard focus, even during Do Not Disturb. It suggests checking the camera's power, mute switch, and gain, and offers your Mac's built-in microphone as the default when available. Restart dictation after switching; apps with their own mic setting may need that changed too. If Green Room cannot read the device, it reports that instead of declaring it ready.
+
+This is an opt-in startup check, not continuous monitoring. It requires macOS 14.2+ and microphone permission. A quiet pause can trigger a warning. An app that keeps its mic open gets one check until it releases it; restarting dictation inside such an app may not trigger another check. Ignored apps are skipped. Sound detection cannot verify transcription, the app's selected channel, or an app's internal mute. No audio is saved or sent anywhere.
 
 ## Before you record
 
@@ -149,7 +157,7 @@ Before I record or join a call, or when I say my mic or camera isn't working, ru
 ## Privacy
 
 - **No analytics, no account, no network.** Green Room never connects to the internet except to check for updates.
-- **Camera and mic** only run while the panel is open. Nothing is recorded or saved.
+- **Camera and mic previews** run while the panel or Record Preview is open. Opt-in microphone startup checks briefly read audio levels when another app opens a mic. Hear Yourself holds its short playback recording only in memory; nothing is saved.
 - **History** stays on your Mac, in `~/Library/Application Support/Green Room/`.
 
 ## Build it yourself

@@ -8,6 +8,7 @@ struct SettingsView: View {
     let callWatcher: CallWatcher
     let hotKey: HotKey
     let holdCalls: HoldCalls
+    let micWatch: MicWatch
 
     @State private var openAtLogin = LoginItem.isEnabled
     @State private var useHotKey = HotKey.isEnabled
@@ -45,6 +46,7 @@ struct SettingsView: View {
                     Text("Two minutes before events with a Zoom, Meet, or Teams link. Needs calendar access.")
                 }
             }
+            MicWatchSection(watch: micWatch)
             HoldCallsSection(hold: holdCalls)
             Section("Setups") {
                 if monitor.setups.isEmpty {
