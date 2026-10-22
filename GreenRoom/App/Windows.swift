@@ -15,11 +15,12 @@ final class Windows {
     var updater: Updater?
     var hotKey: HotKey?
     var holdCalls: HoldCalls?
+    var micWatch: MicWatch?
 
     func showSettings() {
-        if settings == nil, let callWatcher, let updater, let hotKey, let holdCalls {
+        if settings == nil, let callWatcher, let updater, let hotKey, let holdCalls, let micWatch {
             let view = SettingsView(monitor: monitor, updater: updater, callWatcher: callWatcher,
-                                    hotKey: hotKey, holdCalls: holdCalls)
+                                    hotKey: hotKey, holdCalls: holdCalls, micWatch: micWatch)
             let window = NSWindow(contentViewController: NSHostingController(rootView: view))
             window.title = "Green Room Settings"
             window.styleMask.remove(.resizable)
