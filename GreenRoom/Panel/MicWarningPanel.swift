@@ -25,7 +25,9 @@ final class MicWarningPanel {
         let panel = NSPanel(contentRect: .zero, styleMask: [.titled, .nonactivatingPanel],
                             backing: .buffered, defer: false)
         panel.title = "Green Room · Microphone check"
-        panel.contentViewController = NSHostingController(rootView: view)
+        let controller = NSHostingController(rootView: view)
+        panel.contentViewController = controller
+        panel.setContentSize(controller.view.fittingSize)
         panel.isReleasedWhenClosed = false
         panel.hidesOnDeactivate = false
         panel.level = .floating
