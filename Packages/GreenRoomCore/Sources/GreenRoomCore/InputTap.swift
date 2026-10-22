@@ -2,23 +2,22 @@ import CoreAudio
 import os
 
 /// Reads one microphone's level straight from Core Audio, without making it the default.
-/// Each tap opens the device (and turns on the mic indicator), so only keep one while
-/// someone is looking.
+/// Each tap opens the device (and turns on the mic indicator); stop it when the check ends.
 public final class InputTap: @unchecked Sendable {
     private let deviceID: AudioObjectID
     private let procID: AudioDeviceIOProcID
-    private let peak: OSAllocatedUnfairLock<Float>
+    private let peak: OSAllocatedUnfairLock<Float?>
 
     public init?(_ device: Device) {
         guard device.kind == .microphone,
               let id = AudioHardware.deviceIDs().first(where: { AudioHardware.uid($0) == device.id }) else {
             return nil
         }
-        let peak = OSAllocatedUnfairLock<Float>(initialState: 0)
+        let peak = OSAllocatedUnfairLock<Float?>(initialState: nil)
         var procID: AudioDeviceIOProcID?
         let status = AudioDeviceCreateIOProcIDWithBlock(&procID, id, nil) { _, input, _, _, _ in
             let level = Self.level(input)
-            peak.withLock { $0 = max($0, level) }
+            peak.withLock { $0 = max($0 ?? 0, level) }
         }
         guard status == noErr, let procID else { return nil }
         guard AudioDeviceStart(id, procID) == noErr else {
@@ -32,8 +31,13 @@ public final class InputTap: @unchecked Sendable {
 
     /// The loudest moment since the last read: 0 is silence (-60 dB or quieter), 1 is full scale.
     public func read() -> Float {
+        readSample() ?? 0
+    }
+
+    /// Nil means no callback arrived, which is different from audio frames containing silence.
+    public func readSample() -> Float? {
         peak.withLock { peak in
-            defer { peak = 0 }
+            defer { peak = nil }
             return peak
         }
     }
