@@ -73,6 +73,7 @@ def head(title, desc, url, graph, og_type="article"):
   <script src="/nav.js" defer></script>
   <script type="application/ld+json">{ld}</script>
   <script src="https://cdn.usefathom.com/script.js" data-site="WDVXMJRM" defer></script>
+  <script src="https://ingest.getuserproof.com/sdk.js" data-site="09643963-8a45-49e4-9be8-49a6441893bb" defer></script>
 </head>
 <body>
 {NAV}
