@@ -17,6 +17,7 @@ final class CameraSession {
     @ObservationIgnored private(set) var deviceID: String?
     @ObservationIgnored private var analyzer: FrameAnalyzer?
     @ObservationIgnored private var monitorOutput: AVCaptureVideoDataOutput?
+    @ObservationIgnored private var pendingOrientation = PictureOrientation()
     /// One line about light and framing, while the preview runs.
     private(set) var advice: String?
     /// Callbacks already on their way when the camera stops shouldn't bring advice back.
@@ -33,6 +34,7 @@ final class CameraSession {
                 guard let self, running else { return }
                 self.advice = advice
             })
+            analyzer.orientation = pendingOrientation
             self.analyzer = analyzer
             box.queue.async {
                 let output = AVCaptureVideoDataOutput()
@@ -63,6 +65,13 @@ final class CameraSession {
             }
             if !box.session.isRunning { box.session.startRunning() }
         }
+    }
+
+    /// How the picture is shown, for framing advice. The panel is upright and mirrored; the
+    /// record preview sets its own turn and mirror while it's open.
+    func setOrientation(_ orientation: PictureOrientation) {
+        analyzer?.orientation = orientation
+        pendingOrientation = orientation
     }
 
     /// Sends frames to the record preview's tools, `width` wide and as tall as the camera's
