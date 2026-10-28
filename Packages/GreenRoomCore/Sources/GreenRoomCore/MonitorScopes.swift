@@ -1,3 +1,4 @@
+import CoreGraphics
 import Foundation
 
 /// How a camera's picture is turned for display: quarter turns clockwise, then an optional
@@ -17,6 +18,17 @@ public struct PictureOrientation: Sendable, Equatable {
     /// Width over height as shown, from the camera's own width over height.
     public func displayAspect(_ aspect: Double) -> Double {
         isSideways && aspect > 0 ? 1 / aspect : aspect
+    }
+
+    /// A normalized rectangle (origin bottom-left) in the turned, unmirrored picture, mapped
+    /// back to the camera's own frame.
+    public func cameraRect(fromUpright rect: CGRect) -> CGRect {
+        switch quarterTurns {
+        case 1: CGRect(x: 1 - rect.maxY, y: rect.minX, width: rect.height, height: rect.width)
+        case 2: CGRect(x: 1 - rect.maxX, y: 1 - rect.maxY, width: rect.width, height: rect.height)
+        case 3: CGRect(x: rect.minY, y: 1 - rect.maxX, width: rect.height, height: rect.width)
+        default: rect
+        }
     }
 
     /// The displayed column of a pixel at (`x`, `y`), counted from the top left of the

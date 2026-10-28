@@ -1,5 +1,6 @@
 import AVFoundation
 import GreenRoomCore
+import ImageIO
 import Vision
 
 /// Looks at about one camera frame a second for faces and light, on the camera's own queue,
@@ -12,6 +13,14 @@ final class FrameAnalyzer: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
     static let warmUp: TimeInterval = 1.5
     /// Analysis runs on its own queue so it never holds up starting or stopping the camera.
     let queue = DispatchQueue(label: "com.greenroomformac.framing", qos: .utility)
+    private let lock = NSLock()
+    private var shown = PictureOrientation()
+
+    /// How the picture is shown, so faces are found upright and left and right match the preview.
+    var orientation: PictureOrientation {
+        get { lock.withLock { shown } }
+        set { lock.withLock { shown = newValue } }
+    }
 
     /// Call when the camera starts, on `queue`.
     func reset() {
@@ -29,15 +38,27 @@ final class FrameAnalyzer: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
         guard Date.now.timeIntervalSince(startedAt) >= Self.warmUp, Date.now.timeIntervalSince(last) >= 1,
               let pixels = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         last = .now
+        let orientation = orientation
         let request = VNDetectFaceRectanglesRequest()
-        try? VNImageRequestHandler(cvPixelBuffer: pixels, orientation: .up).perform([request])
+        try? VNImageRequestHandler(cvPixelBuffer: pixels, orientation: Self.vision(orientation)).perform([request])
         let faces = request.results?.map(\.boundingBox) ?? []
         let largest = faces.max { $0.width * $0.height < $1.width * $1.height }
         let advice = Framing.advice(
             faces: faces, brightness: Self.brightness(pixels, in: nil),
-            faceBrightness: largest.map { Self.brightness(pixels, in: $0) }
+            faceBrightness: largest.map { Self.brightness(pixels, in: orientation.cameraRect(fromUpright: $0)) },
+            mirrored: orientation.mirrored
         )
         onAdvice(advice)
+    }
+
+    /// The turn that makes the camera's frame upright. `.right` means turn it a quarter clockwise.
+    static func vision(_ orientation: PictureOrientation) -> CGImagePropertyOrientation {
+        switch orientation.quarterTurns {
+        case 1: .right
+        case 2: .down
+        case 3: .left
+        default: .up
+        }
     }
 
     /// Average of the luma plane, sampled on a grid. `rect` is normalized with its origin at
