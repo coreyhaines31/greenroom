@@ -635,3 +635,11 @@ section.article { padding: 48px 0 24px; }
 .compare .n { color: var(--muted); }
 .table-foot { font-size: 14px; color: var(--muted); margin: 14px 0 0; }
 @media (max-width: 600px) { .compare { font-size: 14px; } .compare th, .compare td { padding: 12px 8px; } }
+
+/* Monitor tools */
+.histogram { display: block; justify-self: stretch; width: 100%; height: auto; margin-top: 8px; }
+.histogram rect { fill: currentColor; opacity: 0.75; }
+.histogram .levels { fill: none; stroke: currentColor; stroke-opacity: 0.12; }
+.fc-key { list-style: none; display: grid; grid-template-columns: repeat(3, auto); gap: 8px 16px; margin: 4px 0 0; padding: 0; font-size: 12.5px; justify-content: start; }
+.fc-key li { display: flex; align-items: center; gap: 6px; }
+.fc-key i { width: 10px; height: 10px; border-radius: 2px; flex: none; }
