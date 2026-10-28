@@ -9,7 +9,11 @@ public struct CubeLUT: Sendable, Equatable {
         case unsupportedDomain
         case badLine(String)
         case wrongCount(expected: Int, found: Int)
+        case tooLarge
     }
+
+    /// Core Image's color cube takes up to 128 a side; real LUTs are 33 or 65.
+    public static let largestSize = 128
 
     public let title: String?
     /// Entries along each side.
@@ -29,7 +33,7 @@ public struct CubeLUT: Sendable, Equatable {
             case "TITLE":
                 title = line.dropFirst(5).trimmingCharacters(in: CharacterSet(charactersIn: "\" "))
             case "LUT_3D_SIZE":
-                guard parts.count == 2, let value = Int(parts[1]), value > 1 else { throw ParseError.missingSize }
+                let value = try Self.size(parts)
                 size = value
                 rgba.reserveCapacity(value * value * value * 4)
             case "LUT_1D_SIZE":
@@ -46,6 +50,13 @@ public struct CubeLUT: Sendable, Equatable {
         self.title = title
         self.size = size
         self.rgba = rgba
+    }
+
+    /// A damaged file with a huge size must not reserve the memory for it.
+    private static func size(_ parts: [Substring]) throws -> Int {
+        guard parts.count == 2, let value = Int(parts[1]), value > 1 else { throw ParseError.missingSize }
+        guard value <= largestSize else { throw ParseError.tooLarge }
+        return value
     }
 
     /// Only the usual 0 to 1 domain; tables for other ranges would show the wrong colors.
