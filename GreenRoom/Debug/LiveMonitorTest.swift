@@ -4,6 +4,7 @@ import AVFoundation
 import CoreImage.CIFilterBuiltins
 import GreenRoomCore
 import SwiftUI
+import Vision
 
 /// `--capture-monitor <folder>`: runs the live camera through each monitor tool for a few
 /// seconds, saves one picture per tool, and writes how many pictures a second each managed.
@@ -63,6 +64,45 @@ enum LiveMonitorTest {
         }.joined(separator: ", ")
     }
 
+    /// Turns the frame a quarter counterclockwise, like a camera mounted on its side, then
+    /// looks for faces with and without the preview's matching clockwise turn.
+    private static func framingCheck(_ frame: CIImage) -> [String] {
+        let sideways = frame.transformed(by: CGAffineTransform(rotationAngle: .pi / 2))
+        let image = sideways.transformed(by: CGAffineTransform(
+            translationX: -sideways.extent.minX, y: -sideways.extent.minY))
+        var buffer: CVPixelBuffer?
+        CVPixelBufferCreate(nil, Int(image.extent.width), Int(image.extent.height),
+                            kCVPixelFormatType_420YpCbCr8BiPlanarFullRange,
+                            [kCVPixelBufferIOSurfacePropertiesKey: [:]] as CFDictionary, &buffer)
+        guard let buffer else { return ["framing: no buffer"] }
+        let original = VNDetectFaceRectanglesRequest()
+        try? VNImageRequestHandler(ciImage: frame, orientation: .up).perform([original])
+        let truth = original.results?.first.map {
+            String(format: "framing unturned camera: x %.2f y %.2f", $0.boundingBox.midX, $0.boundingBox.midY)
+        } ?? "framing unturned camera: no face"
+        CIContext(options: [.workingColorSpace: NSNull(), .outputColorSpace: NSNull()]).render(image, to: buffer)
+        let orientations = [PictureOrientation(), PictureOrientation(quarterTurns: 1, mirrored: false)]
+        return [truth] + orientations.map { orientation in
+            let request = VNDetectFaceRectanglesRequest()
+            try? VNImageRequestHandler(cvPixelBuffer: buffer, orientation: FrameAnalyzer.vision(orientation))
+                .perform([request])
+            let faces = request.results?.map(\.boundingBox) ?? []
+            let face = faces.first.map { box -> String in
+                let camera = orientation.cameraRect(fromUpright: box)
+                return String(format: "upright x %.2f y %.2f, face brightness %.2f", box.midX, box.midY,
+                              FrameAnalyzer.brightness(buffer, in: camera))
+            } ?? "none"
+            let faceBrightness = faces.first.map {
+                FrameAnalyzer.brightness(buffer, in: orientation.cameraRect(fromUpright: $0))
+            }
+            let advice = Framing.advice(
+                faces: faces, brightness: FrameAnalyzer.brightness(buffer, in: nil),
+                faceBrightness: faceBrightness, mirrored: orientation.mirrored
+            ) ?? "no advice"
+            return "framing turns \(orientation.quarterTurns): faces \(faces.count), \(face); \(advice)"
+        }
+    }
+
     private struct Run {
         let name: String
         let tools: Set<MonitorTool>
@@ -103,7 +143,10 @@ enum LiveMonitorTest {
             let grab = Grab()
             let box = start(input, size: size, feed: feed, grab: grab)
             try? await Task.sleep(for: .seconds(2))
-            if let frame = grab.latest { report.append("edges " + edgePercentiles(frame)) }
+            if let frame = grab.latest {
+                report.append("edges " + edgePercentiles(frame))
+                report.append(contentsOf: framingCheck(frame))
+            }
             for run in runs {
                 feed.settings = MonitorSettings(
                     tools: run.tools, zebraLevel: 0.7, peakingSensitivity: run.sensitivity,
