@@ -66,12 +66,13 @@ enum PeakingSensitivity: String, CaseIterable, Identifiable {
     var id: String { rawValue }
     var title: String { rawValue.capitalized }
 
-    /// Edge strength an outline needs. Lower outlines softer detail too.
+    /// Edge strength an outline needs. Lower outlines softer detail too. Measured on a live
+    /// 1280x720 webcam frame: these mark roughly the sharpest 0.5%, 1.3%, and 2.5% of it.
     var threshold: Float {
         switch self {
-        case .low: 0.35
-        case .medium: 0.22
-        case .high: 0.12
+        case .low: 0.015
+        case .medium: 0.006
+        case .high: 0.0025
         }
     }
 }
