@@ -59,11 +59,14 @@ struct RecordPreviewView: View {
         .onAppear {
             showControls()
             syncMonitor()
+            checks.camera.setOrientation(orientation)
         }
         .onDisappear {
             hideTask?.cancel()
             monitorTools.detach(from: checks.camera)
+            checks.camera.setOrientation(PictureOrientation())
         }
+        .onChange(of: orientation) { checks.camera.setOrientation(orientation) }
         .onChange(of: monitor.previewCamera) {
             checks.restartCamera()
             syncMonitor()
