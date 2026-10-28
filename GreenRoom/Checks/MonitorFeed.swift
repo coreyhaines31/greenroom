@@ -234,7 +234,8 @@ final class MonitorFeed: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate,
         over image: CIImage, luma: CIImage, color: PeakingColor, sensitivity: PeakingSensitivity
     ) -> CIImage {
         let edges = CIFilter.edges()
-        edges.inputImage = luma
+        // Clamped, or the transparent space past the frame reads as an edge all the way around.
+        edges.inputImage = luma.clampedToExtent()
         edges.intensity = 1
         guard let found = edges.outputImage?.cropped(to: luma.extent) else { return image }
         let solid = CIImage(color: color.ciColor).cropped(to: image.extent)
