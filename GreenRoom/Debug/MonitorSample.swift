@@ -21,10 +21,11 @@ enum MonitorSample {
             ("False Color", with(plain) { $0.tools = [.falseColor] }),
             ("Focus Peaking", with(plain) { $0.tools = [.peaking] }),
             ("Monochrome + Peaking", with(plain) { $0.tools = [.monochrome, .peaking]; $0.peakingColor = .green }),
-            ("Rotated Right", with(turned) { $0.tools = [.monochrome] })
+            ("Rotated Right", with(turned) { $0.tools = [.monochrome] }),
+            ("LUT: Red and Blue Swapped", with(plain) { $0.tools = [.lut] })
         ]
         let images = panels.compactMap { title, settings -> (String, NSImage)? in
-            let image = MonitorFeed.picture(camera, settings: settings)
+            let image = MonitorFeed.picture(camera, settings: settings, lut: swapLUT)
             guard let cgImage = context.createCGImage(image, from: image.extent, format: .RGBA8,
                                                       colorSpace: CGColorSpace(name: CGColorSpace.sRGB))
             else { return nil }
@@ -69,6 +70,13 @@ enum MonitorSample {
         .background(Color(white: 0.15))
         .environment(\.colorScheme, .dark)
     }
+
+    /// Swaps red and blue, so a table read in the wrong order shows up at once.
+    private static let swapLUT: PreparedLUT? = {
+        var lines = ["LUT_3D_SIZE 2"]
+        for blue in 0...1 { for green in 0...1 { for red in 0...1 { lines.append("\(blue) \(green) \(red)") } } }
+        return (try? CubeLUT(parsing: lines.joined(separator: "\n"))).map(PreparedLUT.init)
+    }()
 
     private static func with(
         _ settings: MonitorSettings, _ change: (inout MonitorSettings) -> Void
