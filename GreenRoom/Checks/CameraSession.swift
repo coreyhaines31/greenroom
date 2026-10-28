@@ -1,5 +1,6 @@
 import AppKit
 import AVFoundation
+import GreenRoomCore
 import Observation
 import SwiftUI
 
@@ -15,6 +16,7 @@ final class CameraSession {
     @ObservationIgnored private let box = SessionBox()
     @ObservationIgnored private(set) var deviceID: String?
     @ObservationIgnored private var analyzer: FrameAnalyzer?
+    @ObservationIgnored private var monitorOutput: AVCaptureVideoDataOutput?
     /// One line about light and framing, while the preview runs.
     private(set) var advice: String?
     /// Callbacks already on their way when the camera stops shouldn't bring advice back.
@@ -63,6 +65,38 @@ final class CameraSession {
         }
     }
 
+    /// Sends frames to the record preview's tools, `width` wide and as tall as the camera's
+    /// aspect. Attaching again replaces the earlier feed.
+    func attachMonitor(_ feed: MonitorFeed, width: Int, aspect: Double) {
+        detachMonitor()
+        let output = AVCaptureVideoDataOutput()
+        output.alwaysDiscardsLateVideoFrames = true
+        let height = aspect > 0 ? Int((Double(width) / aspect / 2).rounded()) * 2 : width * 9 / 16
+        output.videoSettings = [
+            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_420YpCbCr8BiPlanarFullRange,
+            kCVPixelBufferWidthKey as String: width, kCVPixelBufferHeightKey as String: height
+        ]
+        output.setSampleBufferDelegate(feed, queue: feed.queue)
+        monitorOutput = output
+        let box = box
+        box.queue.async {
+            box.session.beginConfiguration()
+            if box.session.canAddOutput(output) { box.session.addOutput(output) }
+            box.session.commitConfiguration()
+        }
+    }
+
+    func detachMonitor() {
+        guard let output = monitorOutput else { return }
+        monitorOutput = nil
+        let box = box
+        box.queue.async {
+            box.session.beginConfiguration()
+            box.session.removeOutput(output)
+            box.session.commitConfiguration()
+        }
+    }
+
     func stop() {
         let box = box
         box.queue.async { if box.session.isRunning { box.session.stopRunning() } }
@@ -79,21 +113,64 @@ final class CameraSession {
     }
 }
 
-/// Mirrored, like looking in a mirror. Call apps show you to yourself the same way.
+/// Mirrored by default, like looking in a mirror. Call apps show you to yourself the same way.
 struct CameraPreview: NSViewRepresentable {
     let session: AVCaptureSession
     /// Fill crops to the panel's 16:9 box. Fit shows the whole frame, as it will be recorded.
     var gravity: AVLayerVideoGravity = .resizeAspectFill
+    var orientation = PictureOrientation()
 
-    func makeNSView(context: Context) -> NSView {
-        let view = NSView()
-        let layer = AVCaptureVideoPreviewLayer(session: session)
-        layer.videoGravity = gravity
-        layer.setAffineTransform(CGAffineTransform(scaleX: -1, y: 1))
-        view.layer = layer
-        view.wantsLayer = true
-        return view
+    func makeNSView(context: Context) -> PreviewLayerView {
+        PreviewLayerView(session: session, gravity: gravity)
     }
 
-    func updateNSView(_ nsView: NSView, context: Context) {}
+    func updateNSView(_ view: PreviewLayerView, context: Context) {
+        view.orientation = orientation
+    }
+}
+
+/// Turns the picture on the layer, so the camera keeps sending frames as they are. A sideways
+/// turn lays the layer out tall, so the turned picture fits the view.
+final class PreviewLayerView: NSView {
+    private let preview: AVCaptureVideoPreviewLayer
+    var orientation = PictureOrientation() {
+        didSet { if orientation != oldValue { arrange() } }
+    }
+
+    init(session: AVCaptureSession, gravity: AVLayerVideoGravity) {
+        preview = AVCaptureVideoPreviewLayer(session: session)
+        preview.videoGravity = gravity
+        super.init(frame: .zero)
+        layer = CALayer()
+        wantsLayer = true
+        layer?.addSublayer(preview)
+        arrange()
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+
+    override func setFrameSize(_ newSize: NSSize) {
+        super.setFrameSize(newSize)
+        arrange()
+    }
+
+    private func arrange() {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        let size = bounds.size
+        preview.bounds = CGRect(
+            origin: .zero,
+            size: orientation.isSideways ? CGSize(width: size.height, height: size.width) : size
+        )
+        preview.position = CGPoint(x: bounds.midX, y: bounds.midY)
+        preview.setAffineTransform(Self.transform(for: orientation))
+        CATransaction.commit()
+    }
+
+    /// Clockwise turns, then the mirror. Layers turn counterclockwise for positive angles.
+    nonisolated static func transform(for orientation: PictureOrientation) -> CGAffineTransform {
+        let turn = CGAffineTransform(rotationAngle: -CGFloat(orientation.quarterTurns) * .pi / 2)
+        return orientation.mirrored ? turn.concatenating(CGAffineTransform(scaleX: -1, y: 1)) : turn
+    }
 }

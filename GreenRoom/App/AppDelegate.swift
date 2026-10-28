@@ -68,6 +68,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if let index = arguments.firstIndex(of: "--render-compare"), index + 1 < arguments.count {
             CompareSample.write(to: arguments[index + 1])
         }
+        if let index = arguments.firstIndex(of: "--render-monitor"), index + 1 < arguments.count {
+            MonitorSample.write(to: arguments[index + 1])
+        }
+        if let index = arguments.firstIndex(of: "--capture-monitor"), index + 1 < arguments.count {
+            LiveMonitorTest.run(monitor: monitor, writingTo: arguments[index + 1])
+        }
         if CommandLine.arguments.contains("--open-record-preview") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                 self.windows.showRecordPreview(on: NSScreen.main, fullScreen: false)

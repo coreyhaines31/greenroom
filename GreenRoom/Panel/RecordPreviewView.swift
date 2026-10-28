@@ -14,12 +14,23 @@ struct RecordPreviewView: View {
     @State private var showingCheck = false
     @State private var hideTask: Task<Void, Never>?
     @AppStorage("previewGuides") private var storedGuides = ""
+    @AppStorage("previewTurns") private var turns = 0
+    @AppStorage("previewMirrored") private var mirrored = true
+    @AppStorage("monitorTools") private var storedTools = ""
+    @AppStorage("zebraLevel") private var zebraPercent = MonitorMenu.defaultZebraPercent
+    @AppStorage("peakingColor") private var peakingColor = PeakingColor.red
+    @AppStorage("peakingSensitivity") private var peakingSensitivity = PeakingSensitivity.medium
+    @AppStorage("previewLUT") private var lutPath = ""
+    @State private var monitorTools = PreviewMonitor()
 
     var body: some View {
         ZStack {
             Color.black
             if checks.cameraAccess == .authorized, monitor.previewCamera != nil {
-                CameraPreview(session: checks.camera.session, gravity: .resizeAspect)
+                CameraPreview(session: checks.camera.session, gravity: .resizeAspect, orientation: orientation)
+                if monitorSettings.changesPicture {
+                    MonitorPicture(monitor: monitorTools)
+                }
                 CompositionOverlay(guides: CompositionGuide.decode(storedGuides), aspect: frameAspect)
             } else {
                 Text(cameraMessage).font(.title3).foregroundStyle(.secondary)
@@ -40,21 +51,101 @@ struct RecordPreviewView: View {
             .opacity(controlsShown ? 1 : 0)
             .allowsHitTesting(controlsShown)
             PreviewMicMeter(meter: checks.meter)
+            monitorColumn
         }
         .frame(minWidth: 720, minHeight: 480)
         .environment(\.colorScheme, .dark)
         .onContinuousHover { _ in showControls() }
-        .onAppear { showControls() }
-        .onDisappear { hideTask?.cancel() }
-        .onChange(of: monitor.previewCamera) { checks.restartCamera() }
+        .onAppear {
+            showControls()
+            syncMonitor()
+        }
+        .onDisappear {
+            hideTask?.cancel()
+            monitorTools.detach(from: checks.camera)
+        }
+        .onChange(of: monitor.previewCamera) {
+            checks.restartCamera()
+            syncMonitor()
+        }
+        .onChange(of: monitorSettings) { syncMonitor() }
+        .onChange(of: checks.cameraAccess) { syncMonitor() }
+        .onChange(of: lutPath) { syncMonitor() }
         .onChange(of: monitor.snapshot.active(.microphone)) { checks.restartMeter() }
     }
 
-    /// Width over height of what the camera sends, so the guides line up with the picture.
+    private var monitorSettings: MonitorSettings {
+        MonitorSettings(
+            tools: MonitorTool.decode(storedTools),
+            zebraLevel: zebraPercent >= 100 ? 0.99 : Double(zebraPercent) / 100,
+            peakingColor: peakingColor, peakingSensitivity: peakingSensitivity, orientation: orientation,
+            hasLUT: monitorTools.hasLUT
+        )
+    }
+
+    /// Frames only go to the tools while one is on, so a plain preview costs nothing extra.
+    private func syncMonitor() {
+        let settings = monitorSettings
+        monitorTools.apply(settings, lutPath: lutPath)
+        if settings.tools.isEmpty || monitor.previewCamera == nil || checks.cameraAccess != .authorized {
+            monitorTools.detach(from: checks.camera)
+        } else {
+            monitorTools.attach(to: checks.camera, aspect: Double(cameraAspect))
+        }
+    }
+
+    /// Scopes and the false color key, on the right. Like the mic meter, they stay up when
+    /// the controls fade.
+    private var monitorColumn: some View {
+        let tools = MonitorTool.decode(storedTools)
+        return HStack {
+            Spacer()
+            VStack(spacing: 10) {
+                if tools.contains(.histogram) || tools.contains(.waveform) {
+                    MonitorScopes(monitor: monitorTools, tools: tools)
+                }
+                if tools.contains(.falseColor) {
+                    FalseColorLegend().frame(width: 240)
+                }
+            }
+        }
+        .padding(.trailing, 20)
+        .allowsHitTesting(false)
+    }
+
+    private var orientation: PictureOrientation {
+        PictureOrientation(quarterTurns: turns, mirrored: mirrored)
+    }
+
+    /// Width over height of the picture as shown, so the guides line up with it.
     private var frameAspect: CGFloat {
+        CGFloat(orientation.displayAspect(Double(cameraAspect)))
+    }
+
+    /// Width over height of what the camera sends.
+    private var cameraAspect: CGFloat {
         guard let capture = monitor.previewCamera.flatMap(Cameras.captureDevice(for:)) else { return 16.0 / 9.0 }
         let size = CMVideoFormatDescriptionGetDimensions(capture.activeFormat.formatDescription)
         return size.height > 0 ? CGFloat(size.width) / CGFloat(size.height) : 16.0 / 9.0
+    }
+
+    /// For a camera mounted sideways or upside down. Only the preview turns, not the recording.
+    private var turnMenu: some View {
+        Menu {
+            Button("Rotate Right") { turns = (turns + 1) % 4 }
+            Button("Rotate Left") { turns = (turns + 3) % 4 }
+            Button("Upright") { turns = 0 }
+                .disabled(turns == 0)
+            Divider()
+            Toggle("Mirror", isOn: $mirrored)
+                .help("Show the picture flipped, like a mirror. Recordings aren't flipped.")
+        } label: {
+            Image(systemName: "rotate.right")
+        }
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help("Turn or mirror the picture, for a camera mounted sideways or upside down")
+        .accessibilityLabel("Rotate")
     }
 
     private var guidesMenu: some View {
@@ -148,6 +239,8 @@ struct RecordPreviewView: View {
                 .disabled(checks.tone.playing != nil)
             Divider().frame(height: 20)
             guidesMenu
+            turnMenu
+            MonitorMenu()
             Divider().frame(height: 20)
             Button("Done", action: close)
                 .keyboardShortcut(.cancelAction)
