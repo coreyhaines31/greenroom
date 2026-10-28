@@ -20,6 +20,7 @@ struct RecordPreviewView: View {
     @AppStorage("zebraLevel") private var zebraPercent = MonitorMenu.defaultZebraPercent
     @AppStorage("peakingColor") private var peakingColor = PeakingColor.red
     @AppStorage("peakingSensitivity") private var peakingSensitivity = PeakingSensitivity.medium
+    @AppStorage("previewLUT") private var lutPath = ""
     @State private var monitorTools = PreviewMonitor()
 
     var body: some View {
@@ -69,6 +70,7 @@ struct RecordPreviewView: View {
         }
         .onChange(of: monitorSettings) { syncMonitor() }
         .onChange(of: checks.cameraAccess) { syncMonitor() }
+        .onChange(of: lutPath) { syncMonitor() }
         .onChange(of: monitor.snapshot.active(.microphone)) { checks.restartMeter() }
     }
 
@@ -83,7 +85,7 @@ struct RecordPreviewView: View {
     /// Frames only go to the tools while one is on, so a plain preview costs nothing extra.
     private func syncMonitor() {
         let settings = monitorSettings
-        monitorTools.apply(settings)
+        monitorTools.apply(settings, lutPath: lutPath)
         if settings.tools.isEmpty || monitor.previewCamera == nil || checks.cameraAccess != .authorized {
             monitorTools.detach(from: checks.camera)
         } else {

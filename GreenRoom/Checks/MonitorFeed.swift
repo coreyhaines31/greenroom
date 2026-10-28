@@ -4,7 +4,7 @@ import GreenRoomCore
 
 /// Tools in the record preview for judging exposure and focus. None of them are recorded.
 enum MonitorTool: String, CaseIterable, Identifiable {
-    case histogram, waveform, zebras, falseColor, peaking, monochrome
+    case histogram, waveform, zebras, falseColor, peaking, monochrome, lut
 
     var id: String { rawValue }
 
@@ -16,6 +16,7 @@ enum MonitorTool: String, CaseIterable, Identifiable {
         case .falseColor: "False Color"
         case .peaking: "Focus Peaking"
         case .monochrome: "Monochrome"
+        case .lut: "LUT Preview"
         }
     }
 
@@ -27,6 +28,7 @@ enum MonitorTool: String, CaseIterable, Identifiable {
         case .falseColor: "Colors key levels: pink is skin, green is middle gray, red is clipped"
         case .peaking: "Outlines whatever is in sharp focus"
         case .monochrome: "Black and white, to judge focus and contrast"
+        case .lut: "Shows log footage as it will look graded, using the LUT you load"
         }
     }
 
@@ -74,6 +76,17 @@ enum PeakingSensitivity: String, CaseIterable, Identifiable {
     }
 }
 
+/// A LUT ready for Core Image's color cube, so the table isn't copied for every frame.
+struct PreparedLUT: Sendable {
+    let size: Int
+    let data: Data
+
+    init(_ lut: CubeLUT) {
+        size = lut.size
+        data = lut.rgba.withUnsafeBufferPointer { Data(buffer: $0) }
+    }
+}
+
 struct MonitorSettings: Sendable, Equatable {
     var tools: Set<MonitorTool> = []
     /// Zebras stripe anything at or above this luma, from 0 to 1.
@@ -93,6 +106,7 @@ final class MonitorFeed: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate,
     let queue = DispatchQueue(label: "com.greenroomformac.monitor", qos: .userInteractive)
     private let lock = NSLock()
     private var current = MonitorSettings()
+    private var currentLUT: PreparedLUT?
     private let onPicture: @Sendable (CGImage) -> Void
     private let onScopes: @Sendable (LumaScopes) -> Void
     private var lastScopes = Date.distantPast
@@ -111,6 +125,11 @@ final class MonitorFeed: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate,
         set { lock.withLock { current = newValue } }
     }
 
+    var lut: PreparedLUT? {
+        get { lock.withLock { currentLUT } }
+        set { lock.withLock { currentLUT = newValue } }
+    }
+
     func captureOutput(
         _ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection
     ) {
@@ -122,7 +141,7 @@ final class MonitorFeed: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate,
         }
         if settings.changesPicture {
             let image = Self.picture(CIImage(cvPixelBuffer: pixels, options: [.colorSpace: NSNull()]),
-                                     settings: settings)
+                                     settings: settings, lut: lut)
             if let rendered = context.createCGImage(image, from: image.extent, format: .RGBA8,
                                                     colorSpace: CGColorSpace(name: CGColorSpace.sRGB)) {
                 onPicture(rendered)
@@ -143,11 +162,19 @@ final class MonitorFeed: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate,
         )
     }
 
-    /// The camera's picture with the tools applied, turned and mirrored as shown.
-    static func picture(_ camera: CIImage, settings: MonitorSettings) -> CIImage {
+    /// The camera's picture with the tools applied, turned and mirrored as shown. The LUT goes
+    /// first, so the other tools judge the picture as it will look graded.
+    static func picture(_ camera: CIImage, settings: MonitorSettings, lut: PreparedLUT? = nil) -> CIImage {
         let tools = settings.tools
-        let luma = Self.luma(camera)
         var image = camera
+        if tools.contains(.lut), let lut {
+            let cube = CIFilter.colorCube()
+            cube.inputImage = camera
+            cube.cubeDimension = Float(lut.size)
+            cube.cubeData = lut.data
+            image = cube.outputImage ?? camera
+        }
+        let luma = Self.luma(image)
         if tools.contains(.falseColor) {
             image = falseColor(luma)
         } else if tools.contains(.monochrome) {

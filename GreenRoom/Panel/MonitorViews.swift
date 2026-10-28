@@ -2,6 +2,7 @@ import AppKit
 import GreenRoomCore
 import Observation
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// The record preview's tools: hands settings to the feed and its results to the views. The
 /// changed picture goes straight to a layer, so 30 frames a second never re-render SwiftUI.
@@ -13,6 +14,8 @@ final class PreviewMonitor {
     @ObservationIgnored private var feed: MonitorFeed?
     @ObservationIgnored weak var pictureLayer: CALayer?
     @ObservationIgnored private var attachedAspect: Double?
+    @ObservationIgnored private var lutPath = ""
+    @ObservationIgnored private var lut: PreparedLUT?
 
     /// Starts the camera's frames flowing to the tools, sized for the camera's aspect.
     func attach(to camera: CameraSession, aspect: Double) {
@@ -24,6 +27,7 @@ final class PreviewMonitor {
         )
         self.feed = feed
         feed.settings = settings
+        feed.lut = lut
         camera.attachMonitor(feed, width: 1280, aspect: aspect)
     }
 
@@ -35,7 +39,12 @@ final class PreviewMonitor {
         pictureLayer?.contents = nil
     }
 
-    func apply(_ settings: MonitorSettings) {
+    func apply(_ settings: MonitorSettings, lutPath: String) {
+        if lutPath != self.lutPath {
+            self.lutPath = lutPath
+            lut = (try? MonitorMenu.loadLUT(at: lutPath)).map(PreparedLUT.init)
+            feed?.lut = lut
+        }
         self.settings = settings
         feed?.settings = settings
         if !settings.wantsScopes { scopes = nil }
@@ -183,6 +192,7 @@ struct MonitorMenu: View {
     @AppStorage("zebraLevel") private var zebraPercent = Self.defaultZebraPercent
     @AppStorage("peakingColor") private var peakingColor = PeakingColor.red
     @AppStorage("peakingSensitivity") private var peakingSensitivity = PeakingSensitivity.medium
+    @AppStorage("previewLUT") private var lutPath = ""
 
     var body: some View {
         let tools = MonitorTool.decode(storedTools)
@@ -196,6 +206,11 @@ struct MonitorMenu: View {
                 toggle(.falseColor, in: tools)
                 toggle(.peaking, in: tools)
                 toggle(.monochrome, in: tools)
+            }
+            Section("LUT") {
+                toggle(.lut, in: tools)
+                    .disabled(lutPath.isEmpty)
+                Button(lutPath.isEmpty ? "Load LUT…" : "LUT: \(lutName)…") { chooseLUT(tools: tools) }
             }
             Divider()
             Picker("Zebra Level", selection: $zebraPercent) {
@@ -214,6 +229,32 @@ struct MonitorMenu: View {
         .fixedSize()
         .help("Scopes, zebras, false color, and focus peaking. They aren't recorded.")
         .accessibilityLabel("Monitor tools")
+    }
+
+    private var lutName: String {
+        URL(fileURLWithPath: lutPath).deletingPathExtension().lastPathComponent
+    }
+
+    static func loadLUT(at path: String) throws -> CubeLUT {
+        try CubeLUT(parsing: String(contentsOf: URL(fileURLWithPath: path), encoding: .utf8))
+    }
+
+    /// Checks the file reads before keeping it, and turns the preview on.
+    private func chooseLUT(tools: Set<MonitorTool>) {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [UTType(filenameExtension: "cube") ?? .data]
+        panel.message = "Choose a 3D LUT (.cube), such as your camera maker's log to Rec. 709"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            _ = try Self.loadLUT(at: url.path)
+            lutPath = url.path
+            storedTools = MonitorTool.encode(tools.union([.lut]))
+        } catch {
+            let alert = NSAlert()
+            alert.messageText = "Green Room can't use that LUT"
+            alert.informativeText = "It needs to be a 3D .cube file with a 0 to 1 input range."
+            alert.runModal()
+        }
     }
 
     private func toggle(_ tool: MonitorTool, in tools: Set<MonitorTool>) -> some View {
