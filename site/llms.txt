@@ -14,6 +14,7 @@ Green Room runs on macOS 14 Sonoma and later, is signed and notarized by Apple, 
 - Live now: which app (Zoom, Meet, Teams, Chrome, Loom) is using each mic and speaker, and a warning when a call uses a different mic than your setup.
 - Bluetooth call mode: tells you when AirPods or another headset drops to phone-call quality because an app turned on its mic, and offers a better mic.
 - Missing devices: says whether a usual device isn't plugged in (not on USB at all), is plugged in but not working, or is a Bluetooth device that isn't connected.
+- Monitor tools in the full-screen record preview: histogram, waveform, zebras, false color, focus peaking, monochrome, and a LUT preview (.cube) for log footage, plus rotate and mirror for cameras mounted sideways. Nothing is recorded.
 - Before calls and recordings: an optional calendar check two minutes before video calls, and a recording check (camera resolution, mic quality, disk space, power) when Loom, OBS, Screen Studio, or QuickTime starts.
 - A `greenroom` command for Terminal and AI agents: `greenroom status --json` (exits 2 when something is wrong), `greenroom devices`, `greenroom use <setup>`.
 
