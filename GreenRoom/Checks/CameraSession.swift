@@ -1,5 +1,6 @@
 import AppKit
 import AVFoundation
+import GreenRoomCore
 import Observation
 import SwiftUI
 
@@ -79,21 +80,64 @@ final class CameraSession {
     }
 }
 
-/// Mirrored, like looking in a mirror. Call apps show you to yourself the same way.
+/// Mirrored by default, like looking in a mirror. Call apps show you to yourself the same way.
 struct CameraPreview: NSViewRepresentable {
     let session: AVCaptureSession
     /// Fill crops to the panel's 16:9 box. Fit shows the whole frame, as it will be recorded.
     var gravity: AVLayerVideoGravity = .resizeAspectFill
+    var orientation = PictureOrientation()
 
-    func makeNSView(context: Context) -> NSView {
-        let view = NSView()
-        let layer = AVCaptureVideoPreviewLayer(session: session)
-        layer.videoGravity = gravity
-        layer.setAffineTransform(CGAffineTransform(scaleX: -1, y: 1))
-        view.layer = layer
-        view.wantsLayer = true
-        return view
+    func makeNSView(context: Context) -> PreviewLayerView {
+        PreviewLayerView(session: session, gravity: gravity)
     }
 
-    func updateNSView(_ nsView: NSView, context: Context) {}
+    func updateNSView(_ view: PreviewLayerView, context: Context) {
+        view.orientation = orientation
+    }
+}
+
+/// Turns the picture on the layer, so the camera keeps sending frames as they are. A sideways
+/// turn lays the layer out tall, so the turned picture fits the view.
+final class PreviewLayerView: NSView {
+    private let preview: AVCaptureVideoPreviewLayer
+    var orientation = PictureOrientation() {
+        didSet { if orientation != oldValue { arrange() } }
+    }
+
+    init(session: AVCaptureSession, gravity: AVLayerVideoGravity) {
+        preview = AVCaptureVideoPreviewLayer(session: session)
+        preview.videoGravity = gravity
+        super.init(frame: .zero)
+        layer = CALayer()
+        wantsLayer = true
+        layer?.addSublayer(preview)
+        arrange()
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+
+    override func setFrameSize(_ newSize: NSSize) {
+        super.setFrameSize(newSize)
+        arrange()
+    }
+
+    private func arrange() {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        let size = bounds.size
+        preview.bounds = CGRect(
+            origin: .zero,
+            size: orientation.isSideways ? CGSize(width: size.height, height: size.width) : size
+        )
+        preview.position = CGPoint(x: bounds.midX, y: bounds.midY)
+        preview.setAffineTransform(Self.transform(for: orientation))
+        CATransaction.commit()
+    }
+
+    /// Clockwise turns, then the mirror. Layers turn counterclockwise for positive angles.
+    nonisolated static func transform(for orientation: PictureOrientation) -> CGAffineTransform {
+        let turn = CGAffineTransform(rotationAngle: -CGFloat(orientation.quarterTurns) * .pi / 2)
+        return orientation.mirrored ? turn.concatenating(CGAffineTransform(scaleX: -1, y: 1)) : turn
+    }
 }

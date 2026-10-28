@@ -14,12 +14,14 @@ struct RecordPreviewView: View {
     @State private var showingCheck = false
     @State private var hideTask: Task<Void, Never>?
     @AppStorage("previewGuides") private var storedGuides = ""
+    @AppStorage("previewTurns") private var turns = 0
+    @AppStorage("previewMirrored") private var mirrored = true
 
     var body: some View {
         ZStack {
             Color.black
             if checks.cameraAccess == .authorized, monitor.previewCamera != nil {
-                CameraPreview(session: checks.camera.session, gravity: .resizeAspect)
+                CameraPreview(session: checks.camera.session, gravity: .resizeAspect, orientation: orientation)
                 CompositionOverlay(guides: CompositionGuide.decode(storedGuides), aspect: frameAspect)
             } else {
                 Text(cameraMessage).font(.title3).foregroundStyle(.secondary)
@@ -50,11 +52,39 @@ struct RecordPreviewView: View {
         .onChange(of: monitor.snapshot.active(.microphone)) { checks.restartMeter() }
     }
 
-    /// Width over height of what the camera sends, so the guides line up with the picture.
+    private var orientation: PictureOrientation {
+        PictureOrientation(quarterTurns: turns, mirrored: mirrored)
+    }
+
+    /// Width over height of the picture as shown, so the guides line up with it.
     private var frameAspect: CGFloat {
+        CGFloat(orientation.displayAspect(Double(cameraAspect)))
+    }
+
+    /// Width over height of what the camera sends.
+    private var cameraAspect: CGFloat {
         guard let capture = monitor.previewCamera.flatMap(Cameras.captureDevice(for:)) else { return 16.0 / 9.0 }
         let size = CMVideoFormatDescriptionGetDimensions(capture.activeFormat.formatDescription)
         return size.height > 0 ? CGFloat(size.width) / CGFloat(size.height) : 16.0 / 9.0
+    }
+
+    /// For a camera mounted sideways or upside down. Only the preview turns, not the recording.
+    private var turnMenu: some View {
+        Menu {
+            Button("Rotate Right") { turns = (turns + 1) % 4 }
+            Button("Rotate Left") { turns = (turns + 3) % 4 }
+            Button("Upright") { turns = 0 }
+                .disabled(turns == 0)
+            Divider()
+            Toggle("Mirror", isOn: $mirrored)
+                .help("Show the picture flipped, like a mirror. Recordings aren't flipped.")
+        } label: {
+            Image(systemName: "rotate.right")
+        }
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help("Turn or mirror the picture, for a camera mounted sideways or upside down")
+        .accessibilityLabel("Rotate")
     }
 
     private var guidesMenu: some View {
@@ -148,6 +178,7 @@ struct RecordPreviewView: View {
                 .disabled(checks.tone.playing != nil)
             Divider().frame(height: 20)
             guidesMenu
+            turnMenu
             Divider().frame(height: 20)
             Button("Done", action: close)
                 .keyboardShortcut(.cancelAction)
