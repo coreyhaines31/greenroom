@@ -16,6 +16,7 @@ final class CameraSession {
     @ObservationIgnored private let box = SessionBox()
     @ObservationIgnored private(set) var deviceID: String?
     @ObservationIgnored private var analyzer: FrameAnalyzer?
+    @ObservationIgnored private var monitorOutput: AVCaptureVideoDataOutput?
     /// One line about light and framing, while the preview runs.
     private(set) var advice: String?
     /// Callbacks already on their way when the camera stops shouldn't bring advice back.
@@ -61,6 +62,38 @@ final class CameraSession {
                 box.session.commitConfiguration()
             }
             if !box.session.isRunning { box.session.startRunning() }
+        }
+    }
+
+    /// Sends frames to the record preview's tools, `width` wide and as tall as the camera's
+    /// aspect. Attaching again replaces the earlier feed.
+    func attachMonitor(_ feed: MonitorFeed, width: Int, aspect: Double) {
+        detachMonitor()
+        let output = AVCaptureVideoDataOutput()
+        output.alwaysDiscardsLateVideoFrames = true
+        let height = aspect > 0 ? Int((Double(width) / aspect / 2).rounded()) * 2 : width * 9 / 16
+        output.videoSettings = [
+            kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_420YpCbCr8BiPlanarFullRange,
+            kCVPixelBufferWidthKey as String: width, kCVPixelBufferHeightKey as String: height
+        ]
+        output.setSampleBufferDelegate(feed, queue: feed.queue)
+        monitorOutput = output
+        let box = box
+        box.queue.async {
+            box.session.beginConfiguration()
+            if box.session.canAddOutput(output) { box.session.addOutput(output) }
+            box.session.commitConfiguration()
+        }
+    }
+
+    func detachMonitor() {
+        guard let output = monitorOutput else { return }
+        monitorOutput = nil
+        let box = box
+        box.queue.async {
+            box.session.beginConfiguration()
+            box.session.removeOutput(output)
+            box.session.commitConfiguration()
         }
     }
 
