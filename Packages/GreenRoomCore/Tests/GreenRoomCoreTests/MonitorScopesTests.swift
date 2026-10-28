@@ -1,3 +1,4 @@
+import CoreGraphics
 @testable import GreenRoomCore
 import Testing
 
@@ -22,6 +23,20 @@ struct MonitorScopesTests {
         #expect(column(1, mirrored: false) == (1, 2))
         #expect(column(2, mirrored: false) == (3, 4))
         #expect(column(3, mirrored: false) == (0, 2))
+    }
+
+    @Test func uprightRectsMapBackToTheCamerasFrame() {
+        // A small box at the top left of the turned picture.
+        let upright = CGRect(x: 0, y: 0.8, width: 0.1, height: 0.2)
+        // A clockwise turn put the camera's top left at the picture's top right, so the
+        // picture's top left came from the camera's bottom left.
+        #expect(PictureOrientation(quarterTurns: 1).cameraRect(fromUpright: upright)
+            == CGRect(x: 0, y: 0, width: 0.2, height: 0.1))
+        #expect(PictureOrientation(quarterTurns: 2).cameraRect(fromUpright: upright)
+            == CGRect(x: 0.9, y: 0, width: 0.1, height: 0.2))
+        #expect(PictureOrientation(quarterTurns: 3).cameraRect(fromUpright: upright)
+            == CGRect(x: 0.8, y: 0.9, width: 0.2, height: 0.1))
+        #expect(PictureOrientation().cameraRect(fromUpright: upright) == upright)
     }
 
     @Test func histogramAndWaveformPlaceLevels() {

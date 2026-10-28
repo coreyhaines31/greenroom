@@ -20,6 +20,12 @@ struct FramingTests {
         #expect(advice?.hasPrefix("You're backlit") == true)
     }
 
+    @Test func readsLeftAndRightAsSeenWithoutTheMirror() {
+        let left = CGRect(x: 0.05, y: 0.4, width: 0.2, height: 0.3)
+        let advice = Framing.advice(faces: [left], brightness: 0.5, faceBrightness: 0.5, mirrored: false)
+        #expect(advice?.hasPrefix("You're off to the left") == true)
+    }
+
     @Test func flagsFramingAsSeenInTheMirror() {
         // Vision's x is the camera's view. The preview is mirrored, so a face at raw x 0.1 shows on the right.
         func advice(_ face: CGRect) -> String? { Framing.advice(faces: [face], brightness: 0.5, faceBrightness: 0.5) }
