@@ -78,7 +78,8 @@ struct RecordPreviewView: View {
         MonitorSettings(
             tools: MonitorTool.decode(storedTools),
             zebraLevel: zebraPercent >= 100 ? 0.99 : Double(zebraPercent) / 100,
-            peakingColor: peakingColor, peakingSensitivity: peakingSensitivity, orientation: orientation
+            peakingColor: peakingColor, peakingSensitivity: peakingSensitivity, orientation: orientation,
+            hasLUT: monitorTools.hasLUT
         )
     }
 

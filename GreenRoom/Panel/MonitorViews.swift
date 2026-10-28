@@ -10,6 +10,8 @@ import UniformTypeIdentifiers
 @Observable
 final class PreviewMonitor {
     private(set) var scopes: LumaScopes?
+    /// Whether the chosen LUT file loaded.
+    private(set) var hasLUT = false
     @ObservationIgnored private(set) var settings = MonitorSettings()
     @ObservationIgnored private var feed: MonitorFeed?
     @ObservationIgnored weak var pictureLayer: CALayer?
@@ -44,7 +46,10 @@ final class PreviewMonitor {
             self.lutPath = lutPath
             lut = (try? MonitorMenu.loadLUT(at: lutPath)).map(PreparedLUT.init)
             feed?.lut = lut
+            hasLUT = lut != nil
         }
+        var settings = settings
+        settings.hasLUT = hasLUT
         self.settings = settings
         feed?.settings = settings
         if !settings.wantsScopes { scopes = nil }

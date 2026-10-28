@@ -95,7 +95,10 @@ struct MonitorSettings: Sendable, Equatable {
     var peakingSensitivity = PeakingSensitivity.medium
     var orientation = PictureOrientation()
 
-    var changesPicture: Bool { tools.contains { $0.changesPicture } }
+    /// Whether a LUT loaded, so LUT Preview on its own doesn't put a copy over the live picture.
+    var hasLUT = false
+
+    var changesPicture: Bool { tools.contains { $0.changesPicture && ($0 != .lut || hasLUT) } }
     var wantsScopes: Bool { tools.contains(.histogram) || tools.contains(.waveform) }
 }
 
