@@ -1,0 +1,23 @@
+{
+  "name": "greenroom-mcpb",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Claude Desktop extension for Green Room",
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --format=esm --outfile=server/index.mjs",
+    "lint": "tsc --noEmit",
+    "test": "npm run build && node test/smoke.mjs",
+    "pack": "npm run build && mcpb validate manifest.json && mcpb pack . dist/greenroom.mcpb"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@anthropic-ai/mcpb": "2.1.2",
+    "@types/node": "22.19.1",
+    "esbuild": "0.28.2",
+    "typescript": "5.9.3"
+  }
+}
