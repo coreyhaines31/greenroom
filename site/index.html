@@ -396,12 +396,43 @@ Finally, run `greenroom status` (Homebrew puts it on the PATH; otherwise it's
           <button class="pill copy" type="button" data-copy-target="agent-rule">Copy</button>
           <pre id="agent-rule">Before I record or join a call, or when I say my mic or camera isn't working, run `greenroom status --json` and tell me anything that doesn't match my setup, and why.</pre>
         </div>
+        <p><b>Claude Desktop:</b> no terminal needed. <a href="#claude">Add the Green Room extension</a> and ask Claude whether your mic and camera are ready.</p>
         <p><b>Shortcuts and Siri:</b> Green Room adds <b>Check My Setup</b> and <b>Use Setup</b> to the Shortcuts app, so a Focus or an automation can check or switch your devices.</p>
         <p class="fineprint">Homebrew links the command for you. Installed from the DMG? Link it once:</p>
         <div class="prompt plain">
           <pre>sudo mkdir -p /usr/local/bin
 sudo ln -sf "/Applications/Green Room.app/Contents/MacOS/greenroom" \
   /usr/local/bin/greenroom</pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="claude" id="claude">
+      <div class="wrap two">
+        <div>
+          <p class="eyebrow">Claude Desktop extension</p>
+          <h2>Use Green Room from Claude.</h2>
+          <p>Add Green Room to Claude Desktop and ask in plain words: is my mic working, am I ready for my call, which cameras are plugged in, did my mic drop out. Claude reads the same check you see in the menu bar.</p>
+          <p>The extension only reads. It never turns on your camera or listens to your mic, so macOS won't ask to give Claude camera or microphone access, and it can't switch your devices.</p>
+          <div class="actions">
+            <a class="pill" href="https://github.com/coreyhaines31/greenroom/releases/latest/download/greenroom.mcpb"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14"/></svg>Download greenroom.mcpb</a>
+            <a class="pill ghost" href="https://github.com/coreyhaines31/greenroom/tree/main/mcpb">View the source</a>
+          </div>
+          <p class="fineprint">Install Green Room first. Then double-click greenroom.mcpb, or drag it onto Claude Desktop, and choose Install.</p>
+        </div>
+        <div>
+        <div class="chat-mock" role="img" aria-label="An illustrative Claude Desktop chat. You ask whether you're ready for your 2pm call. Claude answers not quite: the camera is the Brio and the speaker is the MacBook Pro Speakers, but the mic is AirPods Pro instead of the Shure MV7 from your Desk setup. It suggests switching back in Green Room's menu.">
+          <span class="chat-label">Claude Desktop</span>
+          <p class="chat-ask">Am I ready for my 2pm call?</p>
+          <div class="chat-reply">
+            <p>Almost. Your mic is AirPods Pro, not the Shure MV7 from your Desk setup, so you&#39;d sound like a phone call.</p>
+            <div class="chat-row"><span>Camera</span><b class="ok">Brio</b></div>
+            <div class="chat-row"><span>Microphone</span><b>AirPods Pro, not Shure MV7</b></div>
+            <div class="chat-row"><span>Speaker</span><b class="ok">MacBook Pro Speakers</b></div>
+            <p>Switch the mic back in Green Room&#39;s menu, or in System Settings › Sound.</p>
+          </div>
+          <span class="chat-note">Illustrative chat · Sample data</span>
+        </div>
         </div>
       </div>
     </section>

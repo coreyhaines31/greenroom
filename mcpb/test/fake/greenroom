@@ -1,0 +1,25 @@
+#!/bin/sh
+# Stands in for the greenroom CLI in the smoke test. It's named greenroom because the server only accepts an
+# override with that name. It logs its arguments to FAKE_ARGV_LOG, then FAKE_MODE picks the behavior.
+[ -n "$FAKE_ARGV_LOG" ] && printf '%s' "$*" > "$FAKE_ARGV_LOG"
+case "$FAKE_MODE:$1" in
+  ok:status)
+    echo '{"flaky":[],"inUse":[{"kind":"microphone","liveIn":["Zoom"],"name":"Shure MV7","transport":"usb","id":"AppleUSBAudioEngine:Shure:MV7:SERIAL123:1"},{"kind":"speaker","liveIn":[],"name":"MacBook Pro Speakers","transport":"builtIn"}],"missing":[],"problems":[],"ready":true,"setup":"Desk"}' ;;
+  problem:status)
+    echo '{"flaky":["Cam Link 4K disconnected 4 times this week. Try another cable."],"inUse":[{"kind":"microphone","liveIn":[],"name":"AirPods Pro","transport":"bluetooth"}],"missing":["Brio: not plugged in. Check the cable."],"problems":[{"advice":"Switch back in Green Room, or System Settings › Sound.","device":"Shure MV7","kind":"microphone","lastSeen":"2026-10-29T17:40:38Z","message":"AirPods Pro is the mic, not Shure MV7"},{"advice":"Your mic is muted.","device":"AirPods Pro","kind":"microphone","message":"Your mic is muted."}],"ready":false,"setup":"Desk"}'
+    exit 2 ;;
+  recording:status)
+    echo '{"flaky":[],"inUse":[],"missing":[],"problems":[{"advice":"Check the cable.","device":"Brio","kind":"camera","lastSeen":814988438,"message":"Brio is not connected"}],"ready":false,"recording":{"items":[{"detail":"Cam Link 4K · up to 2160p","passed":true,"title":"Camera"},{"detail":"4.2 GB free","passed":false,"title":"Disk space"}]}}'
+    exit 2 ;;
+  ok:devices)
+    echo '[{"connected":true,"inUse":false,"kind":"camera","name":"Brio","transport":"external","uniqueID":"0x1234"},{"connected":true,"inUse":true,"kind":"microphone","name":"Shure MV7","transport":"usb"},{"connected":true,"inUse":true,"kind":"speaker","name":"MacBook Pro Speakers","transport":"builtIn"},{"advice":"Check the cable.","connected":false,"inUse":false,"kind":"microphone","name":"Opal C1","reason":"Used on this Mac before, not plugged in","transport":"usb","lastSeen":"2026-10-20T09:00:00Z"},{"connected":true,"kind":"webcam","name":"Bad kind","transport":"usb"}]' ;;
+  ok:history)
+    echo '[{"change":"connected","device":{"id":"74-3F-8E-B6-C0-6B:output","kind":"speaker","name":"AirPods Pro","transport":"bluetooth"},"time":"2026-10-29T18:14:09Z"},{"change":"selected","device":{"id":"x","kind":"microphone","name":"Shure MV7","transport":"usb"},"time":"2026-10-29T18:00:00Z"}]' ;;
+  empty:history|empty:setups|empty:devices) echo '[]' ;;
+  ok:setups)
+    echo '[{"connected":2,"devices":{"camera":"Brio","microphone":"Shure MV7","speaker":"MacBook Pro Speakers"},"fits":true,"name":"Desk"},{"connected":0,"devices":{"microphone":"Opal C1"},"fits":false,"name":"Studio"}]' ;;
+  garbage:*) echo 'not json' ;;
+  stderr:*) echo "Unknown command: nope" >&2; exit 1 ;;
+  crash:*) kill -SEGV $$ ;;
+  *) echo "unexpected: $FAKE_MODE $*" >&2; exit 1 ;;
+esac
