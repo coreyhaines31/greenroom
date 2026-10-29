@@ -1,0 +1,21 @@
+{
+  "name": "greenroom-og",
+  "private": true,
+  "description": "Source for the og:video link preview (images/og.mp4) and its still (images/og-video.png).",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render OgVideo out/raw.mp4 --codec=h264 --crf=1 && ffmpeg -y -loglevel error -i out/raw.mp4 -c:v libx264 -preset veryslow -tune animation -crf 16 -pix_fmt yuv420p -profile:v high -movflags +faststart -an ../images/og.mp4 && remotion still OgVideo ../images/og-video.png --frame=225 && (command -v oxipng >/dev/null && oxipng -o 4 --strip safe -q ../images/og-video.png || true)",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.539",
+    "@remotion/google-fonts": "4.0.539",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "remotion": "4.0.539"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.8",
+    "typescript": "5.8.3"
+  }
+}
