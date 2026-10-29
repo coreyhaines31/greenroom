@@ -59,7 +59,9 @@ const fakeCalls = [
   [
     "recording", "av_status", { recording: true }, ok, "status --recording --json",
     {
-      problem: true, ready: true, in_use: [], problems: [],
+      problem: true, ready: false, in_use: [],
+      // The CLI's --recording output encodes dates as seconds since 2001.
+      problems: [{ kind: "camera", device: "Brio", message: "Brio is not connected", advice: "Check the cable.", last_seen: "2026-10-29T17:40Z" }],
       recording: {
         ready: false,
         checks: [

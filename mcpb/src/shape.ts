@@ -43,8 +43,15 @@ function oneOf(value: unknown, allowed: Set<string>): string | undefined {
   return typeof value === "string" && allowed.has(value) ? value : undefined;
 }
 
-// "2026-10-29T18:14:09Z" -> "2026-10-29T18:14Z": seconds don't matter here.
+// Seconds between 1970 and 2001, the epoch of Swift's default date encoding.
+const SWIFT_EPOCH = 978_307_200;
+
+// "2026-10-29T18:14:09Z" -> "2026-10-29T18:14Z": seconds don't matter here. `status --recording` encodes dates
+// with Swift's default strategy (seconds since 2001) instead of ISO 8601, so numbers are converted too.
 function minute(value: unknown): string | undefined {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0 && value < 4e9) {
+    value = new Date((value + SWIFT_EPOCH) * 1000).toISOString();
+  }
   if (typeof value !== "string") return undefined;
   const match = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})(?::\d{2}(?:\.\d+)?)?Z$/.exec(value);
   return match ? `${match[1]}Z` : undefined;
