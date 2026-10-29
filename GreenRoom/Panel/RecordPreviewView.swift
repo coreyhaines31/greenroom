@@ -12,6 +12,8 @@ struct RecordPreviewView: View {
     @State private var controlsShown = true
     @State private var overControls = false
     @State private var showingCheck = false
+    @State private var showingGuides = false
+    @State private var showingMonitor = false
     @State private var hideTask: Task<Void, Never>?
     @AppStorage("previewGuides") private var storedGuides = ""
     @AppStorage("previewTurns") private var turns = 0
@@ -151,27 +153,32 @@ struct RecordPreviewView: View {
         .accessibilityLabel("Rotate")
     }
 
+    /// A popover rather than a menu, so several guides can be switched without reopening it.
     private var guidesMenu: some View {
         let guides = CompositionGuide.decode(storedGuides)
-        return Menu {
-            ForEach(CompositionGuide.allCases) { guide in
-                Toggle(guide.title, isOn: Binding(
-                    get: { guides.contains(guide) },
-                    set: { on in
-                        var next = guides
-                        if on { next.insert(guide) } else { next.remove(guide) }
-                        storedGuides = CompositionGuide.encode(next)
-                    }
-                ))
-                .help(guide.help)
-            }
-        } label: {
+        return Button { showingGuides.toggle() } label: {
             Image(systemName: "squareshape.split.3x3")
         }
-        .menuIndicator(.hidden)
-        .fixedSize()
         .help("Grid lines and crop guides over the picture. They aren't recorded.")
         .accessibilityLabel("Guides")
+        .popover(isPresented: $showingGuides, arrowEdge: .top) {
+            VStack(alignment: .leading, spacing: 8) {
+                ForEach(CompositionGuide.allCases) { guide in
+                    Toggle(guide.title, isOn: Binding(
+                        get: { guides.contains(guide) },
+                        set: { on in
+                            var next = guides
+                            if on { next.insert(guide) } else { next.remove(guide) }
+                            storedGuides = CompositionGuide.encode(next)
+                        }
+                    ))
+                    ToolExplainer(text: guide.help)
+                }
+            }
+            .toggleStyle(.checkbox)
+            .padding(14)
+            .frame(width: 300)
+        }
     }
 
     private var cameraMessage: String {
@@ -188,7 +195,7 @@ struct RecordPreviewView: View {
         hideTask?.cancel()
         hideTask = Task {
             try? await Task.sleep(for: .seconds(3))
-            guard !Task.isCancelled, !overControls, !showingCheck else { return }
+            guard !Task.isCancelled, !overControls, !showingCheck, !showingGuides, !showingMonitor else { return }
             withAnimation(.easeIn(duration: 0.4)) { controlsShown = false }
             NSCursor.setHiddenUntilMouseMoves(true)
         }
@@ -243,7 +250,7 @@ struct RecordPreviewView: View {
             Divider().frame(height: 20)
             guidesMenu
             turnMenu
-            MonitorMenu()
+            MonitorMenu(isPresented: $showingMonitor)
             Divider().frame(height: 20)
             Button("Done", action: close)
                 .keyboardShortcut(.cancelAction)
