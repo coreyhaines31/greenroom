@@ -20,15 +20,29 @@ enum MonitorTool: String, CaseIterable, Identifiable {
         }
     }
 
+    /// What it shows and what to do about it, under each tool in the Monitor popover.
     var help: String {
         switch self {
-        case .histogram: "How much of the picture is at each brightness, dark on the left"
-        case .waveform: "Brightness across the picture, left to right; the top line is clipping"
-        case .zebras: "Stripes over anything brighter than the zebra level"
-        case .falseColor: "Colors key levels: pink is skin, green is middle gray, red is clipped"
-        case .peaking: "Outlines whatever is in sharp focus"
-        case .monochrome: "Black and white, to judge focus and contrast"
-        case .lut: "Shows log footage as it will look graded, using the LUT you load"
+        case .histogram:
+            "How much of the picture sits at each brightness, dark to bright. A pile at the left edge "
+                + "means it's too dark: add light. Touching the right edge means it's clipped: lower exposure."
+        case .waveform:
+            "Brightness across the frame, left to right. A face looks best in the upper middle. "
+                + "Anything flat along the top line is clipped and has lost its detail."
+        case .zebras:
+            "Stripes over anything brighter than the zebra level. At 95 or 100%, stripes mean lost "
+                + "detail: lower exposure. At 70%, light stripes on your face mean skin is well exposed."
+        case .falseColor:
+            "Paints brightness as color, with a key on the right. Aim for pink on your face. Yellow "
+                + "or red is too bright, and blue or purple is too dark."
+        case .peaking:
+            "Outlines whatever is in sharp focus. You want outlines on your eyes and face. If the "
+                + "wall behind you lights up instead, the camera is focused past you."
+        case .monochrome:
+            "Black and white, which makes focus and contrast easier to judge. Pair it with peaking."
+        case .lut:
+            "Shows log footage, like S-Log3, as it will look after grading, using a .cube file from "
+                + "your camera maker. Leave it off if your camera doesn't shoot log."
         }
     }
 
