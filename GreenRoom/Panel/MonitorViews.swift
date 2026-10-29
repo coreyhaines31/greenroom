@@ -199,41 +199,58 @@ struct MonitorMenu: View {
     @AppStorage("peakingSensitivity") private var peakingSensitivity = PeakingSensitivity.medium
     @AppStorage("previewLUT") private var lutPath = ""
 
+    @Binding var isPresented: Bool
+
+    /// A popover rather than a menu, so several tools can be switched without reopening it.
     var body: some View {
-        let tools = MonitorTool.decode(storedTools)
-        Menu {
-            Section("Scopes") {
-                toggle(.histogram, in: tools)
-                toggle(.waveform, in: tools)
-            }
-            Section("Picture") {
-                toggle(.zebras, in: tools)
-                toggle(.falseColor, in: tools)
-                toggle(.peaking, in: tools)
-                toggle(.monochrome, in: tools)
-            }
-            Section("LUT") {
-                toggle(.lut, in: tools)
-                    .disabled(lutPath.isEmpty)
-                Button(lutPath.isEmpty ? "Load LUT…" : "LUT: \(lutName)…") { chooseLUT(tools: tools) }
-            }
-            Divider()
-            Picker("Zebra Level", selection: $zebraPercent) {
-                ForEach([70, 80, 90, 95, 100], id: \.self) { Text("\($0)%").tag($0) }
-            }
-            Picker("Peaking Color", selection: $peakingColor) {
-                ForEach(PeakingColor.allCases) { Text($0.title).tag($0) }
-            }
-            Picker("Peaking Sensitivity", selection: $peakingSensitivity) {
-                ForEach(PeakingSensitivity.allCases) { Text($0.title).tag($0) }
-            }
-        } label: {
+        Button { isPresented.toggle() } label: {
             Image(systemName: "camera.aperture")
         }
-        .menuIndicator(.hidden)
-        .fixedSize()
         .help("Scopes, zebras, false color, and focus peaking. They aren't recorded.")
         .accessibilityLabel("Monitor tools")
+        .popover(isPresented: $isPresented, arrowEdge: .top) { panel }
+    }
+
+    private var panel: some View {
+        let tools = MonitorTool.decode(storedTools)
+        return VStack(alignment: .leading, spacing: 8) {
+            heading("Scopes")
+            row(.histogram, in: tools)
+            row(.waveform, in: tools)
+            heading("Picture")
+            row(.zebras, in: tools)
+            row(.falseColor, in: tools)
+            row(.peaking, in: tools)
+            row(.monochrome, in: tools)
+            heading("LUT")
+            HStack {
+                toggle(.lut, in: tools)
+                    .disabled(lutPath.isEmpty)
+                Button(lutPath.isEmpty ? "Load LUT…" : "\(lutName)…") { chooseLUT(tools: tools) }
+                    .controlSize(.small)
+            }
+            ToolExplainer(text: MonitorTool.lut.help)
+            Divider().padding(.vertical, 4)
+            Form {
+                Picker("Zebra level", selection: $zebraPercent) {
+                    ForEach([70, 80, 90, 95, 100], id: \.self) { Text("\($0)%").tag($0) }
+                }
+                Picker("Peaking color", selection: $peakingColor) {
+                    ForEach(PeakingColor.allCases) { Text($0.title).tag($0) }
+                }
+                Picker("Peaking sensitivity", selection: $peakingSensitivity) {
+                    ForEach(PeakingSensitivity.allCases) { Text($0.title).tag($0) }
+                }
+            }
+            .fixedSize()
+        }
+        .toggleStyle(.checkbox)
+        .padding(14)
+        .frame(width: 340)
+    }
+
+    private func heading(_ title: String) -> some View {
+        Text(title).font(.caption.weight(.semibold)).foregroundStyle(.secondary).padding(.top, 2)
     }
 
     private var lutName: String {
@@ -271,6 +288,27 @@ struct MonitorMenu: View {
                 storedTools = MonitorTool.encode(next)
             }
         ))
-        .help(tool.help)
+    }
+
+    /// A tool with what it shows and what to do about it underneath.
+    private func row(_ tool: MonitorTool, in tools: Set<MonitorTool>) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            toggle(tool, in: tools)
+            ToolExplainer(text: tool.help)
+        }
+    }
+}
+
+/// One line or two under a checkbox in the Guides and Monitor popovers, lined up with its title.
+struct ToolExplainer: View {
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.leading, 20)
+            .padding(.bottom, 4)
     }
 }
