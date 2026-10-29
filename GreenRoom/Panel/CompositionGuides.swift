@@ -18,11 +18,13 @@ enum CompositionGuide: String, CaseIterable, Identifiable {
 
     var help: String {
         switch self {
-        case .thirds: "Put your eyes near the top line"
-        case .center: "Marks the middle of the frame"
-        case .safeAreas: "Keep text inside the inner box and action inside the outer one"
-        case .vertical: "What a Short, Reel, or TikTok crop keeps"
-        case .square: "What a square crop keeps"
+        case .thirds: "Splits the frame in thirds. Put your eyes near the top line."
+        case .center: "Marks the middle of the frame, to center yourself or what you're showing."
+        case .safeAreas:
+            "Keep text inside the inner box and anything important inside the outer one, so apps "
+                + "and TVs don't cut it off."
+        case .vertical: "What a Short, Reel, or TikTok crop keeps. Stay inside it if you'll post vertical clips."
+        case .square: "What a square crop keeps, for feeds that show posts 1:1."
         }
     }
 
