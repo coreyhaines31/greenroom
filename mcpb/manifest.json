@@ -1,0 +1,52 @@
+{
+  "$schema": "https://raw.githubusercontent.com/anthropics/mcpb/main/schemas/mcpb-manifest-v0.4.schema.json",
+  "manifest_version": "0.4",
+  "name": "greenroom",
+  "display_name": "Green Room",
+  "version": "0.1.0",
+  "description": "Ask Claude whether your camera, mic, and speakers are ready for a call or a recording.",
+  "long_description": "Green Room is a free menu bar app that shows which camera, mic, and speaker your Mac is using, and flags anything that doesn't match your saved setup. This extension lets Claude read the same check through Green Room's `greenroom` command line tool.\n\nAsk things like \"is my mic working?\", \"am I ready for my call?\", \"what cameras are plugged in?\", or \"did my mic disconnect?\".\n\nRequires the Green Room app (https://greenroomformac.com). Everything is read-only and local: the extension never turns on your camera or listens to your mic, so macOS doesn't ask Claude for camera or microphone access. It can't switch devices; do that in Green Room. Green Room covers cameras, mics, and speakers, not disk space or CPU and memory.",
+  "author": {
+    "name": "Corey Haines",
+    "url": "https://greenroomformac.com"
+  },
+  "homepage": "https://greenroomformac.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/coreyhaines31/greenroom"
+  },
+  "support": "https://github.com/coreyhaines31/greenroom/issues",
+  "license": "FSL-1.1-MIT",
+  "icon": "icon.png",
+  "keywords": ["mac", "macos", "microphone", "camera", "webcam", "speakers", "audio", "video calls"],
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.mjs",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/server/index.mjs"],
+      "env": {
+        "GREENROOM_CLI": "${user_config.greenroom_cli}"
+      }
+    }
+  },
+  "user_config": {
+    "greenroom_cli": {
+      "type": "file",
+      "title": "Green Room command line tool (optional)",
+      "description": "Leave empty to find Green Room automatically in Applications, Homebrew, or Spotlight.",
+      "required": false
+    }
+  },
+  "tools": [
+    { "name": "av_status", "description": "The camera, mic, and speaker in use, and anything to fix before a call or recording" },
+    { "name": "list_devices", "description": "Every camera, mic, and speaker connected, and usual ones that are missing" },
+    { "name": "device_history", "description": "Recent plug-ins, unplugs, and switches" },
+    { "name": "list_setups", "description": "Saved setups and which one fits what's plugged in" }
+  ],
+  "compatibility": {
+    "claude_desktop": ">=0.10.0",
+    "platforms": ["darwin"],
+    "runtimes": { "node": ">=20.0.0" }
+  }
+}

@@ -154,6 +154,12 @@ sudo ln -sf "/Applications/Green Room.app/Contents/MacOS/greenroom" /usr/local/b
 Before I record or join a call, or when I say my mic or camera isn't working, run `greenroom status --json` and tell me anything that doesn't match my setup, and why.
 ```
 
+### Use Green Room from Claude Desktop
+
+Download [`greenroom.mcpb`](https://github.com/coreyhaines31/greenroom/releases/latest/download/greenroom.mcpb) and double-click it (or drag it onto Claude Desktop) to install the Green Room extension. Then ask Claude things like *is my mic working?*, *am I ready for my call?*, *what cameras are plugged in?*, or *did my mic disconnect?*
+
+The extension runs the `greenroom` tool from your installed Green Room app, so install Green Room first. It only reads (`status`, `devices`, `history`, and `setups`); it can't switch devices, so `use` isn't available. It never turns on your camera or listens to your mic, so macOS doesn't ask Claude for camera or microphone access. Device IDs (including Bluetooth addresses) are left out of its answers.
+
 ## Privacy
 
 - **No analytics, no account, no network.** Green Room never connects to the internet except to check for updates.
@@ -173,6 +179,15 @@ cd Packages/GreenRoomCore && swift test
 ```
 
 `swift run greenroom-dev` in the package prints your devices and why any are missing, without the app.
+
+The Claude Desktop extension is in [`mcpb/`](mcpb/) (Node 20+): `cd mcpb && npm ci && npm run lint && npm test` checks it (the test calls every tool on your Mac, then checks each tool's exact arguments against a fake CLI), and `npm run pack` builds `mcpb/dist/greenroom.mcpb`. `Scripts/release.sh` attaches it to every release. To attach it to an existing release without cutting a new one:
+
+```sh
+cd mcpb && npm ci && npm run pack
+gh release upload v<version> dist/greenroom.mcpb --repo coreyhaines31/greenroom --clobber
+```
+
+Bump `version` in `mcpb/manifest.json`, `mcpb/package.json`, and `mcpb/src/index.ts` when the extension changes.
 
 ## License
 

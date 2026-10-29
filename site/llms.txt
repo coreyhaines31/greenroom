@@ -17,6 +17,7 @@ Green Room runs on macOS 14 Sonoma and later, is signed and notarized by Apple, 
 - Monitor tools in the full-screen record preview: histogram, waveform, zebras, false color, focus peaking, monochrome, and a LUT preview (.cube) for log footage, plus rotate and mirror for cameras mounted sideways. Nothing is recorded.
 - Before calls and recordings: an optional calendar check two minutes before video calls, and a recording check (camera resolution, mic quality, disk space, power) when Loom, OBS, Screen Studio, or QuickTime starts.
 - A `greenroom` command for Terminal and AI agents: `greenroom status --json` (exits 2 when something is wrong), `greenroom devices`, `greenroom use <setup>`.
+- Claude Desktop: the extension at https://github.com/coreyhaines31/greenroom/releases/latest/download/greenroom.mcpb gives Claude four read-only tools, `av_status` (with an optional recording check), `list_devices`, `device_history`, and `list_setups`, that run the same `greenroom` command. It needs the app installed, never turns on the camera or mic (so macOS doesn't ask Claude for camera or microphone access), can't switch devices, and leaves device IDs out of its answers.
 
 ## Free tests
 

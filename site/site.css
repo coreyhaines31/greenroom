@@ -409,6 +409,28 @@ h1 em { display: block; }
 .agent .fineprint { margin-top: 18px; }
 .agent .fineprint code { white-space: normal; overflow-wrap: anywhere; display: inline; }
 
+/* Claude Desktop extension */
+.claude { background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.chat-mock {
+  display: grid; gap: 14px; padding: 22px; border-radius: var(--radius); background: var(--bg);
+  box-shadow: 0 0 0 1px var(--line), var(--shadow); font-size: 15px; line-height: 1.5;
+}
+.chat-label { font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.chat-ask {
+  justify-self: end; max-width: 85%; padding: 10px 14px; border-radius: 16px 16px 4px 16px;
+  background: color-mix(in srgb, var(--cta) 16%, var(--surface)); color: var(--ink);
+}
+.chat-reply { display: grid; gap: 10px; color: var(--ink); }
+.chat-row {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; padding: 9px 12px;
+  border-radius: 10px; background: var(--surface); box-shadow: 0 0 0 1px var(--line); font-size: 14px;
+}
+.chat-row span { color: var(--muted); }
+.chat-row b { font-weight: 600; color: var(--orange); }
+.chat-row b.ok { color: var(--mint-ink); }
+.chat-note { font-size: 12px; color: var(--muted); }
+.claude .two > div > p.fineprint { font-size: 14px; }
+
 /* Before you go on */
 .extras .trust-grid { margin-top: 40px; }
 .extras .day-one { margin-top: 36px; }
