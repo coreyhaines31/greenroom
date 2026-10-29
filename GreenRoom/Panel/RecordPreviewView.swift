@@ -60,6 +60,10 @@ struct RecordPreviewView: View {
         .onContinuousHover { _ in showControls() }
         .onAppear {
             showControls()
+            #if DEBUG
+            showingGuides = CommandLine.arguments.contains("--open-guides-popover")
+            showingMonitor = CommandLine.arguments.contains("--open-monitor-popover")
+            #endif
             syncMonitor()
             checks.camera.setOrientation(orientation)
         }

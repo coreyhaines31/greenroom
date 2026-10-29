@@ -79,6 +79,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 self.windows.showRecordPreview(on: NSScreen.main, fullScreen: false)
             }
         }
+        if let index = arguments.firstIndex(of: "--snapshot-popover"), index + 1 < arguments.count {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 4) { Self.writePopover(to: arguments[index + 1]) }
+        }
         if CommandLine.arguments.contains("--open-history") {
             windows.showHistory()
         }
@@ -92,6 +95,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 self.windows.writeRecordPreviewSnapshot(to: path.replacingOccurrences(of: ".png", with: "-preview.png"))
             }
         }
+    }
+
+    /// The open popover, such as the record preview's Guides or Monitor (with
+    /// `--open-guides-popover` or `--open-monitor-popover`). It's its own window, so the
+    /// preview snapshot leaves it out.
+    private static func writePopover(to path: String) {
+        guard let window = NSApp.windows.first(where: { String(describing: type(of: $0)).contains("Popover") }),
+              let view = window.contentView?.superview ?? window.contentView, let layer = view.layer,
+              let rep = view.bitmapImageRepForCachingDisplay(in: view.bounds),
+              let context = NSGraphicsContext(bitmapImageRep: rep) else { return }
+        layer.render(in: context.cgContext)
+        try? rep.representation(using: .png, properties: [:])?.write(to: URL(fileURLWithPath: path))
     }
     #endif
 
