@@ -5,12 +5,16 @@ import Foundation
 /// Which apps have a microphone, speaker, or camera open right now.
 public enum LiveDevices {
     /// Audio comes per app from Core Audio's process list (macOS 14.2 and later). Cameras only
-    /// say whether some other app has them.
-    public static func current(excluding ownPID: pid_t = ProcessInfo.processInfo.processIdentifier) -> [LiveUse] {
+    /// say whether some other app has them. Asking for fewer kinds skips the work for the rest.
+    public static func current(
+        kinds: Set<DeviceKind> = Set(DeviceKind.allCases),
+        excluding ownPID: pid_t = ProcessInfo.processInfo.processIdentifier
+    ) -> [LiveUse] {
         var uses: [LiveUse] = []
-        if #available(macOS 14.2, *) {
-            uses += audioUses(excluding: ownPID)
+        if #available(macOS 14.2, *), !kinds.isDisjoint(with: [.microphone, .speaker]) {
+            uses += audioUses(kinds: kinds, excluding: ownPID)
         }
+        guard kinds.contains(.camera) else { return uses }
         for camera in Cameras.captureDevices() where camera.isInUseByAnotherApplication {
             uses.append(LiveUse(kind: .camera, deviceID: camera.uniqueID, app: nil))
         }
@@ -18,17 +22,20 @@ public enum LiveDevices {
     }
 
     @available(macOS 14.2, *)
-    static func audioUses(excluding ownPID: pid_t) -> [LiveUse] {
+    static func audioUses(kinds: Set<DeviceKind>, excluding ownPID: pid_t) -> [LiveUse] {
         var uses = Set<LiveUse>()
         for process in AudioHardware.objectList(AudioHardware.system, kAudioHardwarePropertyProcessObjectList) {
+            // Most audio processes are idle, so check that before looking up whose they are.
+            let active = [
+                (DeviceKind.microphone, kAudioObjectPropertyScopeInput, kAudioProcessPropertyIsRunningInput),
+                (DeviceKind.speaker, kAudioObjectPropertyScopeOutput, kAudioProcessPropertyIsRunningOutput)
+            ].filter { kinds.contains($0.0) && AudioHardware.uint32(process, $0.2) != 0 }
+            guard !active.isEmpty else { continue }
             let pid = pid_t(bitPattern: AudioHardware.uint32(process, kAudioProcessPropertyPID))
             guard pid != ownPID, let path = executablePath(pid: pid), !isSystemService(path) else { continue }
             // Every process gets its own name, so two unnamed ones are never mixed up.
             let app = appName(executablePath: path) ?? "Process \(pid)"
-            for (kind, scope, running) in [
-                (DeviceKind.microphone, kAudioObjectPropertyScopeInput, kAudioProcessPropertyIsRunningInput),
-                (DeviceKind.speaker, kAudioObjectPropertyScopeOutput, kAudioProcessPropertyIsRunningOutput)
-            ] where AudioHardware.uint32(process, running) != 0 {
+            for (kind, scope, _) in active {
                 for device in AudioHardware.objectList(process, kAudioProcessPropertyDevices, scope: scope)
                 where AudioHardware.hasStreams(device, scope: scope) {
                     if let uid = AudioHardware.uid(device) {
