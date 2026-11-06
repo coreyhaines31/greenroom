@@ -73,7 +73,7 @@ final class MicWatch {
         if let lastTick, now - lastTick > 2 { reset() }
         lastTick = now
         var snapshot = monitor.snapshot
-        snapshot.live = LiveDevices.current()
+        snapshot.live = LiveDevices.current(kinds: [.microphone])
         sessions.reconcile(snapshot, ignoring: monitor.ignoredApps, now: now)
         dismissed.formIntersection(Set(sessions.checks.keys))
         let needed = sessions.pendingDeviceIDs
@@ -131,7 +131,7 @@ final class MicWatch {
     }
 
     private func switchMic(for use: LiveUse, to fallback: Device?) {
-        guard let fallback, LiveDevices.current().contains(use) else { dismiss(use); return }
+        guard let fallback, LiveDevices.current(kinds: [.microphone]).contains(use) else { dismiss(use); return }
         monitor.refresh(force: true)
         if let device = monitor.snapshot.device(fallback.id, kind: .microphone) { monitor.select(device) }
         dismiss(use)
