@@ -36,19 +36,19 @@ func fail(_ message: String) -> Never {
 
 let appDefaults = UserDefaults(suiteName: Storage.defaultsDomain)
 let ignoredApps = Set(appDefaults?.stringArray(forKey: "ignoredApps") ?? [])
-let names = appDefaults.map(DeviceNames.load) ?? DeviceNames()
-let snapshot = names.apply(DeviceScanner.snapshot()).ignoring(apps: ignoredApps)
+let current = CurrentDevices(
+    scanned: DeviceScanner.snapshot(), setups: appDefaults.map { Storage.loadSetups($0) } ?? [],
+    names: appDefaults.map(DeviceNames.load) ?? DeviceNames(), ignoredApps: ignoredApps
+)
+let snapshot = current.snapshot
 let history = Storage.loadHistory()
 let usb = USBDevices.productNames()
-let setups = (appDefaults.map { Storage.loadSetups($0) } ?? []).map(names.apply)
-let setup = Setup.bestMatch(setups, snapshot: snapshot)
+let setups = current.setups
+let setup = current.setup
 
 switch arguments.first {
 case "status":
-    let report = StatusReport.make(
-        snapshot: snapshot, setup: setup, history: history, usbProducts: usb,
-        micProblem: snapshot.active(.microphone).flatMap(AudioHardware.micProblem), now: .now
-    )
+    let report = current.report(history: history, usbProducts: usb, now: .now)
     let recording = arguments.contains("--recording") ? RecordingCheck.evaluate(RecordingCheck.currentInputs(
         camera: snapshot.active(.camera) ?? snapshot.devices(.camera).first, mic: snapshot.active(.microphone),
         sampleRates: snapshot.sampleRates
