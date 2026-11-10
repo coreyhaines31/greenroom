@@ -74,6 +74,10 @@ final class MicWatch {
             status = "Allow microphone access in System Settings → Privacy & Security."
             return
         }
+        if needsAccess {
+            needsAccess = false
+            status = "Checks briefly when another app opens a mic. Audio is never saved."
+        }
         let now = ProcessInfo.processInfo.systemUptime
         // After sleep or a stalled run loop, take a fresh sample instead of timing out an old check.
         if let lastTick, now - lastTick > 2 { reset() }
