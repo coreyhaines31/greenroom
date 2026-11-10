@@ -25,11 +25,18 @@ final class HoldCalls {
     }
 
     func start() {
+        scheduleTimer()
+        if isEnabled { Task { await checkSetup() } }
+    }
+
+    /// Only runs while the feature is on, so an unused feature costs no wakeups.
+    private func scheduleTimer() {
         timer?.invalidate()
+        timer = nil
+        guard isEnabled else { return }
         timer = Timer.scheduledTimer(withTimeInterval: 15, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.check() }
         }
-        if isEnabled { Task { await checkSetup() } }
     }
 
     func stop() {
@@ -44,6 +51,7 @@ final class HoldCalls {
         generation += 1
         policy = CallHold()
         status = isEnabled ? "Waiting for a call." : "Off. Any current hold expires within two minutes."
+        scheduleTimer()
         if isEnabled { check() }
     }
 
@@ -77,6 +85,7 @@ final class HoldCalls {
         if !shortcutReady {
             isEnabled = false
             UserDefaults.standard.set(false, forKey: "holdCalls")
+            scheduleTimer()
         }
     }
 

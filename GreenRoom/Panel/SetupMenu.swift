@@ -31,7 +31,10 @@ struct SetupMenu: View {
                 if let name = NamePrompt.ask(suggestion: suggestedName) { monitor.saveNewSetup(named: name) }
             }
             if let current = monitor.setup {
-                Button("Forget \(current.name)") { monitor.forget(current) }
+                Button("Forget \(current.name)…") {
+                    closePanel()
+                    if ForgetPrompt.confirm(current.name) { monitor.forget(current) }
+                }
             }
         }
         .fixedSize()
@@ -66,5 +69,19 @@ enum NamePrompt {
         guard alert.runModal() == .alertFirstButtonReturn else { return nil }
         let name = field.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         return name.isEmpty ? nil : name
+    }
+}
+
+enum ForgetPrompt {
+    @MainActor
+    static func confirm(_ name: String) -> Bool {
+        let alert = NSAlert()
+        alert.messageText = "Forget \(name)?"
+        alert.informativeText = "Green Room stops checking for this setup's devices. This can't be undone."
+        alert.addButton(withTitle: "Forget")
+        alert.addButton(withTitle: "Cancel")
+        alert.buttons.first?.hasDestructiveAction = true
+        NSApp.activate()
+        return alert.runModal() == .alertFirstButtonReturn
     }
 }
