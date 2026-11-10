@@ -4,7 +4,7 @@ import { z } from "zod";
 import { runGreenRoom } from "./cli.js";
 import { shapeDevices, shapeHistory, shapeSetups, shapeStatus } from "./shape.js";
 
-const VERSION = "0.1.0";
+const VERSION = "0.1.1";
 
 const server = new McpServer(
   { name: "greenroom", version: VERSION },
@@ -13,8 +13,9 @@ const server = new McpServer(
       "Green Room checks this Mac's camera, microphone, and speakers: which ones are in use, whether they match " +
       "the person's saved setup, and why a device is missing. These tools only read device settings. They never " +
       "turn on the camera or listen to the mic, so they can't tell whether a mic is picking up sound or what the " +
-      "camera sees; for that, the person opens Green Room's panel. Times are UTC. For CPU and memory, use Spare; " +
-      "for disk space, Disk Forecast; for AI usage limits, Fuel Gauge.",
+      "camera sees; for that, the person opens Green Room's panel. Times are UTC. Green Room doesn't check CPU, " +
+      "memory, general disk space, or AI usage limits. If tools from Spare (CPU and memory), Disk Forecast (disk " +
+      "space), or Fuel Gauge (AI usage limits) are available here, use them; otherwise say Green Room can't check that.",
   },
 );
 
@@ -43,8 +44,8 @@ server.registerTool(
       "each problem's message and advice. Use for 'is my mic working?', 'am I ready for my call?', or 'why can't " +
       "they hear me?'. Set recording to true before recording a video or podcast: it adds camera resolution, mic " +
       "sample rate, free disk space, and power, and problem is also true if any of those would spoil a recording. " +
-      "Reads settings only; it can't hear the mic or see the camera picture. For disk space in general, use Disk " +
-      "Forecast; for CPU and memory, Spare.",
+      "Reads settings only; it can't hear the mic or see the camera picture, and it doesn't check general disk " +
+      "space, CPU, or memory.",
     inputSchema: {
       recording: z.boolean().default(false).describe("Also check camera format, mic quality, disk, and power."),
     },

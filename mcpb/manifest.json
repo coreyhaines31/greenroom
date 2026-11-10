@@ -3,7 +3,7 @@
   "manifest_version": "0.4",
   "name": "greenroom",
   "display_name": "Green Room",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Ask Claude whether your camera, mic, and speakers are ready for a call or a recording.",
   "long_description": "Green Room is a free menu bar app that shows which camera, mic, and speaker your Mac is using, and flags anything that doesn't match your saved setup. This extension lets Claude read the same check through Green Room's `greenroom` command line tool.\n\nAsk things like \"is my mic working?\", \"am I ready for my call?\", \"what cameras are plugged in?\", or \"did my mic disconnect?\".\n\nRequires the Green Room app (https://greenroomformac.com). Everything is read-only and local: the extension never turns on your camera or listens to your mic, so macOS doesn't ask Claude for camera or microphone access. It can't switch devices; do that in Green Room. Green Room covers cameras, mics, and speakers, not disk space or CPU and memory.",
   "author": {

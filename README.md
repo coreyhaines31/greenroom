@@ -139,7 +139,7 @@ greenroom use Studio       # switch the mic and speaker to a setup
 greenroom status --recording   # adds camera format, mic quality, disk space, and power
 ```
 
-Add `--json` to any of them. `status` exits with 2 when something doesn't match your setup or a usual device is missing. Homebrew links the command for you; from the DMG, link it once:
+Add `--json` to any of them. `status` exits with 2 when something needs fixing: something doesn't match your setup (a different device is selected, or one of the setup's devices isn't connected), the mic is muted or at zero volume in macOS, or a Bluetooth headset like AirPods is in call mode. With `--recording`, it also exits with 2 when something would spoil a recording. Usual devices that are missing but aren't in your setup are listed, but don't change the exit code. Homebrew links the command for you; from the DMG, link it once:
 
 ```sh
 sudo mkdir -p /usr/local/bin
