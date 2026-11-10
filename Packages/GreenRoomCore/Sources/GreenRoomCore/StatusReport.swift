@@ -35,21 +35,20 @@ public struct StatusReport: Codable, Sendable, Equatable {
         func advice(_ device: Device) -> MissingReason {
             .diagnose(name: device.name, transport: device.transport, usbProducts: usbProducts)
         }
+        let check = ReadyCheck.evaluate(snapshot, setup: setup, micProblem: micProblem)
         var problems: [Problem] = []
         var named = Set<String>()
-        if case .notReady(let mismatches) = Readiness.evaluate(snapshot, setup: setup) {
-            for mismatch in mismatches {
-                named.insert(mismatch.expected.id)
-                let text = mismatch.problem == .missing
-                    ? advice(mismatch.expected).advice
-                    : mismatch.advice ?? "Switch back in Green Room, or System Settings › Sound."
-                problems.append(Problem(
-                    kind: mismatch.kind, device: mismatch.expected.name, message: mismatch.message, advice: text,
-                    lastSeen: history.record(for: mismatch.expected)?.lastSeen
-                ))
-            }
+        for mismatch in check.mismatches {
+            named.insert(mismatch.expected.id)
+            let text = mismatch.problem == .missing
+                ? advice(mismatch.expected).advice
+                : mismatch.advice ?? "Switch back in Green Room, or System Settings › Sound."
+            problems.append(Problem(
+                kind: mismatch.kind, device: mismatch.expected.name, message: mismatch.message, advice: text,
+                lastSeen: history.record(for: mismatch.expected)?.lastSeen
+            ))
         }
-        if let micProblem, let mic = snapshot.active(.microphone), micProblem != .silent {
+        if let micProblem = check.micProblem, let mic = snapshot.active(.microphone) {
             problems.append(Problem(
                 kind: .microphone, device: mic.name, message: micProblem.message, advice: micProblem.message,
                 lastSeen: nil
@@ -61,7 +60,7 @@ public struct StatusReport: Codable, Sendable, Equatable {
                 let reason = advice(record.device)
                 return "\(record.device.name): \(reason.headline.lowercased()). \(reason.advice)"
             }
-        for advisory in Advisory.evaluate(snapshot) {
+        for advisory in check.advisories {
             problems.append(Problem(
                 kind: .microphone, device: advisory.device.name, message: advisory.title, advice: advisory.message,
                 lastSeen: nil
@@ -74,7 +73,7 @@ public struct StatusReport: Codable, Sendable, Equatable {
         }
         let flaky = FlakyDevice.find(in: history, now: now).map { "\($0.message). \($0.advice)" }
         return StatusReport(
-            ready: problems.isEmpty, setup: setup?.name, inUse: inUse, problems: problems, flaky: flaky,
+            ready: check.isReady, setup: setup?.name, inUse: inUse, problems: problems, flaky: flaky,
             missing: missing
         )
     }

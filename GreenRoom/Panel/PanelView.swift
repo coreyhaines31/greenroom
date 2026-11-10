@@ -36,6 +36,11 @@ struct PanelView: View {
             ForEach(monitor.advisories, id: \.device.id) { advisory in
                 AdvisoryCard(advisory: advisory) { monitor.select($0) }
             }
+            if let failure = monitor.switchFailure {
+                Label(failure, systemImage: "exclamationmark.triangle.fill")
+                    .font(.caption).foregroundStyle(.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             cameraSection
             microphoneSection
             speakerSection
@@ -65,7 +70,14 @@ struct PanelView: View {
                     CameraPreview(session: checks.camera.session)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                 } else {
-                    Text(cameraMessage).font(.callout).foregroundStyle(.secondary).padding()
+                    VStack(spacing: 8) {
+                        Text(cameraMessage).font(.callout).foregroundStyle(.secondary)
+                        if cameraDenied {
+                            Button("Open Settings") { PrivacySettings.open(.camera) }
+                                .controlSize(.small)
+                        }
+                    }
+                    .padding()
                 }
             }
             // 16:9 at the panel's 308pt content width.
@@ -94,12 +106,14 @@ struct PanelView: View {
         }
     }
 
+    private var cameraDenied: Bool {
+        !monitor.snapshot.devices(.camera).isEmpty
+            && (checks.cameraAccess == .denied || checks.cameraAccess == .restricted)
+    }
+
     private var cameraMessage: String {
         if monitor.snapshot.devices(.camera).isEmpty { return "No camera connected" }
-        return switch checks.cameraAccess {
-        case .denied, .restricted: "Allow camera access in System Settings › Privacy & Security"
-        default: "Starting camera…"
-        }
+        return cameraDenied ? "Allow camera access in System Settings › Privacy & Security" : "Starting camera…"
     }
 
     private var microphoneSection: some View {
@@ -116,8 +130,14 @@ struct PanelView: View {
                               levels: checks.inputs.levels) { monitor.select($0) }
             }
             if checks.micAccess == .denied || checks.micAccess == .restricted {
-                Text("Allow microphone access in System Settings › Privacy & Security")
-                    .font(.caption).foregroundStyle(.secondary)
+                HStack(spacing: 10) {
+                    Text("Allow microphone access in System Settings › Privacy & Security")
+                        .font(.caption).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Button("Open Settings") { PrivacySettings.open(.microphone) }
+                        .controlSize(.small)
+                        .fixedSize()
+                }
             } else {
                 HStack(spacing: 10) {
                     LevelMeter(level: checks.meter.level)
@@ -128,7 +148,9 @@ struct PanelView: View {
                         .help("Records five seconds and plays them back, so you hear what others will. "
                             + "Nothing is saved.")
                 }
-                if let problem = monitor.micProblem ?? (checks.meter.isSilent ? .silent : nil) {
+                // A muted or zero-volume mic is already in the "Not ready" header, so only show the rest here.
+                if let problem = monitor.readyCheck.micProblem == nil
+                    ? monitor.micProblem ?? (checks.meter.isSilent ? .silent : nil) : nil {
                     Label(problem.message, systemImage: "exclamationmark.triangle.fill")
                         .font(.caption).foregroundStyle(.orange)
                         .fixedSize(horizontal: false, vertical: true)
@@ -181,7 +203,7 @@ struct PanelView: View {
     }
 }
 
-/// Settings, updates, and quit. The toggles live in the Settings window.
+/// Settings, updates, feedback, and quit. The toggles live in the Settings window.
 struct OptionsMenu: View {
     let updater: Updater
     let showSettings: () -> Void
@@ -191,6 +213,7 @@ struct OptionsMenu: View {
             Button("Settings…", action: showSettings)
                 .keyboardShortcut(",")
             Button("Check for Updates…") { updater.checkForUpdates() }
+            Button("Send Feedback…") { Feedback.open() }
             Divider()
             Button("Quit Green Room") { NSApp.terminate(nil) }
         } label: {

@@ -26,6 +26,15 @@ cd "$(dirname "$0")/.."
 case "${DEVELOPER_DIR:-}" in
   ""|*CommandLineTools*) export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer ;;
 esac
+
+# Sparkle ships every release to every install, so nothing goes out unless the tests and lint pass.
+# The extension's npm test calls every tool on this Mac (read-only), which is fine on the release machine.
+echo "▶ Testing GreenRoomCore"
+(cd Packages/GreenRoomCore && swift test --quiet)
+echo "▶ Linting"
+swiftlint --strict --quiet
+echo "▶ Checking the Claude Desktop extension"
+(cd mcpb && npm ci --silent && npm run --silent lint && npm test)
 BUILD=build/release
 [ -d "$BUILD" ] && rm -r "$BUILD"
 mkdir -p "$BUILD"

@@ -17,6 +17,7 @@ struct SettingsView: View {
     @State private var usePriority = UsePriority.isEnabled
     @State private var checkCalls = CallWatcher.isEnabled && CallWatcher.hasAccess
     @State private var autoUpdate = true
+    @State private var forgetting: Setup?
 
     var body: some View {
         Form {
@@ -66,7 +67,7 @@ struct SettingsView: View {
                         } else {
                             Button("Apply") { monitor.apply(setup) }
                         }
-                        Button("Forget", role: .destructive) { monitor.forget(setup) }
+                        Button("Forget…", role: .destructive) { forgetting = setup }
                     }
                 }
             }
@@ -114,6 +115,15 @@ struct SettingsView: View {
         .formStyle(.grouped)
         // A grouped form scrolls, so it has no height of its own; give the window one.
         .frame(width: 480, height: 640)
+        .confirmationDialog(
+            "Forget \(forgetting?.name ?? "this setup")?",
+            isPresented: Binding(get: { forgetting != nil }, set: { if !$0 { forgetting = nil } }),
+            presenting: forgetting
+        ) { setup in
+            Button("Forget", role: .destructive) { monitor.forget(setup) }
+        } message: { _ in
+            Text("Green Room stops checking for this setup's devices. This can't be undone.")
+        }
         .onAppear { autoUpdate = updater.checksAutomatically }
         .onChange(of: openAtLogin) { openAtLogin = LoginItem.set(openAtLogin) }
         .onChange(of: useHotKey) {

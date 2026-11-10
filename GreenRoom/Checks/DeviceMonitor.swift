@@ -25,13 +25,14 @@ final class DeviceMonitor {
     var setup: Setup? { Setup.bestMatch(setups, snapshot: snapshot).map(names.apply) }
     var readiness: Readiness { Readiness.evaluate(snapshot.ignoring(apps: ignoredApps), setup: setup) }
     var advisories: [Advisory] { Advisory.evaluate(snapshot.ignoring(apps: ignoredApps)) }
+    /// Ready or not: the same answer `greenroom status` and Shortcuts give.
+    var readyCheck: ReadyCheck {
+        ReadyCheck.evaluate(snapshot.ignoring(apps: ignoredApps), setup: setup, micProblem: micProblem)
+    }
     /// What "Save as my setup" saves before there is one: the devices used most, from history.
     var proposedSetup: Setup { Setup.proposed(history: history, snapshot: snapshot, now: .now) }
     var flaky: [FlakyDevice] { FlakyDevice.find(in: history, now: .now) }
-    var needsAttention: Bool {
-        if case .notReady = readiness { return true }
-        return !advisories.isEmpty
-    }
+    var needsAttention: Bool { !readyCheck.isReady }
 
     @ObservationIgnored var onChange: (() -> Void)?
     /// New timeline events from each device change, for alerts.
@@ -210,6 +211,9 @@ final class DeviceMonitor {
             .map { missingDevice(Device(id: $0.id, name: $0.name, kind: .microphone, transport: .usb), lastSeen: nil) }
     }
 
+    /// The last switch macOS refused, shown in the panel until the next switch.
+    private(set) var switchFailure: String?
+
     /// Devices you picked in Green Room, and when. Keep my setup never reverts these.
     @ObservationIgnored private(set) var chosenByYou: [String: Date] = [:]
 
@@ -220,10 +224,11 @@ final class DeviceMonitor {
     /// Switching back for Keep my setup isn't a choice of yours, so it skips the bookkeeping.
     func select(_ device: Device, byYou: Bool = true) {
         if byYou { chosenByYou[device.id] = .now }
+        switchFailure = nil
         if device.kind == .camera {
             Cameras.setPreferred(device)
-        } else {
-            AudioHardware.setDefault(device)
+        } else if !AudioHardware.setDefault(device) {
+            switchFailure = Self.refusedMessage([device.name])
         }
         refresh()
     }
@@ -250,18 +255,25 @@ final class DeviceMonitor {
 
     /// Makes the setup's connected mic, speaker, and camera the ones in use.
     func apply(_ setup: Setup) {
+        var refused: [String] = []
         for device in setup.devices.values {
             if let connected = snapshot.device(device.id, kind: device.kind) {
                 chosenByYou[connected.id] = .now
                 if device.kind == .camera {
                     Cameras.setPreferred(connected)
-                } else {
-                    AudioHardware.setDefault(connected)
+                } else if !AudioHardware.setDefault(connected), !refused.contains(connected.name) {
+                    refused.append(connected.name)
                 }
             }
         }
+        switchFailure = refused.isEmpty ? nil : Self.refusedMessage(refused)
         store(setups.map { $0.name == setup.name ? withDate($0) : $0 })
         refresh(force: true)
+    }
+
+    private static func refusedMessage(_ names: [String]) -> String {
+        "macOS refused to switch to \(ListFormatter.localizedString(byJoining: names)). "
+            + "Try again, or pick it in System Settings › Sound."
     }
 
     private func withDate(_ setup: Setup) -> Setup {
