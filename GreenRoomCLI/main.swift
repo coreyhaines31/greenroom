@@ -40,7 +40,7 @@ let names = appDefaults.map(DeviceNames.load) ?? DeviceNames()
 let snapshot = names.apply(DeviceScanner.snapshot()).ignoring(apps: ignoredApps)
 let history = Storage.loadHistory()
 let usb = USBDevices.productNames()
-let setups = (appDefaults.map(Storage.loadSetups) ?? []).map(names.apply)
+let setups = (appDefaults.map { Storage.loadSetups($0) } ?? []).map(names.apply)
 let setup = Setup.bestMatch(setups, snapshot: snapshot)
 
 switch arguments.first {
