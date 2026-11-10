@@ -46,6 +46,8 @@ final class MicWatch {
         timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
             MainActor.assumeIsolated { self?.tick() }
         }
+        // Lets macOS batch the wakeups; a check lasts seconds, so 0.1 s of slack doesn't matter.
+        timer?.tolerance = 0.1
         tick()
     }
 
