@@ -9,6 +9,15 @@ struct CallLinksTests {
         #expect(!CallLinks.isVideoCall(["Dentist", "123 Main St"]))
     }
 
+    @Test func skipsCallsYouWontJoin() {
+        let zoom = ["https://us02web.zoom.us/j/123"]
+        #expect(CallLinks.isCallToJoin(isAllDay: false, isCanceled: false, isDeclined: false, texts: zoom))
+        #expect(!CallLinks.isCallToJoin(isAllDay: false, isCanceled: true, isDeclined: false, texts: zoom))
+        #expect(!CallLinks.isCallToJoin(isAllDay: false, isCanceled: false, isDeclined: true, texts: zoom))
+        #expect(!CallLinks.isCallToJoin(isAllDay: true, isCanceled: false, isDeclined: false, texts: zoom))
+        #expect(!CallLinks.isCallToJoin(isAllDay: false, isCanceled: false, isDeclined: false, texts: ["Dentist"]))
+    }
+
     @Test func skipsInCallOnlyProblems() {
         let shure = Device(id: "mv7", name: "Shure MV7", kind: .microphone, transport: .usb)
         let mac = Device(id: "mac", name: "MacBook Pro Microphone", kind: .microphone, transport: .builtIn)

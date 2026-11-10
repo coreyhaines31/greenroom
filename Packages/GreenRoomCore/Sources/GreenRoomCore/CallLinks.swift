@@ -15,6 +15,11 @@ public enum CallLinks {
         return hosts.contains { haystack.contains($0) }
     }
 
+    /// A video call you're going to: not all day, not canceled, and not one you declined.
+    public static func isCallToJoin(isAllDay: Bool, isCanceled: Bool, isDeclined: Bool, texts: [String?]) -> Bool {
+        !isAllDay && !isCanceled && !isDeclined && isVideoCall(texts)
+    }
+
     /// Something to fix before a call, as a sentence for the alert.
     public struct PreCallProblem: Sendable, Equatable {
         public let sentence: String
