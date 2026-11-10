@@ -25,6 +25,22 @@ struct CorruptFileTests {
         #expect(try Data(contentsOf: backup) == bad)
     }
 
+    @Test func leavesACorruptHistoryFileAloneWhenNotRepairing() throws {
+        let url = folder.appending(path: "history.json")
+        let bad = Data("{\"records\": [not json".utf8)
+        try bad.write(to: url)
+        #expect(Storage.loadHistory(from: url, now: now, repair: false) == DeviceHistory())
+        #expect(try Data(contentsOf: url) == bad)
+    }
+
+    @Test func leavesCorruptSetupsAloneWhenNotRepairing() throws {
+        let defaults = try #require(UserDefaults(suiteName: "CorruptFileTests-\(UUID().uuidString)"))
+        let bad = Data("not setups".utf8)
+        defaults.set(bad, forKey: "setups")
+        #expect(Storage.loadSetups(defaults, now: now, repair: false).isEmpty)
+        #expect(defaults.data(forKey: "setups") == bad)
+    }
+
     @Test func keepsCorruptSetupsUnderABackupKey() throws {
         let defaults = try #require(UserDefaults(suiteName: "CorruptFileTests-\(UUID().uuidString)"))
         let bad = Data("not setups".utf8)

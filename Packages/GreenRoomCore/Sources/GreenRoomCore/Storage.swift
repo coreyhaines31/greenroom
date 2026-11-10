@@ -15,13 +15,14 @@ public enum Storage {
     static let log = Logger(subsystem: defaultsDomain, category: "Storage")
 
     /// No file yet means no history. A file that won't decode is moved aside first, so the next
-    /// save can't overwrite it.
-    public static func loadHistory(from url: URL = historyURL, now: Date = .now) -> DeviceHistory {
+    /// save can't overwrite it. Only the app repairs; the read-only command passes `repair: false`.
+    public static func loadHistory(from url: URL = historyURL, now: Date = .now, repair: Bool = true) -> DeviceHistory {
         guard FileManager.default.fileExists(atPath: url.path) else { return DeviceHistory() }
         if let data = try? Data(contentsOf: url),
            let history = try? JSONDecoder().decode(DeviceHistory.self, from: data) {
             return history
         }
+        guard repair else { return DeviceHistory() }
         let backup = url.deletingLastPathComponent().appending(path: "\(url.lastPathComponent).corrupt-\(stamp(now))")
         do {
             try FileManager.default.moveItem(at: url, to: backup)
@@ -49,9 +50,11 @@ public enum Storage {
 
     /// The app passes `.standard`; the command reads the app's domain.
     /// Setups that won't decode are kept under `setups.corrupt-<time>`, so the next save can't lose them.
-    public static func loadSetups(_ defaults: UserDefaults, now: Date = .now) -> [Setup] {
+    /// Only the app repairs; the read-only command passes `repair: false`.
+    public static func loadSetups(_ defaults: UserDefaults, now: Date = .now, repair: Bool = true) -> [Setup] {
         if let data = defaults.data(forKey: setupsKey) {
             if let setups = try? JSONDecoder().decode([Setup].self, from: data) { return setups }
+            guard repair else { return [] }
             let backupKey = "\(setupsKey).corrupt-\(stamp(now))"
             defaults.set(data, forKey: backupKey)
             defaults.removeObject(forKey: setupsKey)

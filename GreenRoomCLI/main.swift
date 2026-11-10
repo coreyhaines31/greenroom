@@ -37,11 +37,12 @@ func fail(_ message: String) -> Never {
 let appDefaults = UserDefaults(suiteName: Storage.defaultsDomain)
 let ignoredApps = Set(appDefaults?.stringArray(forKey: "ignoredApps") ?? [])
 let current = CurrentDevices(
-    scanned: DeviceScanner.snapshot(), setups: appDefaults.map { Storage.loadSetups($0) } ?? [],
+    scanned: DeviceScanner.snapshot(), setups: appDefaults.map { Storage.loadSetups($0, repair: false) } ?? [],
     names: appDefaults.map(DeviceNames.load) ?? DeviceNames(), ignoredApps: ignoredApps
 )
 let snapshot = current.snapshot
-let history = Storage.loadHistory()
+// Read-only: the command never moves or rewrites the app's data, even when it can't read it.
+let history = Storage.loadHistory(repair: false)
 let usb = USBDevices.productNames()
 let setups = current.setups
 let setup = current.setup
