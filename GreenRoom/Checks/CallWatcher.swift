@@ -91,12 +91,12 @@ final class CallWatcher {
             let key = "\(event.calendarItemIdentifier)-\(event.startDate.timeIntervalSince1970)"
             guard checked.insert(key).inserted else { continue }
             monitor.refresh(force: true)
-            let problems = CallLinks.preCallProblems(readiness: monitor.readiness)
+            let problems = CallLinks.preCallProblems(monitor.readyCheck)
             guard let first = problems.first else { continue }
             let title = event.title.flatMap { $0.isEmpty ? nil : $0 } ?? "Your call"
             let more = problems.count > 1 ? " And \(problems.count - 1) more in Green Room." : ""
             alerts.sendCallCheck(
-                title: "\(title) starts in 2 minutes", body: first.message + "." + more, fix: first.fix
+                title: "\(title) starts in 2 minutes", body: first.sentence + more, fix: first.fix
             )
         }
     }

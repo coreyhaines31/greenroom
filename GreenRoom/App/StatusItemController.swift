@@ -126,13 +126,13 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
     }
 
     private func refreshButton() {
-        let problems = monitor.advisories.map(\.title) + {
-            if case .notReady(let issues) = monitor.readiness { return issues.map(\.message) }
-            return []
-        }()
+        let check = monitor.readyCheck
+        // The mic's message ends the label, since it's already a full sentence.
+        let problems = check.advisories.map(\.title) + check.mismatches.map(\.message)
+            + [check.micProblem?.message].compactMap { $0 }
         let (symbol, label): (String, String) = if !problems.isEmpty {
             ("exclamationmark.triangle.fill", problems.joined(separator: ". "))
-        } else if monitor.readiness == .ready {
+        } else if check.readiness == .ready {
             ("web.camera.fill", "Green Room: ready")
         } else {
             ("web.camera", "Green Room")

@@ -6,19 +6,27 @@ struct StatusHeader: View {
     let monitor: DeviceMonitor
 
     var body: some View {
-        switch monitor.readiness {
-        case .noSetup:
-            proposal
-        case .ready:
-            Label("Ready: \(monitor.setup?.name ?? "your setup")", systemImage: "checkmark.circle.fill")
-                .font(.headline).foregroundStyle(.green)
-        case .notReady(let issues):
-            VStack(alignment: .leading, spacing: 8) {
-                Label("Not ready", systemImage: "exclamationmark.triangle.fill")
-                    .font(.headline).foregroundStyle(.orange)
-                ForEach(issues, id: \.message) { issue in
-                    IssueRow(issue: issue, fix: { monitor.select($0) }, ignore: { monitor.ignore(app: $0) })
+        let check = monitor.readyCheck
+        VStack(alignment: .leading, spacing: 14) {
+            if !check.isReady {
+                // Call-mode advisories have their own cards just below.
+                VStack(alignment: .leading, spacing: 8) {
+                    Label("Not ready", systemImage: "exclamationmark.triangle.fill")
+                        .font(.headline).foregroundStyle(.orange)
+                    ForEach(check.mismatches, id: \.message) { issue in
+                        IssueRow(issue: issue, fix: { monitor.select($0) }, ignore: { monitor.ignore(app: $0) })
+                    }
+                    if let micProblem = check.micProblem {
+                        Text(micProblem.message).font(.callout)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
+            }
+            if check.readiness == .noSetup {
+                proposal
+            } else if check.isReady {
+                Label("Ready: \(monitor.setup?.name ?? "your setup")", systemImage: "checkmark.circle.fill")
+                    .font(.headline).foregroundStyle(.green)
             }
         }
     }

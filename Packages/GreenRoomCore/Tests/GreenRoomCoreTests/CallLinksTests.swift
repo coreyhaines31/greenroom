@@ -12,10 +12,20 @@ struct CallLinksTests {
     @Test func skipsInCallOnlyProblems() {
         let shure = Device(id: "mv7", name: "Shure MV7", kind: .microphone, transport: .usb)
         let mac = Device(id: "mac", name: "MacBook Pro Microphone", kind: .microphone, transport: .builtIn)
-        let readiness = Readiness.notReady([
+        let check = ReadyCheck(readiness: .notReady([
             Mismatch(kind: .microphone, expected: shure, problem: .appUsing(app: "zoom.us", actual: mac)),
             Mismatch(kind: .speaker, expected: shure, problem: .missing)
-        ])
-        #expect(CallLinks.preCallProblems(readiness: readiness).map(\.problem) == [.missing])
+        ]))
+        #expect(CallLinks.preCallProblems(check).map(\.sentence) == ["Shure MV7 isn't connected."])
+    }
+
+    @Test func warnsAboutAMutedMicBeforeACall() {
+        let mac = Device(id: "mac", name: "MacBook Pro Microphone", kind: .microphone, transport: .builtIn)
+        let snapshot = Snapshot(devices: [.microphone: [mac]], active: [.microphone: mac])
+        let matching = ReadyCheck.evaluate(snapshot, setup: .current(snapshot, name: "Desk"), micProblem: .muted)
+        #expect(CallLinks.preCallProblems(matching).map(\.sentence) == [MicProblem.muted.message])
+        // With no setup saved, a muted mic still gets the heads-up.
+        let noSetup = ReadyCheck.evaluate(snapshot, setup: nil, micProblem: .volumeZero)
+        #expect(CallLinks.preCallProblems(noSetup).map(\.sentence) == [MicProblem.volumeZero.message])
     }
 }
