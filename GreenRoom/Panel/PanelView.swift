@@ -148,7 +148,9 @@ struct PanelView: View {
                         .help("Records five seconds and plays them back, so you hear what others will. "
                             + "Nothing is saved.")
                 }
-                if let problem = monitor.micProblem ?? (checks.meter.isSilent ? .silent : nil) {
+                // A muted or zero-volume mic is already in the "Not ready" header, so only show the rest here.
+                if let problem = monitor.readyCheck.micProblem == nil
+                    ? monitor.micProblem ?? (checks.meter.isSilent ? .silent : nil) : nil {
                     Label(problem.message, systemImage: "exclamationmark.triangle.fill")
                         .font(.caption).foregroundStyle(.orange)
                         .fixedSize(horizontal: false, vertical: true)
