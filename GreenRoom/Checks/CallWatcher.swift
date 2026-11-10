@@ -72,10 +72,16 @@ final class CallWatcher {
         guard Self.hasAccess else { return false }
         let predicate = store.predicateForEvents(withStart: now, end: now.addingTimeInterval(1), calendars: nil)
         return store.events(matching: predicate).contains { event in
-            !event.isAllDay && event.status != .canceled && event.startDate <= now && event.endDate > now
-                && !(event.attendees?.contains { $0.isCurrentUser && $0.participantStatus == .declined } ?? false)
-                && CallLinks.isVideoCall([event.location, event.notes, event.url?.absoluteString])
+            event.startDate <= now && event.endDate > now && Self.isCallToJoin(event)
         }
+    }
+
+    private static func isCallToJoin(_ event: EKEvent) -> Bool {
+        CallLinks.isCallToJoin(
+            isAllDay: event.isAllDay, isCanceled: event.status == .canceled,
+            isDeclined: event.attendees?.contains { $0.isCurrentUser && $0.participantStatus == .declined } ?? false,
+            texts: [event.location, event.notes, event.url?.absoluteString]
+        )
     }
 
     private func check() {
@@ -84,19 +90,18 @@ final class CallWatcher {
         let window = now.addingTimeInterval(Self.lead.lowerBound)...now.addingTimeInterval(Self.lead.upperBound)
         let predicate = store.predicateForEvents(withStart: now, end: window.upperBound, calendars: nil)
         let calls = store.events(matching: predicate).filter { event in
-            !event.isAllDay && window.contains(event.startDate)
-                && CallLinks.isVideoCall([event.location, event.notes, event.url?.absoluteString])
+            window.contains(event.startDate) && Self.isCallToJoin(event)
         }
         for event in calls {
             let key = "\(event.calendarItemIdentifier)-\(event.startDate.timeIntervalSince1970)"
             guard checked.insert(key).inserted else { continue }
             monitor.refresh(force: true)
-            let problems = CallLinks.preCallProblems(readiness: monitor.readiness)
+            let problems = CallLinks.preCallProblems(monitor.readyCheck)
             guard let first = problems.first else { continue }
             let title = event.title.flatMap { $0.isEmpty ? nil : $0 } ?? "Your call"
             let more = problems.count > 1 ? " And \(problems.count - 1) more in Green Room." : ""
             alerts.sendCallCheck(
-                title: "\(title) starts in 2 minutes", body: first.message + "." + more, fix: first.fix
+                title: "\(title) starts in 2 minutes", body: first.sentence + more, fix: first.fix
             )
         }
     }
