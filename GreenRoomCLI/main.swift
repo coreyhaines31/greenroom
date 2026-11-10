@@ -121,7 +121,13 @@ case "devices":
     }
 
 case "history":
-    let limit = option("--limit", in: arguments).flatMap(Int.init) ?? 20
+    var limit = 20
+    if let raw = option("--limit", in: arguments) {
+        guard let value = Int(raw), value >= 1 else {
+            fail("--limit needs a whole number of 1 or more, like --limit 20.")
+        }
+        limit = value
+    }
     let events = Array(history.events.suffix(limit).reversed())
     if json {
         printJSON(events)
