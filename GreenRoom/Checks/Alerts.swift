@@ -52,7 +52,8 @@ final class Alerts: NSObject, UNUserNotificationCenterDelegate {
     }
 
     private func currentProblems() -> Set<String> {
-        Set(Self.mismatches(monitor.readiness).map(\.message) + monitor.advisories.map(\.title))
+        Set(Self.mismatches(monitor.readiness).map(\.message) + monitor.advisories.map(\.title)
+            + [monitor.readyCheck.micProblem?.message].compactMap { $0 })
     }
 
     private func check() {
@@ -62,6 +63,7 @@ final class Alerts: NSObject, UNUserNotificationCenterDelegate {
         let advisories = monitor.advisories
         let freshMismatches = mismatches.filter { !announced.contains($0.message) }
         let freshAdvisories = advisories.filter { !announced.contains($0.title) }
+        let freshMicProblem = monitor.readyCheck.micProblem.flatMap { announced.contains($0.message) ? nil : $0 }
         announced = currentProblems()
         guard Self.isEnabled else { return }
 
@@ -73,6 +75,12 @@ final class Alerts: NSObject, UNUserNotificationCenterDelegate {
         }
         for advisory in freshAdvisories {
             send(title: advisory.title, body: advisory.message, fix: advisory.fix, verb: "Use")
+        }
+        if let freshMicProblem {
+            send(
+                title: freshMicProblem.message,
+                body: "Unmute it or turn up its input volume in System Settings › Sound."
+            )
         }
         let covered = Set(freshMismatches.map(\.expected.id))
         var seen = Set<String>()
