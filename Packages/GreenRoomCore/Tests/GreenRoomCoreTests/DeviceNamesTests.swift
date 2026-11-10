@@ -46,3 +46,21 @@ struct DeviceNamesTests {
         #expect(DeviceNames.load(defaults).isHidden(macMic))
     }
 }
+
+struct CurrentDevicesTests {
+    let usbMic = Device(id: "usb-1", name: "USB Audio Device", kind: .microphone, transport: .usb)
+
+    @Test func reportsDevicesAndSetupsByTheirNicknames() {
+        var names = DeviceNames()
+        names.setNickname("Lapel mic", for: "usb-1")
+        let scanned = Snapshot(devices: [.microphone: [usbMic]], active: [.microphone: usbMic])
+        let desk = Setup(name: "Desk", devices: [.microphone: usbMic])
+
+        let current = CurrentDevices(scanned: scanned, setups: [desk], names: names, ignoredApps: [])
+        let report = current.report(history: DeviceHistory(), usbProducts: [], now: .now) { _ in nil }
+
+        #expect(current.setup?.devices[.microphone]?.name == "Lapel mic")
+        #expect(report.setup == "Desk")
+        #expect(report.inUse.map(\.name) == ["Lapel mic"])
+    }
+}
