@@ -196,7 +196,7 @@ struct PanelView: View {
     }
 }
 
-/// Settings, updates, and quit. The toggles live in the Settings window.
+/// Settings, updates, feedback, and quit. The toggles live in the Settings window.
 struct OptionsMenu: View {
     let updater: Updater
     let showSettings: () -> Void
@@ -206,6 +206,7 @@ struct OptionsMenu: View {
             Button("Settings…", action: showSettings)
                 .keyboardShortcut(",")
             Button("Check for Updates…") { updater.checkForUpdates() }
+            Button("Send Feedback…") { Feedback.open() }
             Divider()
             Button("Quit Green Room") { NSApp.terminate(nil) }
         } label: {
