@@ -65,7 +65,14 @@ struct PanelView: View {
                     CameraPreview(session: checks.camera.session)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                 } else {
-                    Text(cameraMessage).font(.callout).foregroundStyle(.secondary).padding()
+                    VStack(spacing: 8) {
+                        Text(cameraMessage).font(.callout).foregroundStyle(.secondary)
+                        if cameraDenied {
+                            Button("Open Settings") { PrivacySettings.open(.camera) }
+                                .controlSize(.small)
+                        }
+                    }
+                    .padding()
                 }
             }
             // 16:9 at the panel's 308pt content width.
@@ -94,12 +101,14 @@ struct PanelView: View {
         }
     }
 
+    private var cameraDenied: Bool {
+        !monitor.snapshot.devices(.camera).isEmpty
+            && (checks.cameraAccess == .denied || checks.cameraAccess == .restricted)
+    }
+
     private var cameraMessage: String {
         if monitor.snapshot.devices(.camera).isEmpty { return "No camera connected" }
-        return switch checks.cameraAccess {
-        case .denied, .restricted: "Allow camera access in System Settings › Privacy & Security"
-        default: "Starting camera…"
-        }
+        return cameraDenied ? "Allow camera access in System Settings › Privacy & Security" : "Starting camera…"
     }
 
     private var microphoneSection: some View {
@@ -116,8 +125,14 @@ struct PanelView: View {
                               levels: checks.inputs.levels) { monitor.select($0) }
             }
             if checks.micAccess == .denied || checks.micAccess == .restricted {
-                Text("Allow microphone access in System Settings › Privacy & Security")
-                    .font(.caption).foregroundStyle(.secondary)
+                HStack(spacing: 10) {
+                    Text("Allow microphone access in System Settings › Privacy & Security")
+                        .font(.caption).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Button("Open Settings") { PrivacySettings.open(.microphone) }
+                        .controlSize(.small)
+                        .fixedSize()
+                }
             } else {
                 HStack(spacing: 10) {
                     LevelMeter(level: checks.meter.level)

@@ -20,6 +20,9 @@ struct MicWatchSection: View {
             .disabled(changing || !MicWatch.isSupported)
             Text(MicWatch.isSupported ? watch.status : "Requires macOS 14.2 or later.")
                 .font(.caption).foregroundStyle(.secondary)
+            if MicWatch.isSupported, watch.needsAccess {
+                Button("Open Microphone Settings") { PrivacySettings.open(.microphone) }
+            }
             Text("A quiet pause can also trigger a warning. Apps that keep their mic open "
                  + "get one check until they release it. Ignored apps are skipped.")
                 .font(.caption).foregroundStyle(.secondary)

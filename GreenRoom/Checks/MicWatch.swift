@@ -8,6 +8,8 @@ import Observation
 final class MicWatch {
     private(set) var isEnabled = UserDefaults.standard.bool(forKey: "checkMicOnUse")
     private(set) var status = "Checks briefly when another app opens a mic. Audio is never saved."
+    /// Mic access was refused, so the section offers the Privacy pane.
+    private(set) var needsAccess = false
     @ObservationIgnored private let monitor: DeviceMonitor
     @ObservationIgnored private let warning = MicWarningPanel()
     @ObservationIgnored private var timer: Timer?
@@ -32,7 +34,8 @@ final class MicWatch {
         }
         isEnabled = enabled && Self.isSupported && AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
         UserDefaults.standard.set(isEnabled, forKey: "checkMicOnUse")
-        status = enabled && !isEnabled ? "Allow microphone access in System Settings → Privacy & Security."
+        needsAccess = enabled && !isEnabled && Self.isSupported
+        status = needsAccess ? "Allow microphone access in System Settings → Privacy & Security."
             : "Checks briefly when another app opens a mic. Audio is never saved."
         start()
     }
@@ -65,6 +68,7 @@ final class MicWatch {
     private func tick() {
         guard AVCaptureDevice.authorizationStatus(for: .audio) == .authorized else {
             reset()
+            needsAccess = true
             status = "Allow microphone access in System Settings → Privacy & Security."
             return
         }
