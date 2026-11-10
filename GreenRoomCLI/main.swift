@@ -26,10 +26,7 @@ func option(_ name: String, in arguments: [String]) -> String? {
 }
 
 func printJSON<T: Encodable>(_ value: T) {
-    let encoder = JSONEncoder()
-    encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-    encoder.dateEncodingStrategy = .iso8601
-    if let data = try? encoder.encode(value) { print(String(bytes: data, encoding: .utf8) ?? "") }
+    if let text = JSONOutput.string(value) { print(text) }
 }
 
 func fail(_ message: String) -> Never {
@@ -58,13 +55,8 @@ case "status":
     )) : nil
     if json {
         // The status fields stay at the top level either way; --recording adds one key.
-        if let recording,
-           let base = try? JSONSerialization.jsonObject(with: JSONEncoder().encode(report)) as? [String: Any],
-           let extra = try? JSONSerialization.jsonObject(with: JSONEncoder().encode(recording)) {
-            var merged = base
-            merged["recording"] = extra
-            let data = try? JSONSerialization.data(withJSONObject: merged, options: [.prettyPrinted, .sortedKeys])
-            print(data.flatMap { String(bytes: $0, encoding: .utf8) } ?? "{}")
+        if let recording {
+            print(JSONOutput.string(report, adding: "recording", recording) ?? "{}")
         } else {
             printJSON(report)
         }
