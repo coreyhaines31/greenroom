@@ -26,10 +26,7 @@ func option(_ name: String, in arguments: [String]) -> String? {
 }
 
 func printJSON<T: Encodable>(_ value: T) {
-    let encoder = JSONEncoder()
-    encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-    encoder.dateEncodingStrategy = .iso8601
-    if let data = try? encoder.encode(value) { print(String(bytes: data, encoding: .utf8) ?? "") }
+    if let text = JSONOutput.string(value) { print(text) }
 }
 
 func fail(_ message: String) -> Never {
@@ -39,32 +36,28 @@ func fail(_ message: String) -> Never {
 
 let appDefaults = UserDefaults(suiteName: Storage.defaultsDomain)
 let ignoredApps = Set(appDefaults?.stringArray(forKey: "ignoredApps") ?? [])
-let names = appDefaults.map(DeviceNames.load) ?? DeviceNames()
-let snapshot = names.apply(DeviceScanner.snapshot()).ignoring(apps: ignoredApps)
-let history = Storage.loadHistory()
+let current = CurrentDevices(
+    scanned: DeviceScanner.snapshot(), setups: appDefaults.map { Storage.loadSetups($0, repair: false) } ?? [],
+    names: appDefaults.map(DeviceNames.load) ?? DeviceNames(), ignoredApps: ignoredApps
+)
+let snapshot = current.snapshot
+// Read-only: the command never moves or rewrites the app's data, even when it can't read it.
+let history = Storage.loadHistory(repair: false)
 let usb = USBDevices.productNames()
-let setups = (appDefaults.map(Storage.loadSetups) ?? []).map(names.apply)
-let setup = Setup.bestMatch(setups, snapshot: snapshot)
+let setups = current.setups
+let setup = current.setup
 
 switch arguments.first {
 case "status":
-    let report = StatusReport.make(
-        snapshot: snapshot, setup: setup, history: history, usbProducts: usb,
-        micProblem: snapshot.active(.microphone).flatMap(AudioHardware.micProblem), now: .now
-    )
+    let report = current.report(history: history, usbProducts: usb, now: .now)
     let recording = arguments.contains("--recording") ? RecordingCheck.evaluate(RecordingCheck.currentInputs(
         camera: snapshot.active(.camera) ?? snapshot.devices(.camera).first, mic: snapshot.active(.microphone),
         sampleRates: snapshot.sampleRates
     )) : nil
     if json {
         // The status fields stay at the top level either way; --recording adds one key.
-        if let recording,
-           let base = try? JSONSerialization.jsonObject(with: JSONEncoder().encode(report)) as? [String: Any],
-           let extra = try? JSONSerialization.jsonObject(with: JSONEncoder().encode(recording)) {
-            var merged = base
-            merged["recording"] = extra
-            let data = try? JSONSerialization.data(withJSONObject: merged, options: [.prettyPrinted, .sortedKeys])
-            print(data.flatMap { String(bytes: $0, encoding: .utf8) } ?? "{}")
+        if let recording {
+            print(JSONOutput.string(report, adding: "recording", recording) ?? "{}")
         } else {
             printJSON(report)
         }
@@ -129,7 +122,13 @@ case "devices":
     }
 
 case "history":
-    let limit = option("--limit", in: arguments).flatMap(Int.init) ?? 20
+    var limit = 20
+    if let raw = option("--limit", in: arguments) {
+        guard let value = Int(raw), value >= 1 else {
+            fail("--limit needs a whole number of 1 or more, like --limit 20.")
+        }
+        limit = value
+    }
     let events = Array(history.events.suffix(limit).reversed())
     if json {
         printJSON(events)

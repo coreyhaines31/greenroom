@@ -64,15 +64,12 @@ struct CheckSetupIntent: AppIntent {
     )
 
     func perform() async throws -> some IntentResult & ReturnsValue<Bool> & ProvidesDialog {
-        let snapshot = DeviceScanner.snapshot()
         let defaults = UserDefaults.standard
-        let ignored = Set(defaults.stringArray(forKey: "ignoredApps") ?? [])
-        let report = StatusReport.make(
-            snapshot: snapshot.ignoring(apps: ignored),
-            setup: Setup.bestMatch(Storage.loadSetups(defaults), snapshot: snapshot),
-            history: Storage.loadHistory(), usbProducts: USBDevices.productNames(),
-            micProblem: snapshot.active(.microphone).flatMap(AudioHardware.micProblem), now: .now
+        let current = CurrentDevices(
+            scanned: DeviceScanner.snapshot(), setups: Storage.loadSetups(defaults),
+            names: DeviceNames.load(defaults), ignoredApps: Set(defaults.stringArray(forKey: "ignoredApps") ?? [])
         )
+        let report = current.report(history: Storage.loadHistory(), usbProducts: USBDevices.productNames(), now: .now)
         if report.ready {
             return .result(value: true, dialog: "You're ready\(report.setup.map { ": \($0) matches" } ?? "").")
         }

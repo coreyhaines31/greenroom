@@ -25,13 +25,14 @@ final class DeviceMonitor {
     var setup: Setup? { Setup.bestMatch(setups, snapshot: snapshot).map(names.apply) }
     var readiness: Readiness { Readiness.evaluate(snapshot.ignoring(apps: ignoredApps), setup: setup) }
     var advisories: [Advisory] { Advisory.evaluate(snapshot.ignoring(apps: ignoredApps)) }
+    /// Ready or not: the same answer `greenroom status` and Shortcuts give.
+    var readyCheck: ReadyCheck {
+        ReadyCheck.evaluate(snapshot.ignoring(apps: ignoredApps), setup: setup, micProblem: micProblem)
+    }
     /// What "Save as my setup" saves before there is one: the devices used most, from history.
     var proposedSetup: Setup { Setup.proposed(history: history, snapshot: snapshot, now: .now) }
     var flaky: [FlakyDevice] { FlakyDevice.find(in: history, now: .now) }
-    var needsAttention: Bool {
-        if case .notReady = readiness { return true }
-        return !advisories.isEmpty
-    }
+    var needsAttention: Bool { !readyCheck.isReady }
 
     @ObservationIgnored var onChange: (() -> Void)?
     /// New timeline events from each device change, for alerts.

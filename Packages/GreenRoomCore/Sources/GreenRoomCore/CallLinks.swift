@@ -15,13 +15,26 @@ public enum CallLinks {
         return hosts.contains { haystack.contains($0) }
     }
 
-    /// The readiness problems worth a heads-up before a call, most important first.
-    public static func preCallProblems(readiness: Readiness) -> [Mismatch] {
-        guard case .notReady(let mismatches) = readiness else { return [] }
+    /// A video call you're going to: not all day, not canceled, and not one you declined.
+    public static func isCallToJoin(isAllDay: Bool, isCanceled: Bool, isDeclined: Bool, texts: [String?]) -> Bool {
+        !isAllDay && !isCanceled && !isDeclined && isVideoCall(texts)
+    }
+
+    /// Something to fix before a call, as a sentence for the alert.
+    public struct PreCallProblem: Sendable, Equatable {
+        public let sentence: String
+        public let fix: Device?
+    }
+
+    /// What makes you not ready that's worth a heads-up before a call, most important first.
+    public static func preCallProblems(_ check: ReadyCheck) -> [PreCallProblem] {
         // An app using the wrong device only matters once the call has started.
-        return mismatches.filter {
+        let mismatches = check.mismatches.filter {
             if case .appUsing = $0.problem { return false }
             return true
         }
+        return mismatches.map { PreCallProblem(sentence: $0.message + ".", fix: $0.fix) }
+            + (check.micProblem.map { [PreCallProblem(sentence: $0.message, fix: nil)] } ?? [])
+            + check.advisories.map { PreCallProblem(sentence: $0.title + ".", fix: $0.fix) }
     }
 }
