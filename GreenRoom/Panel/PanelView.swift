@@ -36,6 +36,11 @@ struct PanelView: View {
             ForEach(monitor.advisories, id: \.device.id) { advisory in
                 AdvisoryCard(advisory: advisory) { monitor.select($0) }
             }
+            if let failure = monitor.switchFailure {
+                Label(failure, systemImage: "exclamationmark.triangle.fill")
+                    .font(.caption).foregroundStyle(.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             cameraSection
             microphoneSection
             speakerSection
