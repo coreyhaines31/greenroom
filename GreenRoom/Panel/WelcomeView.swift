@@ -46,12 +46,16 @@ struct WelcomeView: View {
 
             HStack {
                 Spacer()
-                Button("Done") { finish() }
+                Button("Done", action: done)
                     .keyboardShortcut(.defaultAction)
             }
         }
         .padding(24)
         .frame(width: 460)
+        // Applied as you toggle, like Settings, so closing the window keeps what you picked.
+        .onChange(of: alerts) { Alerts.isEnabled = alerts }
+        .onChange(of: keepSetup) { KeepSetup.isEnabled = keepSetup }
+        .onChange(of: openAtLogin) { openAtLogin = LoginItem.set(openAtLogin) }
     }
 
     @ViewBuilder
@@ -79,12 +83,5 @@ struct WelcomeView: View {
                     .foregroundStyle(.green)
             }
         }
-    }
-
-    private func finish() {
-        Alerts.isEnabled = alerts
-        KeepSetup.isEnabled = keepSetup
-        _ = LoginItem.set(openAtLogin)
-        done()
     }
 }
