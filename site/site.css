@@ -1,55 +1,49 @@
-/* Green Room: quiet Apple-style neutrals, one green accent. */
+/* Green Room on the Brushed family look. brushed.css holds the shared tokens and components;
+   these site tokens point at them, so every page and dark mode follow. Colour only in lights and readings. */
 :root {
-  --bg: #f5f5f7;
-  --surface: #ffffff;
-  --ink: #1d1d1f;
-  --muted: #6e6e73;
-  --line: rgba(0, 0, 0, 0.08);
-  --green-900: #1d1d1f;
-  --green-700: #0f7a44;
-  --green-500: #1fa35f;
-  --mint: #30d158;
-  --mint-ink: #12884b;
-  --orange: #c4620a;
-  --cta: #1fa35f;
-  --cta-ink: #ffffff;
-  --cta-hover: #1b9254;
-  --menu: rgba(246, 246, 248, 0.92);
-  --menu-ink: #1d1d1f;
-  --menu-muted: #6e6e73;
-  --menu-orange: #d26a00;
-  --control: #ffffff;
-  --control-line: rgba(0, 0, 0, 0.12);
-  --mac-accent: #0a84ff;
-  --code-bg: #1d1d1f;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06), 0 24px 60px rgba(0, 0, 0, 0.08);
-  --radius: 18px;
-  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --bx-accent: #8448c9;
+  --bg: var(--bx-page);
+  --surface: var(--bx-card);
+  --ink: var(--bx-ink);
+  --muted: var(--bx-muted);
+  --line: var(--bx-rule);
+  --green-900: var(--bx-ink);
+  --green-700: var(--bx-ink);
+  --green-500: var(--bx-ink2);
+  --mint: var(--bx-go);
+  --mint-ink: var(--bx-ink);
+  --orange: var(--bx-ink);
+  --warn: var(--bx-ca);
+  --cta: var(--bx-btn);
+  --cta-ink: var(--bx-btn-ink);
+  --cta-hover: var(--bx-btn);
+  --menu: #eeeeed;
+  --menu-ink: #161616;
+  --menu-muted: #66686a;
+  --menu-orange: #d9921a;
+  --control: #f8f8f7;
+  --control-line: #9c9ea0;
+  --mac-accent: #2c2c2d;
+  --code-bg: #1b1b1b;
+  --shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+  --pop-shadow: 0 18px 40px rgba(0, 0, 0, 0.32), 0 2px 6px rgba(0, 0, 0, 0.14), 0 0 0 0.5px rgba(0, 0, 0, 0.35);
+  --radius: 10px;
+  --font: var(--bx-body);
+  --display: var(--bx-display);
+  --mono: var(--bx-mono);
   color-scheme: light;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #000000;
-    --surface: #1c1c1e;
-    --ink: #f5f5f7;
-    --muted: #a1a1a6;
-    --line: rgba(255, 255, 255, 0.1);
-    --mint-ink: #30d158;
-    --orange: #ff9f0a;
-    --cta: #30d158;
-    --cta-ink: #04210f;
-    --cta-hover: #4cdb6f;
-    --menu: rgba(44, 44, 46, 0.92);
-    --menu-ink: #f5f5f7;
-    --menu-muted: #a1a1a6;
-    --menu-orange: #ff9f0a;
-    --control: rgba(255, 255, 255, 0.12);
-    --control-line: rgba(255, 255, 255, 0.1);
-    --code-bg: #1c1c1e;
-    --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 12px 32px rgba(0, 0, 0, 0.5);
+    --menu: #161617;
+    --menu-ink: #e6e7e8;
+    --menu-muted: #9a9c9e;
+    --menu-orange: #f2b23a;
+    --control: #0f0f10;
+    --control-line: #4a4c4e;
+    --mac-accent: #8f9193;
+    --code-bg: #0c0c0d;
     color-scheme: dark;
   }
 }
@@ -58,33 +52,31 @@
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 body {
   margin: 0;
-  /* Soft glows behind the nav and hero, like the other apps' sites. */
-  background:
-    radial-gradient(560px 420px at 10% 0, rgba(48, 209, 88, 0.16), transparent 70%) no-repeat,
-    radial-gradient(620px 460px at 92% 120px, rgba(10, 132, 255, 0.10), transparent 70%) no-repeat,
-    var(--bg);
+  background: var(--bx-page);
   color: var(--ink);
   font: 17px/1.55 var(--font);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  position: relative;
 }
 a { color: inherit; }
 img { display: block; }
 code { font: 0.86em var(--mono); }
 h1, h2, h3 { margin: 0; }
-h1, h2 { font-family: var(--display); font-weight: 700; letter-spacing: -0.035em; line-height: 1.05; }
-h2 { font-size: clamp(34px, 4.6vw, 52px); text-wrap: balance; }
-h3 { font-size: 19px; line-height: 1.25; letter-spacing: -0.01em; font-weight: 650; }
-h1 em, h2 em { color: var(--mint-ink); font-style: normal; }
+h1, h2 { font-family: var(--display); font-weight: 700; letter-spacing: 0; line-height: 1.04; }
+h2 { font-size: clamp(30px, 3.6vw, 44px); text-wrap: balance; }
+h3 { font-family: var(--display); font-size: 21px; line-height: 1.2; font-weight: 600; }
+h1 em, h2 em { color: inherit; font-style: normal; font-weight: 300; }
 p { margin: 0; }
 
-.wrap { max-width: 1140px; margin: 0 auto; padding: 0 16px; }
+.wrap { max-width: var(--bx-max); margin: 0 auto; padding: 0 20px; }
 .wrap.narrow { max-width: 780px; }
 section { padding: clamp(64px, 8vw, 96px) 0; }
 @media (min-width: 720px) { .wrap { padding: 0 32px; } }
 
-.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
-.section-lede { color: var(--muted); font-size: 20px; line-height: 1.5; max-width: 38em; margin-top: 18px; }
+.eyebrow { font: 600 12px/1 var(--display); letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+main > section + section { border-top: 1px solid var(--line); }
+.section-lede { color: var(--bx-ink2); font-size: 19px; line-height: 1.5; max-width: 62ch; margin-top: 14px; }
 
 /* Nav: a floating frosted pill */
 .nav { position: sticky; top: 12px; z-index: 10; padding: 0 12px; }
