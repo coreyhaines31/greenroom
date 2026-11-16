@@ -1,5 +1,6 @@
 import AVFoundation
 import GreenRoomCore
+import PanelKit
 import SwiftUI
 
 /// How tall the panel may get: the room below the menu bar on the screen it opens on.
@@ -23,23 +24,25 @@ struct PanelView: View {
     /// Scrolls only when the screen is too short for everything, like a teleprompter display.
     var body: some View {
         ScrollView {
-            content
+            panel
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { contentHeight = $0 }
         }
         .scrollBounceBehavior(.basedOnSize)
-        .frame(width: 340, height: contentHeight.map { min($0, fit.maxHeight) })
+        .frame(width: Panel<EmptyView, EmptyView>.width, height: contentHeight.map { min($0, fit.maxHeight) })
     }
 
-    private var content: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            StatusHeader(monitor: monitor)
+    private var panel: some View {
+        Panel(accent: PanelAccent.greenRoom) {
+            fascia
+            StatusVerdict(
+                check: monitor.readyCheck, setupName: monitor.setup?.name, proposed: monitor.proposedSetup,
+                select: { monitor.select($0) }, ignore: { monitor.ignore(app: $0) }
+            )
             ForEach(monitor.advisories, id: \.device.id) { advisory in
                 AdvisoryCard(advisory: advisory) { monitor.select($0) }
             }
             if let failure = monitor.switchFailure {
-                Label(failure, systemImage: "exclamationmark.triangle.fill")
-                    .font(.caption).foregroundStyle(.orange)
-                    .fixedSize(horizontal: false, vertical: true)
+                PanelNote(text: failure, caution: true)
             }
             cameraSection
             microphoneSection
@@ -51,59 +54,80 @@ struct PanelView: View {
                 flakySection
             }
             RecordingSection(monitor: monitor)
-            Divider()
-            footer
+        } footer: {
+            PanelFooter(monitor: monitor, updater: updater, closePanel: closePanel,
+                        showHistory: showHistory, showSettings: showSettings)
         }
-        .padding(16)
-        .frame(width: 340)
         .onChange(of: monitor.previewCamera) { checks.restartCamera() }
         .onChange(of: monitor.snapshot.active(.microphone)) { checks.restartMeter() }
         .onChange(of: monitor.snapshot.devices(.microphone)) { checks.restartCompare() }
     }
 
-    private var cameraSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            DevicePicker(kind: .camera, monitor: monitor, selected: monitor.previewCamera)
-            ZStack {
-                RoundedRectangle(cornerRadius: 8).fill(.black)
-                if checks.cameraAccess == .authorized, monitor.previewCamera != nil {
-                    CameraPreview(session: checks.camera.session)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                } else {
-                    VStack(spacing: 8) {
-                        Text(cameraMessage).font(.callout).foregroundStyle(.secondary)
-                        if cameraDenied {
-                            Button("Open Settings") { PrivacySettings.open(.camera) }
-                                .controlSize(.small)
-                        }
-                    }
-                    .padding()
+    // MARK: Camera
+
+    /// The metal fascia: the live preview in a chrome bezel, the framing tip, and the camera's name.
+    private var fascia: some View {
+        Fascia(nameplate: "Frame", timestamp: monitor.setup.map { "\($0.name) setup" }, label: cameraLabel) {
+            VStack(spacing: 8) {
+                ChromeBezel {
+                    cameraWindow
                 }
-            }
-            // 16:9 at the panel's 308pt content width.
-            .frame(maxWidth: .infinity)
-            .frame(height: 173)
-            .overlay(alignment: .topTrailing) {
-                if monitor.previewCamera != nil {
-                    Button(action: showRecordPreview) {
-                        Image(systemName: "arrow.up.left.and.arrow.down.right")
-                            .font(.callout.weight(.semibold))
-                            .padding(7)
-                            .background(.black.opacity(0.45), in: Circle())
-                            .foregroundStyle(.white)
-                    }
-                    .buttonStyle(.plain)
-                    .padding(8)
-                    .help("Record preview: the camera full screen, with your mic and speaker")
-                    .accessibilityLabel("Record preview")
+                if let advice = checks.camera.advice {
+                    TipStrip(text: advice)
                 }
-            }
-            if let advice = checks.camera.advice {
-                Label(advice, systemImage: "lightbulb")
-                    .font(.caption).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
             }
         }
+    }
+
+    private var isPreviewing: Bool {
+        checks.cameraAccess == .authorized && monitor.previewCamera != nil
+    }
+
+    private var cameraWindow: some View {
+        ZStack {
+            Color.black
+            if isPreviewing {
+                CameraPreview(session: checks.camera.session)
+            } else {
+                VStack(spacing: 8) {
+                    Text(cameraMessage)
+                        .font(.system(size: 12))
+                        .foregroundStyle(.white.opacity(0.7))
+                        .multilineTextAlignment(.center)
+                    if cameraDenied {
+                        Button("Open Settings") { PrivacySettings.open(.camera) }
+                            .buttonStyle(MiniButtonStyle())
+                            .environment(\.colorScheme, .dark)
+                    }
+                }
+                .padding()
+            }
+        }
+        .overlay(alignment: .topLeading) {
+            if isPreviewing {
+                TallyLight("Live").padding(7)
+            }
+        }
+        .overlay(alignment: .bottomTrailing) {
+            if monitor.previewCamera != nil {
+                Button(action: showRecordPreview) {
+                    Image(systemName: "arrow.up.left.and.arrow.down.right")
+                        .font(.system(size: 11, weight: .semibold))
+                        .frame(width: 24, height: 24)
+                        .background(.black.opacity(0.5), in: RoundedRectangle(cornerRadius: 3))
+                        .foregroundStyle(.white)
+                }
+                .buttonStyle(.plain)
+                .padding(7)
+                .help("Record preview: the camera full screen, with your mic and speaker")
+                .accessibilityLabel("Record preview")
+            }
+        }
+    }
+
+    private var cameraLabel: String {
+        guard let camera = monitor.previewCamera else { return "No camera" }
+        return "\(camera.name) · \(camera.transport.label)"
     }
 
     private var cameraDenied: Bool {
@@ -116,130 +140,150 @@ struct PanelView: View {
         return cameraDenied ? "Allow camera access in System Settings › Privacy & Security" : "Starting camera…"
     }
 
+    private var cameraSection: some View {
+        DeviceSection(kind: .camera, monitor: monitor, selected: monitor.previewCamera)
+    }
+
+    // MARK: Microphone
+
+    private var micDenied: Bool { checks.micAccess == .denied || checks.micAccess == .restricted }
+
     private var microphoneSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            DevicePicker(kind: .microphone, monitor: monitor, selected: monitor.snapshot.active(.microphone)) {
-                if checks.micAccess == .authorized, monitor.snapshot.devices(.microphone).count > 1 {
+        let canCompare = checks.micAccess == .authorized && monitor.snapshot.devices(.microphone).count > 1
+        return VStack(spacing: 0) {
+            DeviceSection(kind: .microphone, monitor: monitor, selected: monitor.snapshot.active(.microphone)) {
+                if canCompare {
                     Button(checks.inputs.isOn ? "Done" : "Compare") { checks.toggleCompare() }
-                        .fixedSize()
+                        .buttonStyle(LinkButtonStyle())
                         .help("Shows a live level for every mic, so you can see which one hears you")
+                }
+            } detail: {
+                if !micDenied {
+                    LevelMeter(level: Double(checks.meter.level), segments: 12, cautionFrom: 9)
+                        .accessibilityLabel("Microphone level")
+                }
+            } trailing: {
+                if !micDenied {
+                    Button(checks.playback.buttonTitle) { checks.hearYourself() }
+                        .buttonStyle(MiniButtonStyle())
+                        .disabled(checks.playback.phase != .idle)
+                        .help("Records five seconds and plays them back, so you hear what others will. "
+                            + "Nothing is saved.")
                 }
             }
             if checks.inputs.isOn {
                 MicComparison(mics: checks.comparableMics, active: monitor.snapshot.active(.microphone),
                               levels: checks.inputs.levels) { monitor.select($0) }
+                    .padding(.horizontal, 14)
+                    .padding(.bottom, 8)
             }
-            if checks.micAccess == .denied || checks.micAccess == .restricted {
+            if micDenied {
                 HStack(spacing: 10) {
-                    Text("Allow microphone access in System Settings › Privacy & Security")
-                        .font(.caption).foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                    PanelNote(text: "Allow microphone access in System Settings › Privacy & Security")
+                        .padding(.trailing, -14)
                     Button("Open Settings") { PrivacySettings.open(.microphone) }
-                        .controlSize(.small)
-                        .fixedSize()
+                        .buttonStyle(MiniButtonStyle())
+                        .padding(.trailing, 14)
+                        .padding(.bottom, 8)
                 }
-            } else {
-                HStack(spacing: 10) {
-                    LevelMeter(level: checks.meter.level)
-                    Button(checks.playback.buttonTitle) { checks.hearYourself() }
-                        .controlSize(.small)
-                        .fixedSize()
-                        .disabled(checks.playback.phase != .idle)
-                        .help("Records five seconds and plays them back, so you hear what others will. "
-                            + "Nothing is saved.")
-                }
-                // A muted or zero-volume mic is already in the "Not ready" header, so only show the rest here.
-                if let problem = monitor.readyCheck.micProblem == nil
-                    ? monitor.micProblem ?? (checks.meter.isSilent ? .silent : nil) : nil {
-                    Label(problem.message, systemImage: "exclamationmark.triangle.fill")
-                        .font(.caption).foregroundStyle(.orange)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+            } else if let problem = micWarning {
+                PanelNote(text: problem.message, caution: true)
             }
         }
     }
 
-    private var flakySection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Keeps disconnecting").font(.caption).foregroundStyle(.secondary)
-            ForEach(monitor.flaky, id: \.device.id) { flaky in
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(flaky.message).font(.callout.weight(.medium))
-                    Text(flaky.advice).font(.caption).foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
+    /// A muted or zero-volume mic is already in the verdict, so only show the rest here.
+    private var micWarning: MicProblem? {
+        guard monitor.readyCheck.micProblem == nil else { return nil }
+        return monitor.micProblem ?? (checks.meter.isSilent ? .silent : nil)
+    }
+
+    // MARK: Speaker
+
+    private var speakerSection: some View {
+        DeviceSection(kind: .speaker, monitor: monitor, selected: monitor.snapshot.active(.speaker)) {
+            EmptyView()
+        } detail: {
+            EmptyView()
+        } trailing: {
+            Button(checks.tone.buttonTitle) { checks.tone.play() }
+                .buttonStyle(MiniButtonStyle())
+                .disabled(checks.tone.playing != nil)
         }
     }
+
+    // MARK: Missing and flaky
 
     private var missingSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Usually here, missing now").font(.caption).foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 0) {
+            SectionHeader("Usually here, missing now")
             ForEach(monitor.missing) { missing in
                 MissingRow(missing: missing)
             }
         }
     }
 
-    private var speakerSection: some View {
-        DevicePicker(kind: .speaker, monitor: monitor, selected: monitor.snapshot.active(.speaker)) {
-            Button(checks.tone.buttonTitle) { checks.tone.play() }
-                .disabled(checks.tone.playing != nil)
-        }
-    }
-
-    private var footer: some View {
-        HStack {
-            if monitor.setups.isEmpty {
-                Button("Save as my setup") { monitor.saveSetup() }
-                    .help("Remember these devices and warn when something's different")
-            } else {
-                SetupMenu(monitor: monitor, closePanel: closePanel)
+    private var flakySection: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            SectionHeader("Keeps disconnecting")
+            ForEach(monitor.flaky, id: \.device.id) { flaky in
+                FlakyRow(message: flaky.message, advice: flaky.advice)
             }
-            Button("History") { showHistory() }
-            Spacer()
-            OptionsMenu(updater: updater, showSettings: showSettings)
         }
-    }
-}
-
-/// Settings, updates, feedback, and quit. The toggles live in the Settings window.
-struct OptionsMenu: View {
-    let updater: Updater
-    let showSettings: () -> Void
-
-    var body: some View {
-        Menu {
-            Button("Settings…", action: showSettings)
-                .keyboardShortcut(",")
-            Button("Check for Updates…") { updater.checkForUpdates() }
-            Button("Send Feedback…") { Feedback.open() }
-            Divider()
-            Button("Quit Green Room") { NSApp.terminate(nil) }
-        } label: {
-            Image(systemName: "gearshape")
-        }
-        .menuIndicator(.hidden)
-        .fixedSize()
-        .accessibilityLabel("Options")
     }
 }
 
 struct MissingRow: View {
     let missing: MissingDevice
+    @Environment(\.roomTheme) private var theme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(missing.device.name).font(.callout.weight(.medium))
-            Text(summary).font(.caption).foregroundStyle(.orange)
-            Text(missing.reason.advice).font(.caption).foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 3) {
+            Text(missing.device.name)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(theme.ink)
+            HStack(spacing: 6) {
+                Circle().fill(theme.caution).frame(width: 6, height: 6).accessibilityHidden(true)
+                Text(summary).font(.system(size: 11.5)).foregroundStyle(theme.ink2)
+            }
+            Text(missing.reason.advice)
+                .font(.system(size: 11.5))
+                .foregroundStyle(theme.sub)
                 .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, 2)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 7)
+        .accessibilityElement(children: .combine)
     }
 
     private var summary: String {
         guard let lastSeen = missing.lastSeen else { return missing.reason.headline }
         return "\(missing.reason.headline) · last seen \(LastSeen.text(lastSeen))"
+    }
+}
+
+struct FlakyRow: View {
+    let message: String
+    let advice: String
+    @Environment(\.roomTheme) private var theme
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(message)
+                .font(.system(size: 12.5, weight: .semibold))
+                .foregroundStyle(theme.ink)
+                .fixedSize(horizontal: false, vertical: true)
+            Text(advice)
+                .font(.system(size: 11.5))
+                .foregroundStyle(theme.sub)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 7)
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -251,133 +295,4 @@ enum LastSeen {
         if calendar.isDateInYesterday(date) { return "yesterday \(time)" }
         return date.formatted(.dateTime.weekday(.wide).month().day())
     }
-}
-
-struct DevicePicker<Trailing: View>: View {
-    let kind: DeviceKind
-    let monitor: DeviceMonitor
-    let selected: Device?
-    /// Sits on the picker's line, like the speaker's Test button.
-    @ViewBuilder var trailing: Trailing
-
-    init(kind: DeviceKind, monitor: DeviceMonitor, selected: Device?, @ViewBuilder trailing: () -> Trailing) {
-        self.kind = kind
-        self.monitor = monitor
-        self.selected = selected
-        self.trailing = trailing()
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(kind.title).font(.caption).foregroundStyle(.secondary)
-            ViewThatFits(in: .horizontal) {
-                HStack {
-                    DeviceMenu(kind: kind, monitor: monitor, selected: selected).fixedSize()
-                    Spacer(minLength: 8)
-                    trailing
-                }
-                // A long device name gives way, so the buttons beside it stay whole.
-                HStack {
-                    DeviceMenu(kind: kind, monitor: monitor, selected: selected)
-                    trailing
-                }
-            }
-            let snapshot = monitor.snapshot.ignoring(apps: monitor.ignoredApps)
-            LiveCaption(kind: kind, snapshot: snapshot, selected: selected) {
-                monitor.ignore(app: $0)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-}
-
-/// The menu of devices of one kind. Picking one makes it the Mac's default.
-struct DeviceMenu: View {
-    let kind: DeviceKind
-    let monitor: DeviceMonitor
-    let selected: Device?
-    /// "USB", "Built-in": useful in the panel, noise on a full-screen preview.
-    var showsTransport = true
-
-    var body: some View {
-        // A hidden device still shows while it's the one in use.
-        let devices = monitor.snapshot.devices(kind).filter { !monitor.names.isHidden($0) || $0.id == selected?.id }
-        Picker(kind.title, selection: Binding(
-            get: { selected?.id ?? "" },
-            set: { id in devices.first { $0.id == id }.map { monitor.select($0) } }
-        )) {
-            if selected == nil { Text("None").tag("") }
-            ForEach(devices) { device in
-                Text(showsTransport ? "\(device.name) · \(device.transport.label)" : device.name).tag(device.id)
-            }
-        }
-        .labelsHidden()
-    }
-}
-
-extension DevicePicker where Trailing == EmptyView {
-    init(kind: DeviceKind, monitor: DeviceMonitor, selected: Device?) {
-        self.init(kind: kind, monitor: monitor, selected: selected) { EmptyView() }
-    }
-}
-
-/// Every mic with its own live level. Click one to use it.
-struct MicComparison: View {
-    let mics: [Device]
-    let active: Device?
-    let levels: [String: Float]
-    let select: (Device) -> Void
-
-    var body: some View {
-        VStack(spacing: 0) {
-            ForEach(mics) { device in
-                Button { select(device) } label: { row(device) }
-                    .buttonStyle(.plain)
-            }
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 4)
-        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
-    }
-
-    private func row(_ device: Device) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: "checkmark")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.tint)
-                .opacity(device.id == active?.id ? 1 : 0)
-            Text(device.name).lineLimit(1).truncationMode(.tail)
-            Spacer(minLength: 8)
-            if InputMeters.canMeter(device) {
-                LevelMeter(level: levels[device.id] ?? 0).frame(width: 72)
-            } else if device.id != active?.id {
-                Text("Switch to test").font(.caption).foregroundStyle(.secondary)
-                    .help(device.transport == .bluetooth
-                        ? "Opening a headset's mic drops it to call quality, so it's only tested once you use it."
-                        : "Opening the iPhone mic wakes your phone, so it's only tested once you use it.")
-            }
-        }
-        .font(.callout)
-        .padding(.vertical, 5)
-        .contentShape(Rectangle())
-    }
-}
-
-struct LevelMeter: View {
-    let level: Float
-
-    var body: some View {
-        GeometryReader { proxy in
-            ZStack(alignment: .leading) {
-                Capsule().fill(.quaternary)
-                Capsule().fill(color).frame(width: proxy.size.width * CGFloat(level))
-            }
-        }
-        .frame(height: 6)
-        .animation(.linear(duration: 0.08), value: level)
-        .accessibilityLabel("Microphone level")
-        .accessibilityValue("\(Int(level * 100)) percent")
-    }
-
-    private var color: Color { level > 0.9 ? .red : level > 0.7 ? .yellow : .green }
 }

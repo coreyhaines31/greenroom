@@ -8,9 +8,10 @@ struct SetupMenu: View {
     let monitor: DeviceMonitor
     /// The name dialog is modal, so the panel closes first instead of vanishing under it.
     let closePanel: () -> Void
+    @Environment(\.roomTheme) private var theme
 
     var body: some View {
-        Menu(monitor.setup?.name ?? "Setup") {
+        Menu {
             ForEach(monitor.setups, id: \.name) { setup in
                 Button {
                     monitor.apply(setup)
@@ -36,7 +37,21 @@ struct SetupMenu: View {
                     if ForgetPrompt.confirm(current.name) { monitor.forget(current) }
                 }
             }
+        } label: {
+            HStack(spacing: 4) {
+                Text(monitor.setup?.name ?? "Setup")
+                Image(systemName: "chevron.down").font(.system(size: 8, weight: .bold))
+            }
+            .font(.system(size: 11.5, weight: .semibold))
+            .foregroundStyle(theme.ink)
+            .padding(.vertical, 3)
+            .padding(.horizontal, 8)
+            .background(MiniKeyBackground())
+            .contentShape(Rectangle())
         }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
         .fixedSize()
         .help("Your setups. Green Room checks the one that fits what's plugged in.")
     }

@@ -1,80 +1,140 @@
 import GreenRoomCore
+import PanelKit
 import SwiftUI
 
-/// The top of the panel: ready, what's wrong with a button to fix it, or the setup to save.
-struct StatusHeader: View {
-    let monitor: DeviceMonitor
+/// Under the fascia: ready, what's wrong with buttons to fix it, or the setup to save.
+struct StatusVerdict: View {
+    let check: ReadyCheck
+    let setupName: String?
+    /// The setup guessed from history, offered before there's one.
+    let proposed: Setup
+    let select: (Device) -> Void
+    let ignore: (String) -> Void
 
     var body: some View {
-        let check = monitor.readyCheck
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 0) {
             if !check.isReady {
-                // Call-mode advisories have their own cards just below.
-                VStack(alignment: .leading, spacing: 8) {
-                    Label("Not ready", systemImage: "exclamationmark.triangle.fill")
-                        .font(.headline).foregroundStyle(.orange)
-                    ForEach(check.mismatches, id: \.message) { issue in
-                        IssueRow(issue: issue, fix: { monitor.select($0) }, ignore: { monitor.ignore(app: $0) })
-                    }
-                    if let micProblem = check.micProblem {
-                        Text(micProblem.message).font(.callout)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
+                problems(check)
             }
             if check.readiness == .noSetup {
-                proposal
+                proposal(asVerdict: check.isReady)
             } else if check.isReady {
-                Label("Ready: \(monitor.setup?.name ?? "your setup")", systemImage: "checkmark.circle.fill")
-                    .font(.headline).foregroundStyle(.green)
+                let name = setupName ?? "your setup"
+                Verdict("Ready: \(name)", message: "Everything matches your \(name) setup.",
+                        status: .go, statusLabel: "Ready")
             }
         }
     }
 
-    /// Before there's a setup, show the guess from history so saving is one click.
-    private var proposal: some View {
-        // A headset is both mic and speaker; name it once.
-        var names: [String] = []
-        for kind in DeviceKind.allCases {
-            if let name = monitor.proposedSetup.devices[kind]?.name, !names.contains(name) { names.append(name) }
+    @ViewBuilder
+    private func problems(_ check: ReadyCheck) -> some View {
+        let first = check.mismatches.first
+        // Call-mode advisories have their own cards just below.
+        let title = first?.message ?? check.micProblem?.message ?? callModeTitle(check)
+        Verdict(title, message: first.flatMap { message(for: $0, check: check) },
+                status: .caution, statusLabel: "Not ready")
+        if let first {
+            IssueActions(issue: first, fix: select, ignore: ignore)
         }
-        return VStack(alignment: .leading, spacing: 4) {
-            Label("Save your usual devices as your setup", systemImage: "web.camera")
-                .font(.headline)
-                .fixedSize(horizontal: false, vertical: true)
-            if !names.isEmpty {
-                Text("You usually use \(ListFormatter.localizedString(byJoining: names)).")
-                    .font(.callout).foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+        ForEach(check.mismatches.dropFirst(), id: \.message) { issue in
+            IssueRow(issue: issue, fix: select, ignore: ignore)
+        }
+        if first != nil, let micProblem = check.micProblem {
+            PanelNote(text: micProblem.message, caution: true)
+        }
+    }
+
+    private func callModeTitle(_ check: ReadyCheck) -> String {
+        let count = check.advisories.count
+        return count == 1 ? "A headset is in call mode" : "\(count) headsets are in call mode"
+    }
+
+    /// The issue's advice, or, when it's the only thing wrong, that the rest is fine.
+    private func message(for issue: Mismatch, check: ReadyCheck) -> String? {
+        if let advice = issue.advice { return advice }
+        let onlyIssue = check.mismatches.count == 1 && check.micProblem == nil && check.advisories.isEmpty
+        guard onlyIssue, let name = setupName else { return nil }
+        return "Everything else matches your \(name) setup."
+    }
+
+    /// Before there's a setup, show the guess from history so saving is one click.
+    @ViewBuilder
+    private func proposal(asVerdict: Bool) -> some View {
+        // A headset is both mic and speaker; name it once.
+        let names = DeviceKind.allCases.reduce(into: [String]()) { names, kind in
+            if let name = proposed.devices[kind]?.name, !names.contains(name) { names.append(name) }
+        }
+        let usual = names.isEmpty ? nil : "You usually use \(ListFormatter.localizedString(byJoining: names))."
+        if asVerdict {
+            Verdict("Save your usual devices as your setup", message: usual, status: .off, statusLabel: "No setup")
+        } else {
+            NoticeCard(title: "Save your usual devices as your setup", message: usual ?? "") { EmptyView() }
         }
     }
 }
 
-struct IssueRow: View {
+/// The first issue's fixes, as the verdict's buttons.
+struct IssueActions: View {
     let issue: Mismatch
     let fix: (Device) -> Void
     let ignore: (String) -> Void
 
     var body: some View {
+        let ignoreAction = ignoredApp.map { app in PanelAction("Ignore \(app)") { ignore(app) } }
+        if let device = issue.fix {
+            ActionBar(primary: PanelAction("Switch to \(device.name)") { fix(device) }, secondary: ignoreAction)
+                .help(ignoredApp == nil ? "" : "For apps that always listen, like recorders. Undo in Settings.")
+        } else if let ignoreAction {
+            ActionBar(primary: ignoreAction)
+                .help("For apps that always listen, like recorders. Undo in Settings.")
+        }
+    }
+
+    private var ignoredApp: String? {
+        if case .appUsing(let app, _) = issue.problem { return app }
+        return nil
+    }
+}
+
+/// A second or later issue: what's wrong, advice, and the same buttons, smaller.
+struct IssueRow: View {
+    let issue: Mismatch
+    let fix: (Device) -> Void
+    let ignore: (String) -> Void
+    @Environment(\.roomTheme) private var theme
+
+    var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(issue.message).font(.callout)
-                .fixedSize(horizontal: false, vertical: true)
-            if let advice = issue.advice {
-                Text(advice).font(.caption).foregroundStyle(.secondary)
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Circle().fill(theme.caution).frame(width: 6, height: 6).accessibilityHidden(true)
+                Text(issue.message)
+                    .font(.system(size: 12.5, weight: .semibold))
+                    .foregroundStyle(theme.ink)
                     .fixedSize(horizontal: false, vertical: true)
             }
-            HStack {
+            if let advice = issue.advice {
+                Text(advice)
+                    .font(.system(size: 11.5))
+                    .foregroundStyle(theme.sub)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.leading, 12)
+            }
+            HStack(spacing: 6) {
                 if let device = issue.fix {
                     Button("Switch to \(device.name)") { fix(device) }
                 }
                 if case .appUsing(let app, _) = issue.problem {
                     Button("Ignore \(app)") { ignore(app) }
-                        .help("For apps that always listen, like recorders. Undo in the gear menu.")
+                        .help("For apps that always listen, like recorders. Undo in Settings.")
                 }
             }
-            .controlSize(.small)
+            .buttonStyle(MiniButtonStyle())
+            .padding(.leading, 12)
+            .padding(.top, 2)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 14)
+        .padding(.bottom, 10)
     }
 }
 
@@ -84,19 +144,12 @@ struct AdvisoryCard: View {
     let fix: (Device) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Label(advisory.title, systemImage: "waveform.badge.exclamationmark")
-                .font(.callout.weight(.semibold)).foregroundStyle(.orange)
-            Text(advisory.message).font(.caption).foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+        NoticeCard(title: advisory.title, message: advisory.message) {
             if let device = advisory.fix {
                 Button("Use \(device.name)") { fix(device) }
-                    .controlSize(.small)
+                    .buttonStyle(MiniButtonStyle())
             }
         }
-        .padding(10)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.orange.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
     }
 }
 
@@ -107,15 +160,16 @@ struct LiveCaption: View {
     let selected: Device?
     /// For an app that always listens, like a screen recorder, so it stops crowding out the call.
     let ignore: (String) -> Void
+    @Environment(\.roomTheme) private var theme
 
     var body: some View {
         ForEach(snapshot.devices(kind).filter(snapshot.isLive)) { device in
             HStack(spacing: 5) {
-                Circle().fill(.green).frame(width: 6, height: 6)
-                Text(text(device)).font(.caption).foregroundStyle(.secondary)
+                Circle().fill(theme.go).frame(width: 6, height: 6).accessibilityHidden(true)
+                Text(text(device)).foregroundStyle(theme.sub)
                 ignoreButton(named(device))
             }
-            .font(.caption)
+            .font(.system(size: 11.5))
         }
     }
 
@@ -133,8 +187,7 @@ struct LiveCaption: View {
     private func ignoreButton(_ apps: [String]) -> some View {
         if apps.count == 1, let app = apps.first {
             Button("Ignore") { ignore(app) }
-                .buttonStyle(.borderless)
-                .foregroundStyle(.tint)
+                .buttonStyle(LinkButtonStyle())
                 .help("Stop showing \(app) here and in warnings. Undo in Settings.")
         } else if apps.count > 1 {
             Menu {
@@ -142,10 +195,11 @@ struct LiveCaption: View {
                     Button(app) { ignore(app) }
                 }
             } label: {
-                Text("Ignore").font(.caption).foregroundStyle(Color.accentColor)
+                Text("Ignore").font(.system(size: 11.5, weight: .semibold)).foregroundStyle(theme.ink)
+                    .underline(color: theme.sub.opacity(0.6))
             }
-            .menuStyle(.borderlessButton)
-            .controlSize(.small)
+            .menuStyle(.button)
+            .buttonStyle(.plain)
             .menuIndicator(.hidden)
             .fixedSize()
             .help("Stop showing an app here and in warnings. Undo in Settings.")
