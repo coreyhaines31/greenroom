@@ -130,15 +130,36 @@ final class StatusItemController: NSObject, NSPopoverDelegate {
         // The mic's message ends the label, since it's already a full sentence.
         let problems = check.advisories.map(\.title) + check.mismatches.map(\.message)
             + [check.micProblem?.message].compactMap { $0 }
-        let (symbol, label): (String, String) = if !problems.isEmpty {
-            ("exclamationmark.triangle.fill", problems.joined(separator: ". "))
+        let (glyph, label): (StatusGlyph, String) = if !problems.isEmpty {
+            (.problem, problems.joined(separator: ". "))
         } else if check.readiness == .ready {
-            ("web.camera.fill", "Green Room: ready")
+            (.ready, "Green Room: ready")
         } else {
-            ("web.camera", "Green Room")
+            (.idle, "Green Room")
         }
-        statusItem.button?.image = NSImage(systemSymbolName: symbol, accessibilityDescription: label)
+        let image = glyph.image
+        image.accessibilityDescription = label
+        statusItem.button?.image = image
         statusItem.button?.setAccessibilityLabel(label)
         statusItem.button?.toolTip = label
+    }
+}
+
+/// The menu bar icon's states.
+enum StatusGlyph: CaseIterable {
+    /// No setup, or nothing to say.
+    case idle
+    /// Matches the setup.
+    case ready
+    /// Something needs fixing.
+    case problem
+
+    var image: NSImage {
+        let symbol = switch self {
+        case .idle: "web.camera"
+        case .ready: "web.camera.fill"
+        case .problem: "exclamationmark.triangle.fill"
+        }
+        return NSImage(systemSymbolName: symbol, accessibilityDescription: nil) ?? NSImage()
     }
 }
