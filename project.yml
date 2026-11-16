@@ -21,8 +21,8 @@ packages:
     exactVersion: "2.10.0"
   # Shared Brushed panel components. Pinned to the branch until it merges.
   PanelKit:
-    url: https://github.com/coreyhaines31/mac-app-kit
-    branch: feature/2-panelkit
+    url: https://github.com/coreyhaines31/panelkit
+    from: 0.1.0
 targets:
   GreenRoom:
     type: application
