@@ -72,7 +72,7 @@ p { margin: 0; }
 .wrap { max-width: var(--bx-max); margin: 0 auto; padding: 0 20px; }
 .wrap.narrow { max-width: 780px; }
 section { padding: clamp(64px, 8vw, 96px) 0; }
-@media (min-width: 720px) { .wrap { padding: 0 32px; } }
+@media (min-width: 720px) { .wrap, .bx-wrap { padding-left: max(32px, env(safe-area-inset-left, 0px)); padding-right: max(32px, env(safe-area-inset-right, 0px)); } }
 
 .eyebrow { font: 600 12px/1 var(--display); letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
 main > section + section { border-top: 1px solid var(--line); }
