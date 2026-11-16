@@ -89,8 +89,8 @@
 /* Family footer: the eight instruments on a black panel */
 .bx-family { background: #1b1b1b; color: #cfd0d1; padding-block: 28px 30px; }
 .bx-family .bx-eyebrow { color: #8f9192; }
-.bx-family ul { list-style: none; margin: 16px 0 0; padding: 0; display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px; }
-@media (max-width: 760px) { .bx-family ul { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.bx-family ul { list-style: none; margin: 16px 0 0; padding: 0; display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 760px) { .bx-family ul { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .bx-family a { display: grid; justify-items: center; gap: 6px; padding: 10px 4px; border-radius: 8px; color: #cfd0d1; text-decoration: none; font-size: 13px; text-align: center; }
 .bx-family a:hover, .bx-family a[aria-current] { background: #2a2a2b; color: #fff; }
 .bx-family img { width: 56px; height: 56px; }
@@ -100,3 +100,32 @@
 
 .bx a:focus-visible, .bx button:focus-visible, .bx summary:focus-visible { outline: 2px solid var(--bx-accent); outline-offset: 3px; }
 @media (prefers-reduced-motion: reduce) { .bx * { transition: none !important; animation: none !important; } }
+
+/* Maker note: why the app exists, in Corey's words. Same block on every homepage. */
+.bx-maker { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 22px; align-items: start; background: var(--bx-brush); border-radius: 12px; padding: 26px clamp(18px, 4vw, 34px); box-shadow: 0 0 0 1px rgba(0,0,0,.18), 0 10px 24px rgba(0,0,0,.08); color: #161616; }
+.bx-maker img { width: 76px; height: 76px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 3px #d9dadb, 0 0 0 4px rgba(0,0,0,.35), 0 3px 8px rgba(0,0,0,.3); }
+.bx-maker .bx-strip { margin-bottom: 10px; }
+.bx-maker p { font-size: 18px; line-height: 1.55; color: #2a2b2c; max-width: 62ch; margin: 0; }
+.bx-maker cite { display: block; margin-top: 12px; font: 600 15px/1.3 var(--bx-display); font-style: normal; color: #161616; }
+.bx-maker cite a { color: inherit; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .bx-maker { color: #e9eaea; } :root:not([data-theme="light"]) .bx-maker p { color: #c6c7c8; } :root:not([data-theme="light"]) .bx-maker cite { color: #e9eaea; } }
+:root[data-theme="dark"] .bx-maker { color: #e9eaea; } :root[data-theme="dark"] .bx-maker p { color: #c6c7c8; } :root[data-theme="dark"] .bx-maker cite { color: #e9eaea; }
+@media (max-width: 560px) { .bx-maker { grid-template-columns: 1fr; } }
+
+/* The other apps: a full homepage section, separate from the footer panel. */
+.bx-apps { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); margin-top: 28px; }
+.bx-apps a { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 14px; align-items: center; background: var(--bx-card); border: 1px solid var(--bx-rule); border-radius: 10px; padding: 14px 16px; color: var(--bx-ink); text-decoration: none; }
+.bx-apps a:hover { border-color: var(--bx-ink2); }
+.bx-apps img { width: 56px; height: 56px; }
+.bx-apps b { display: block; font: 600 19px/1.15 var(--bx-display); }
+.bx-apps span { display: block; font-size: 14.5px; color: var(--bx-ink2); margin-top: 2px; }
+.bx-apps .soon { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 14px; align-items: center; background: transparent; border: 1px dashed var(--bx-rule); border-radius: 10px; padding: 14px 16px; color: var(--bx-ink); }
+.bx-apps .soon img { width: 56px; height: 56px; opacity: .75; }
+.bx-apps .soon b { display: block; font: 600 19px/1.15 var(--bx-display); }
+.bx-apps .soon em { font: 600 10.5px/1 var(--bx-display); font-style: normal; letter-spacing: .18em; text-transform: uppercase; color: var(--bx-muted); margin-left: 6px; vertical-align: 2px; }
+.bx-apps .soon span { display: block; font-size: 14.5px; color: var(--bx-ink2); margin-top: 2px; }
+
+/* Footer family panel: a not-yet-released app (Kill Cord) as a non-link item. */
+.bx-family .soon { display: grid; justify-items: center; gap: 6px; padding: 10px 4px; border-radius: 8px; color: #cfd0d1; font-size: 13px; text-align: center; opacity: .6; }
+.bx-family .soon img { width: 56px; height: 56px; }
+.bx-family .soon small { display: block; font: 600 9.5px/1 var(--bx-display); letter-spacing: .16em; text-transform: uppercase; color: #8f9192; margin-top: 2px; }
