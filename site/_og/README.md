@@ -6,6 +6,6 @@ Remotion source for `images/og.mp4` (the `og:video` iMessage and Discord autopla
 cd site/_og && npm install && npm run render
 ```
 
-`npm run studio` opens a live preview. `OgVideo.tsx` is the shared shell (color field, glass card, brand, headline) and takes its text and colors as props in `Root.tsx`; `ChecklistCard.tsx` is the Green Room pre-call checklist on the right. The loop ends on its first frame, so keep the first and last frames identical when changing the timing.
+`npm run studio` opens a live preview. `OgVideo.tsx` is the Brushed family shell (brushed aluminium, brand, headline, black mount) and takes its text and colors as props in `Root.tsx`; `ChecklistCard.tsx` is the Green Room pre-call checklist on the right. The loop ends on its first frame, so keep the first and last frames identical when changing the timing.
 
 This folder is in `.vercelignore`, so none of it is deployed.

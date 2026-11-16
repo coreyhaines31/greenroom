@@ -16,13 +16,10 @@ export const RemotionRoot = () => (
         icon: 'icon.png',
         headline: 'Camera, mic, speakers.',
         headlineAccent: 'Ready before you go on.',
-        headlineSize: 64,
+        headlineSize: 58,
         accentWraps: true,
         sub: 'Free for macOS · greenroomformac.com',
-        accent: '#1fa35f',
-        accentInk: '#0f7a44',
-        accentFill: '#1fa35f',
-        field: ['#a8ecc0', '#d4f5c4', '#c9e6ff', '#c8f0e0'],
+        accent: '#8448c9',
       } satisfies OgVideoProps
     }
   />

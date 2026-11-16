@@ -1,7 +1,9 @@
 import {Easing, interpolate, interpolateColors, useCurrentFrame, useVideoConfig} from 'remotion';
-import {INK, INK_2} from './OgVideo';
+import {DISPLAY, INK, MUTED} from './OgVideo';
 
-// Green Room's pre-call check: each row switches to the usual device and turns green, "Ready for your call" lands,
+const GO = '#2f9e4f';
+
+// Green Room's pre-call check, as a Brushed popover card: each row switches to the usual device and its light goes green, "Ready for your call" lands,
 // then every row eases back to where it starts, so the loop has no seam.
 const ROWS = [
   {label: 'Camera', from: 'FaceTime HD', to: 'Studio Display'},
@@ -17,9 +19,9 @@ const RESET_GAP = 0.06;
 const STANDARD = Easing.bezier(0.4, 0, 0.2, 1);
 const IN_OUT = Easing.bezier(0.65, 0, 0.35, 1);
 const OUT_EASE = Easing.bezier(0, 0, 0.2, 1);
-const NEUTRAL = '#c7c7cc';
+const NEUTRAL = '#b4b6b6';
 
-export const ChecklistCard = ({accentInk, accentFill}: {accentInk: string; accentFill: string}) => {
+export const ChecklistCard = () => {
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
   const t = frame / fps;
@@ -34,11 +36,11 @@ export const ChecklistCard = ({accentInk, accentFill}: {accentInk: string; accen
 
   return (
     <div
-      style={{width: '100%', height: '100%', boxSizing: 'border-box', padding: '28px 32px', borderRadius: 30, background: 'rgba(251,251,253,0.9)',
-        boxShadow: '0 0 0 1px rgba(0,0,0,0.06), 0 2px 6px rgba(0,0,0,0.05), 0 16px 36px rgba(15,55,30,0.12)'}}
+      style={{width: '100%', height: '100%', boxSizing: 'border-box', padding: '22px 26px', borderRadius: 12, background: '#eeeeed',
+        boxShadow: '0 18px 40px rgba(0,0,0,0.32), 0 2px 6px rgba(0,0,0,0.14), 0 0 0 0.5px rgba(0,0,0,0.35)'}}
     >
-      <div style={{fontSize: 28, fontWeight: 600, letterSpacing: '-0.02em', color: INK}}>Design review</div>
-      <div style={{fontSize: 20, color: INK_2, marginTop: 2}}>Zoom · starts in 2 min</div>
+      <div style={{fontFamily: DISPLAY, fontSize: 30, fontWeight: 600, color: INK}}>Design review</div>
+      <div style={{fontSize: 19, color: MUTED, marginTop: 2}}>Zoom · starts in 2 min</div>
       <div style={{marginTop: 14}}>
         {ROWS.map((row, i) => {
           const at = FIRST + i * GAP;
@@ -54,23 +56,23 @@ export const ChecklistCard = ({accentInk, accentFill}: {accentInk: string; accen
           const fromY = backIn > 0 ? (1 - backIn) * 8 : -6 * swapOut;
           const toOpacity = same ? 1 : swapIn - backOut;
           const toY = same ? 0 : backOut > 0 ? -6 * backOut : (1 - swapIn) * 8;
-          const valueColor = interpolateColors(fill, [0, 1], [INK_2, INK]);
+          const valueColor = interpolateColors(fill, [0, 1], [MUTED, INK]);
           return (
             <div
               key={row.label}
               style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 62,
-                borderTop: i === 0 ? 'none' : '1px solid rgba(0,0,0,0.07)'}}
+                borderTop: i === 0 ? 'none' : '1px solid #dcdcdb'}}
             >
               <div>
-                <div style={{fontSize: 18, color: INK_2}}>{row.label}</div>
-                <div style={{position: 'relative', height: 30, fontSize: 25, fontWeight: 600, letterSpacing: '-0.02em', whiteSpace: 'nowrap'}}>
-                  <span style={{position: 'absolute', left: 0, top: 0, color: INK_2, opacity: fromOpacity, transform: `translateY(${fromY}px)`}}>{row.from}</span>
+                <div style={{fontFamily: DISPLAY, fontSize: 14, fontWeight: 600, letterSpacing: '0.2em', textTransform: 'uppercase', color: MUTED}}>{row.label}</div>
+                <div style={{position: 'relative', height: 30, fontSize: 24, fontWeight: 600, whiteSpace: 'nowrap'}}>
+                  <span style={{position: 'absolute', left: 0, top: 0, color: MUTED, opacity: fromOpacity, transform: `translateY(${fromY}px)`}}>{row.from}</span>
                   <span style={{position: 'absolute', left: 0, top: 0, color: valueColor, opacity: toOpacity, transform: `translateY(${toY}px)`}}>{row.to}</span>
                 </div>
               </div>
               <svg width={36} height={36} viewBox="0 0 36 36" style={{flex: 'none'}}>
                 <circle cx={18} cy={18} r={15.5} fill="none" stroke={NEUTRAL} strokeWidth={2.5} />
-                <circle cx={18} cy={18} r={17 * (0.85 + 0.15 * fill)} fill={accentFill} opacity={fill} />
+                <circle cx={18} cy={18} r={17 * (0.85 + 0.15 * fill)} fill={GO} opacity={fill} />
                 <path d="M11 18.5 L16 23.5 L25.5 13" fill="none" stroke="#fff" strokeWidth={3.2} strokeLinecap="round" strokeLinejoin="round"
                   pathLength={1} strokeDasharray="1 1" strokeDashoffset={1 - tick} opacity={Math.min(1, tick * 4)} />
               </svg>
@@ -79,11 +81,12 @@ export const ChecklistCard = ({accentInk, accentFill}: {accentInk: string; accen
         })}
       </div>
       <div style={{position: 'relative', marginTop: 14, height: 46}}>
-        <div style={{position: 'absolute', left: 0, top: 6, fontSize: 30, fontWeight: 600, letterSpacing: '-0.02em', color: '#8e8e93', opacity: checking}}>
+        <div style={{position: 'absolute', left: 0, top: 6, fontFamily: DISPLAY, fontSize: 32, fontWeight: 600, color: '#8c8e90', opacity: checking}}>
           Checking your setup…
         </div>
-        <div style={{position: 'absolute', left: 0, top: 0, fontSize: 38, fontWeight: 700, letterSpacing: '-0.03em', color: accentInk, whiteSpace: 'nowrap',
-          opacity: shown, transform: `translateY(${(1 - verdictIn) * 8}px)`}}>
+        <div style={{position: 'absolute', left: 0, top: 0, fontFamily: DISPLAY, fontSize: 40, fontWeight: 600, color: INK, whiteSpace: 'nowrap',
+          display: 'flex', alignItems: 'center', gap: 12, opacity: shown, transform: `translateY(${(1 - verdictIn) * 8}px)`}}>
+          <span style={{width: 12, height: 12, borderRadius: '50%', background: GO, boxShadow: `0 0 8px ${GO}`}} />
           Ready for your call
         </div>
       </div>
