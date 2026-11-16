@@ -159,28 +159,11 @@ enum StatusGlyph: CaseIterable {
     var image: NSImage {
         let image = switch self {
         case .idle: NSImage(named: "MenuBarIdle")
-        case .ready: Self.readyLens
+        case .ready: NSImage(named: "MenuBarReady")
         case .problem: NSImage(systemSymbolName: "exclamationmark.triangle.fill", accessibilityDescription: nil)
         }
         guard let image = image?.copy() as? NSImage else { return NSImage() }
         image.isTemplate = true
         return image
-    }
-
-    /// The ready lens, drawn from mac-app-kit's glyphs.mjs: a solid lens with its glass ring cut
-    /// out, and the tally lit. Drawn here because the exported PDF loses the cut-out in AppKit.
-    private static let readyLens = NSImage(size: NSSize(width: 18, height: 18), flipped: true) { _ in
-        let lens = NSBezierPath(ovalIn: circle(x: 8.25, y: 10, radius: 7.35))
-        lens.append(NSBezierPath(ovalIn: circle(x: 8.25, y: 10, radius: 5.15)))
-        lens.append(NSBezierPath(ovalIn: circle(x: 8.25, y: 10, radius: 3.85)))
-        lens.windingRule = .evenOdd
-        NSColor.black.setFill()
-        lens.fill()
-        NSBezierPath(ovalIn: circle(x: 15.4, y: 2.7, radius: 2.3)).fill()
-        return true
-    }
-
-    private static func circle(x: Double, y: Double, radius: Double) -> NSRect {
-        NSRect(x: x - radius, y: y - radius, width: radius * 2, height: radius * 2)
     }
 }
