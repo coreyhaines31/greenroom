@@ -1,4 +1,5 @@
 import GreenRoomCore
+import PanelKit
 import SwiftUI
 
 /// "Ready to record?": camera format, mic quality, disk space, and power. Collapsed until you
@@ -10,27 +11,47 @@ struct RecordingSection: View {
     var body: some View {
         // Reads the disk, power, and camera once per render.
         let check = monitor.recordingCheck
-        VStack(alignment: .leading, spacing: 8) {
-            Button {
-                expanded.toggle()
-            } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: expanded ? "chevron.down" : "chevron.right").font(.caption2.weight(.semibold))
-                    Text(expanded ? "Ready to record?" : "Ready to record? \(summary(check))")
+        let problems = check.items.filter { !$0.passed }.count
+        Disclosure("Ready to record?", isExpanded: $expanded) {
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(check.items, id: \.title) { item in
+                    RecordingCheckRow(item: item)
                 }
-                .font(.caption).foregroundStyle(.secondary)
-                .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
-            if expanded {
-                RecordingChecklist(check: check)
-            }
+            .padding(.bottom, 6)
+        }
+        .trailingAccessory {
+            StatusLight(problems == 0 ? .go : .caution, problems == 0 ? "Yes" : "\(problems) to check")
+        }
+        .overlay(alignment: .top) {
+            PanelHairline()
         }
     }
+}
 
-    private func summary(_ check: RecordingCheck) -> String {
-        let problems = check.items.filter { !$0.passed }.count
-        return problems == 0 ? "Yes" : "\(problems) to check"
+/// One item of the recording check in the panel, with its status light.
+struct RecordingCheckRow: View {
+    let item: RecordingCheck.Item
+    @Environment(\.panelTheme) private var theme
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(item.title)
+                    .font(.system(size: 12.5, weight: .semibold))
+                    .foregroundStyle(theme.ink)
+                Text(item.detail)
+                    .font(.system(size: 11.5))
+                    .foregroundStyle(theme.sub)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            StatusLight(item.passed ? .go : .caution, item.passed ? "OK" : "Check")
+        }
+        .padding(.leading, 46)
+        .padding(.trailing, 14)
+        .padding(.vertical, 5)
+        .accessibilityElement(children: .combine)
     }
 }
 

@@ -19,6 +19,9 @@ packages:
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
     exactVersion: "2.10.0"
+  PanelKit:
+    url: https://github.com/coreyhaines31/panelkit
+    from: "0.2.0"
 targets:
   GreenRoom:
     type: application
@@ -28,6 +31,7 @@ targets:
     dependencies:
       - package: GreenRoomCore
       - package: Sparkle
+      - package: PanelKit
       # The `greenroom` command; the Homebrew cask links it onto the PATH.
       - target: GreenRoomCLI
         copy:

@@ -46,7 +46,7 @@ enum MonitorSample {
                 ForEach(images, id: \.0) { title, image in
                     VStack(alignment: .leading, spacing: 4) {
                         Text(title).font(.headline)
-                        Image(nsImage: image).resizable().aspectRatio(contentMode: .fit).frame(height: 225)
+                        Image(nsImage: image).resizable().scaledToFit().frame(height: 225)
                     }
                 }
             }

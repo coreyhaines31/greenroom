@@ -27,7 +27,7 @@ brew install --cask coreyhaines31/tap/greenroom
 ## Using it
 
 1. **A welcome window opens the first time.** It proposes your usual devices from what you've used, so saving your setup is one click, and offers the alerts, Keep my setup, calendar checks, and open at login in one place.
-2. **Click the camera icon** in the menu bar, or press **⌃⌥⌘G** from anywhere. The first time, macOS asks for camera and microphone access. Live previews run while the panel is open. Optional microphone startup checks also briefly read audio levels when another app opens a mic. Nothing is saved or sent anywhere.
+2. **Click the lens icon** in the menu bar, or press **⌃⌥⌘G** from anywhere. The first time, macOS asks for camera and microphone access. Live previews run while the panel is open. Optional microphone startup checks also briefly read audio levels when another app opens a mic. Nothing is saved or sent anywhere.
 3. **Pick your devices.** Choosing a mic or speaker makes it the Mac's default, the same as System Settings › Sound. Choosing a camera sets the one macOS suggests to apps; Zoom and Meet keep their own camera setting.
 4. **Check them.** Watch the preview, talk and watch the meter move, and click **Test** to hear a tone on the left, then the right.
 5. **Click Save as my setup.** From then on the icon turns into a warning when your setup doesn't match, and the panel says what's wrong.
