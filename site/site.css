@@ -116,12 +116,15 @@ main > section + section { border-top: 1px solid var(--line); }
 h1 { font-weight: 600; font-size: clamp(40px, 6vw, 72px); line-height: 0.97; margin-top: 18px; text-wrap: balance; }
 h1 em { display: block; }
 .lede { font-size: 19px; color: var(--bx-ink2); margin-top: 18px; max-width: 46ch; }
-.hero .bx-mount { min-width: 0; }
+.hero .bx-mount { min-width: 0; grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 420px) { .hero .bx-mount { padding: 30px 10px; } }
 .hero .bx-mount .pop { margin-top: 6px; }
 .hero .bx-hero-grid { align-items: start; }
+.hero .bx-mount .pop.dark { display: none; }
+@media (prefers-color-scheme: dark) { .hero .bx-mount .pop.light { display: none; } .hero .bx-mount .pop.dark { display: block; } }
 @media (min-width: 881px) { .hero-copy { padding-top: 48px; } }
 /* Keep the tool page rules that share class names out of the popover */
-.pop .verdict { background: none; border-radius: 0; }
+.pop .verdict { background: none; border: 0; border-radius: 0; }
 .pop .verdict::before { content: none; }
 .pop .meter { width: auto; height: auto; background: none; border-radius: 0; overflow: visible; }
 
