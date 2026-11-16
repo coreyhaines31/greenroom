@@ -35,7 +35,7 @@ struct RecordingSection: View {
 /// One item of the recording check in the panel, with its status light.
 struct RecordingCheckRow: View {
     let item: RecordingCheck.Item
-    @Environment(\.roomTheme) private var theme
+    @Environment(\.panelTheme) private var theme
 
     var body: some View {
         HStack(alignment: .top, spacing: 10) {

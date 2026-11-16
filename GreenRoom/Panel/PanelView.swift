@@ -235,7 +235,7 @@ struct PanelView: View {
 
 struct MissingRow: View {
     let missing: MissingDevice
-    @Environment(\.roomTheme) private var theme
+    @Environment(\.panelTheme) private var theme
 
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
@@ -267,7 +267,7 @@ struct MissingRow: View {
 struct FlakyRow: View {
     let message: String
     let advice: String
-    @Environment(\.roomTheme) private var theme
+    @Environment(\.panelTheme) private var theme
 
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {

@@ -101,7 +101,7 @@ struct IssueRow: View {
     let issue: Mismatch
     let fix: (Device) -> Void
     let ignore: (String) -> Void
-    @Environment(\.roomTheme) private var theme
+    @Environment(\.panelTheme) private var theme
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -160,7 +160,7 @@ struct LiveCaption: View {
     let selected: Device?
     /// For an app that always listens, like a screen recorder, so it stops crowding out the call.
     let ignore: (String) -> Void
-    @Environment(\.roomTheme) private var theme
+    @Environment(\.panelTheme) private var theme
 
     var body: some View {
         ForEach(snapshot.devices(kind).filter(snapshot.isLive)) { device in

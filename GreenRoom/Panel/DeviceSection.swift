@@ -65,7 +65,7 @@ struct DeviceChooser: View {
     let kind: DeviceKind
     let monitor: DeviceMonitor
     let selected: Device?
-    @Environment(\.roomTheme) private var theme
+    @Environment(\.panelTheme) private var theme
 
     var body: some View {
         // A hidden device still shows while it's the one in use.
@@ -135,7 +135,7 @@ struct MicComparison: View {
     let active: Device?
     let levels: [String: Float]
     let select: (Device) -> Void
-    @Environment(\.roomTheme) private var theme
+    @Environment(\.panelTheme) private var theme
 
     var body: some View {
         VStack(spacing: 0) {

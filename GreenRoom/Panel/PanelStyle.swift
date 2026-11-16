@@ -3,11 +3,6 @@ import SwiftUI
 
 // Small pieces the panel needs that PanelKit doesn't have yet. They draw with PanelKit's tokens.
 
-extension EnvironmentValues {
-    /// PanelKit's theme for the current appearance.
-    var roomTheme: PanelTheme { panelThemeOverride ?? PanelTheme.resolve(colorScheme) }
-}
-
 /// A compact metal key for buttons inside rows, like Hear Yourself and Test.
 struct MiniButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
@@ -16,7 +11,7 @@ struct MiniButtonStyle: ButtonStyle {
 
     private struct MiniButton: View {
         let configuration: Configuration
-        @Environment(\.roomTheme) private var theme
+        @Environment(\.panelTheme) private var theme
         @Environment(\.isEnabled) private var isEnabled
 
         var body: some View {
@@ -36,7 +31,7 @@ struct MiniButtonStyle: ButtonStyle {
 
 /// The metal key face behind a mini button or a menu that looks like one.
 struct MiniKeyBackground: View {
-    @Environment(\.roomTheme) private var theme
+    @Environment(\.panelTheme) private var theme
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: 4)
@@ -54,7 +49,7 @@ struct LinkButtonStyle: ButtonStyle {
 
     private struct LinkLabel: View {
         let configuration: Configuration
-        @Environment(\.roomTheme) private var theme
+        @Environment(\.panelTheme) private var theme
 
         var body: some View {
             configuration.label
@@ -70,7 +65,7 @@ struct LinkButtonStyle: ButtonStyle {
 /// A row icon: an SF Symbol drawn in the panel ink.
 struct SymbolTile: View {
     let name: String
-    @Environment(\.roomTheme) private var theme
+    @Environment(\.panelTheme) private var theme
 
     var body: some View {
         Image(systemName: name)
@@ -85,7 +80,7 @@ struct SymbolTile: View {
 /// wraps, since the tips are full sentences.
 struct TipStrip: View {
     let text: String
-    @Environment(\.roomTheme) private var theme
+    @Environment(\.panelTheme) private var theme
 
     var body: some View {
         Label {
@@ -110,7 +105,7 @@ struct NoticeCard<Actions: View>: View {
     let title: String
     let message: String
     @ViewBuilder var actions: Actions
-    @Environment(\.roomTheme) private var theme
+    @Environment(\.panelTheme) private var theme
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -137,7 +132,7 @@ struct NoticeCard<Actions: View>: View {
 struct PanelNote: View {
     let text: String
     var caution = false
-    @Environment(\.roomTheme) private var theme
+    @Environment(\.panelTheme) private var theme
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
@@ -159,7 +154,7 @@ struct PanelNote: View {
 
 /// The hairline between panel sections.
 struct PanelHairline: View {
-    @Environment(\.roomTheme) private var theme
+    @Environment(\.panelTheme) private var theme
 
     var body: some View {
         Rectangle().fill(theme.line).frame(height: 1).accessibilityHidden(true)

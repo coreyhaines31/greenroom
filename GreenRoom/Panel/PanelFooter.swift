@@ -1,4 +1,5 @@
 import AppKit
+import PanelKit
 import SwiftUI
 
 /// The bottom of the panel: your setup (or saving one), History, and the gear menu.
@@ -34,7 +35,7 @@ struct PanelFooter: View {
 struct OptionsMenu: View {
     let updater: Updater
     let showSettings: () -> Void
-    @Environment(\.roomTheme) private var theme
+    @Environment(\.panelTheme) private var theme
 
     var body: some View {
         Menu {

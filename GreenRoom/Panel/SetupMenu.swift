@@ -1,5 +1,6 @@
 import AppKit
 import GreenRoomCore
+import PanelKit
 import SwiftUI
 
 /// Setups for each place you work. The one that fits what's plugged in is checked; picking
@@ -8,7 +9,7 @@ struct SetupMenu: View {
     let monitor: DeviceMonitor
     /// The name dialog is modal, so the panel closes first instead of vanishing under it.
     let closePanel: () -> Void
-    @Environment(\.roomTheme) private var theme
+    @Environment(\.panelTheme) private var theme
 
     var body: some View {
         Menu {
