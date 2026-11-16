@@ -82,6 +82,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if let index = arguments.firstIndex(of: "--snapshot-popover"), index + 1 < arguments.count {
             DispatchQueue.main.asyncAfter(deadline: .now() + 4) { Self.writePopover(to: arguments[index + 1]) }
         }
+        handleRenderPanel()
         if CommandLine.arguments.contains("--open-history") {
             windows.showHistory()
         }
@@ -94,6 +95,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 self.windows.writeSettingsSnapshot(to: path.replacingOccurrences(of: ".png", with: "-settings.png"))
                 self.windows.writeRecordPreviewSnapshot(to: path.replacingOccurrences(of: ".png", with: "-preview.png"))
             }
+        }
+    }
+
+    /// `--render-panel <folder>`: writes the panel and menu bar icon to PNGs, then quits.
+    private func handleRenderPanel() {
+        let arguments = CommandLine.arguments
+        guard let index = arguments.firstIndex(of: "--render-panel"), index + 1 < arguments.count else { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            PanelSample.write(to: arguments[index + 1], monitor: self.monitor, checks: self.checks,
+                              updater: self.updater)
+            NSApp.terminate(nil)
         }
     }
 
