@@ -161,7 +161,7 @@ struct MicComparison: View {
                 .truncationMode(.tail)
             Spacer(minLength: 8)
             if InputMeters.canMeter(device) {
-                LevelMeter(level: Double(levels[device.id] ?? 0))
+                LevelMeter(level: Double(levels[device.id] ?? 0), stopFrom: 7)
                     .accessibilityLabel("\(device.name) level")
             } else if device.id != active?.id {
                 Text("Switch to test").font(.system(size: 11)).foregroundStyle(theme.sub)

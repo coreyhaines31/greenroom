@@ -160,7 +160,7 @@ struct PanelView: View {
                 }
             } detail: {
                 if !micDenied {
-                    LevelMeter(level: Double(checks.meter.level), segments: 12, cautionFrom: 9)
+                    LevelMeter(level: Double(checks.meter.level), segments: 12, cautionFrom: 9, stopFrom: 11)
                         .accessibilityLabel("Microphone level")
                 }
             } trailing: {

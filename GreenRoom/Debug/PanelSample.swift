@@ -129,7 +129,7 @@ private struct ProblemSample: View {
             VStack(alignment: .leading, spacing: 4) {
                 LiveCaption(kind: .speaker, snapshot: snapshot, selected: display) { _ in }
                 MicComparison(mics: [shure, mac, podsMic], active: shure,
-                              levels: ["shure": 0.62, "mac": 0.24]) { _ in }
+                              levels: ["shure": 0.95, "mac": 0.24]) { _ in }
             }
             .padding(.horizontal, 14)
             .padding(.bottom, 8)
