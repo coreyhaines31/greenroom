@@ -125,7 +125,7 @@
 .bx-apps .soon em { font: 600 10.5px/1 var(--bx-display); font-style: normal; letter-spacing: .18em; text-transform: uppercase; color: var(--bx-muted); margin-left: 6px; vertical-align: 2px; }
 .bx-apps .soon span { display: block; font-size: 14.5px; color: var(--bx-ink2); margin-top: 2px; }
 
-/* Footer family panel: a not-yet-released app (Kill Cord) as a non-link item. */
+/* Footer family panel: a not-yet-released app as a non-link item (unused while every app has a site). */
 .bx-family .soon { display: grid; justify-items: center; gap: 6px; padding: 10px 4px; border-radius: 8px; color: #cfd0d1; font-size: 13px; text-align: center; opacity: .6; }
 .bx-family .soon img { width: 56px; height: 56px; }
 .bx-family .soon small { display: block; font: 600 9.5px/1 var(--bx-display); letter-spacing: .16em; text-transform: uppercase; color: #8f9192; margin-top: 2px; }
