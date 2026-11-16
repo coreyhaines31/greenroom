@@ -1,58 +1,39 @@
 <!doctype html>
-<!-- Source for images/og.png. Render at 1200x630:
-  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --hide-scrollbars \
+<!-- Source for images/og.png. Render at 1200x630 (needs network for the Google Fonts):
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --hide-scrollbars --virtual-time-budget=5000 \
     --screenshot=site/images/og.png --window-size=1200,630 file://$PWD/site/_build/og.html -->
-<html>
+<html data-theme="light">
 <head>
 <meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@300;600;700&display=block">
+<link rel="stylesheet" href="../brushed.css">
+<link rel="stylesheet" href="../popover.css">
 <style>
   * { box-sizing: border-box; }
+  :root { --bx-accent: #8448c9; color-scheme: light; }
   html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
-  body {
-    position: relative;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
-    color: #1d1d1f;
-    background:
-      radial-gradient(620px 460px at 8% 0%, rgba(48, 209, 88, 0.22), transparent 70%),
-      radial-gradient(640px 480px at 95% 100%, rgba(10, 132, 255, 0.16), transparent 70%),
-      #f5f5f7;
-  }
-  .copy { position: absolute; left: 80px; top: 140px; width: 640px; }
-  .brand { display: flex; align-items: center; gap: 16px; font-size: 30px; font-weight: 600; }
-  .brand img { width: 64px; height: 64px; }
-  h1 { font-size: 60px; line-height: 1.04; font-weight: 700; margin: 40px 0 0; letter-spacing: -0.04em; }
-  h1 em { color: #12884b; display: block; font-style: normal; }
-  h1 span { white-space: nowrap; }
-  p { font-size: 24px; line-height: 1.4; color: #6e6e73; margin: 28px 0 0; }
-  .panel {
-    position: absolute; right: 70px; top: 140px; width: 380px; padding: 22px;
-    background: rgba(244, 244, 246, 0.95); color: #1d1d1f; border-radius: 16px; font-size: 16px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15), 0 20px 50px rgba(0, 0, 0, 0.35);
-    display: grid; gap: 16px;
-  }
-  .t { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 18px; color: #d26a00; }
-  .t svg { width: 20px; height: 18px; }
-  .l { font-size: 13px; color: #6e6e73; margin-bottom: 6px; }
-  .pop { display: inline-block; padding: 4px 34px 4px 10px; border-radius: 7px; background: #fff; box-shadow: 0 0 0 0.5px rgba(0,0,0,.15), 0 1px 2px rgba(0,0,0,.12); position: relative; }
-  .pop::after { content: ""; position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; border-radius: 5px; background: #0a84ff; }
-  .meter { height: 7px; border-radius: 9px; background: rgba(0,0,0,.1); margin-top: 10px; }
-  .meter span { display: block; width: 62%; height: 100%; border-radius: inherit; background: #30d158; }
-  .miss b { display: block; font-weight: 600; }
-  .miss span { font-size: 14px; color: #d26a00; }
+  body { position: relative; background: var(--bx-brush); color: #161616; font-family: var(--bx-body); }
+  .copy { position: absolute; left: 80px; top: 92px; width: 600px; }
+  .brand { display: flex; align-items: center; gap: 16px; font: 700 32px/1 var(--bx-display); }
+  .brand img { width: 68px; height: 68px; }
+  .bx-badge { margin-top: 56px; font-size: 15px; padding: 9px 14px 9px 12px; }
+  .bx-badge i { width: 9px; height: 9px; }
+  h1 { font: 600 66px/0.98 var(--bx-display); margin: 20px 0 0; }
+  h1 em { display: block; font-style: normal; font-weight: 300; }
+  .pop p { margin: 0; }
+  .copy p { font-size: 24px; line-height: 1.4; color: #3d3f41; margin: 26px 0 0; }
+  .bx-mount { position: absolute; right: 64px; top: 56px; width: 420px; height: 640px; padding: 34px 20px 0; align-content: start; overflow: hidden; border-radius: 12px 12px 0 0; }
 </style>
 </head>
 <body>
   <div class="copy">
     <div class="brand"><img src="../images/icon.png" alt=""> Green Room</div>
-    <h1><span>Camera, mic, speakers.</span> <em>Ready before you go on.</em></h1>
+    <div class="bx-badge"><i></i>Free for Mac</div>
+    <h1>Camera, mic, speakers. <em>Ready before you go on.</em></h1>
     <p>A free Mac menu bar app that checks all three in one click.</p>
   </div>
-  <div class="panel">
-    <div class="t"><svg viewBox="0 0 20 18"><path d="M10 1.6 18.6 16.4H1.4Z" fill="#d26a00" stroke="#d26a00" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 6.6v4.6M10 13.4v.4" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>Not ready</div>
-    <div><div class="l">Camera</div><span class="pop">Cam Link 4K · External</span></div>
-    <div><div class="l">Microphone</div><span class="pop">MacBook Pro Microphone · Built-in</span><div class="meter"><span></span></div></div>
-    <div><div class="l">Speaker</div><span class="pop">Studio Monitors · USB</span></div>
-    <div class="miss"><div class="l">Usually here, missing now</div><b>ATR2100x-USB Microphone</b><span>Not plugged in · last seen yesterday 12:40 PM</span></div>
+  <div class="bx-mount"><span class="bx-screw"></span><span class="bx-screw"></span>
+    <div class="pop light" style="--acc:#8448c9" data-pop="green"><div class="fas"><div class="fh"><span class="np"><i></i>FRAME</span><span class="ts">Studio setup</span></div><div class="cam"><span class="w"></span><span class="lamp"></span><span class="fsb" title="Record preview">⤢</span><svg viewBox="0 0 160 90" preserveAspectRatio="none" aria-hidden="true"><g stroke="#fff" stroke-opacity=".2" stroke-width=".4"><line x1="53.3" y1="0" x2="53.3" y2="90"></line><line x1="106.7" y1="0" x2="106.7" y2="90"></line><line x1="0" y1="30" x2="160" y2="30"></line><line x1="0" y1="60" x2="160" y2="60"></line></g></svg></div><div class="labs"><span class="lo">💡 Face is a little dark · add light in front</span><span class="ls">Cam Link 4K · USB</span></div></div><div class="verdict"><span class="led-l ca">Not ready</span><b>Sound is going to AirPods Pro, not Studio Display</b><p>Everything else matches your Studio setup.</p></div><div class="acts"><span class="b pri wide">Switch to Studio Display</span><span class="b">Ignore Zoom</span></div><div class="notice"><b>AirPods Pro are in call mode</b><p>Their mic drops your sound to phone quality.</p><span class="b sm">Use Shure MV7</span></div><div class="sect"><span>Camera</span><span></span></div><div class="row"><span class="badge-ico"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="5" width="10" height="8" rx="1.5"></rect><path d="m12 8 4-2v6l-4-2"></path></svg></span><span class="nm">Cam Link 4K · USB</span><span class="vl"><span class="pick">⌃</span></span><span class="sb">● Live in Zoom</span></div><div class="sect"><span>Microphone</span><span><span class="acc">Compare</span></span></div><div class="row"><span class="badge-ico"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="6.5" y="2.5" width="5" height="8" rx="2.5"></rect><path d="M4 9a5 5 0 0 0 10 0M9 14v2"></path></svg></span><span class="nm">Shure MV7 · USB</span><span class="vl"><span class="b sm">Hear Yourself</span></span><span class="sb"><span class="meter"><i class="g"></i><i class="g"></i><i class="g"></i><i class="g"></i><i class="y"></i><i></i><i></i><i></i></span></span></div><div class="sect"><span>Speaker</span><span></span></div><div class="row"><span class="badge-ico"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 7h3l4-3v10l-4-3H3Z"></path><path d="M12.5 6.5a3.5 3.5 0 0 1 0 5M14.5 4.5a6.4 6.4 0 0 1 0 9"></path></svg></span><span class="nm">AirPods Pro · Bluetooth</span><span class="vl"><span class="b sm">Test</span></span><span class="sb">Zoom is using AirPods Pro · Ignore</span></div><div class="sect"><span>Usually here, missing now</span><span></span></div><div class="row noico"><span class="nm">ATR2100x-USB Microphone</span><span class="vl"></span><span class="sb">Not plugged in · last seen yesterday 12:40p</span></div><p class="ln">Your Mac doesn’t see it on USB at all. Check the cable and hub, or try another port.</p><div class="sect"><span>Keeps disconnecting</span><span></span></div><p class="ln">Cam Link 4K dropped out and came back 3 times this week. Try another cable or port.</p><div class="disc"><div class="dh"><span class="tw" aria-hidden="true"><svg viewBox="0 0 12 12"><path d="M4.2 2.4 8 6l-3.8 3.6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"></path></svg></span><span class="dt"><b>Ready to record?</b></span><span class="dr"><span class="led-l ca">2 to check</span></span></div></div><div class="pf"><span><span class="b sm">Studio ▾</span> <span class="b sm">History</span></span><span class="tbi" title="Settings, Check for Updates, Send Feedback, Quit">⚙</span></div></div>
   </div>
 </body>
 </html>
