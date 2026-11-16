@@ -19,10 +19,10 @@ packages:
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
     exactVersion: "2.10.0"
-  # Shared Brushed panel components. Pinned to the branch until it merges.
+  # On the development branch until PanelKit 0.2.0 is tagged.
   PanelKit:
     url: https://github.com/coreyhaines31/panelkit
-    from: 0.1.0
+    branch: development
 targets:
   GreenRoom:
     type: application
