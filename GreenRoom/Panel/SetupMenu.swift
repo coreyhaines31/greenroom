@@ -9,7 +9,6 @@ struct SetupMenu: View {
     let monitor: DeviceMonitor
     /// The name dialog is modal, so the panel closes first instead of vanishing under it.
     let closePanel: () -> Void
-    @Environment(\.panelTheme) private var theme
 
     var body: some View {
         Menu {
@@ -43,15 +42,9 @@ struct SetupMenu: View {
                 Text(monitor.setup?.name ?? "Setup")
                 Image(systemName: "chevron.down").font(.system(size: 8, weight: .bold))
             }
-            .font(.system(size: 11.5, weight: .semibold))
-            .foregroundStyle(theme.ink)
-            .padding(.vertical, 3)
-            .padding(.horizontal, 8)
-            .background(MiniKeyBackground())
-            .contentShape(Rectangle())
         }
         .menuStyle(.button)
-        .buttonStyle(.plain)
+        .buttonStyle(.panelCompact)
         .menuIndicator(.hidden)
         .fixedSize()
         .help("Your setups. Green Room checks the one that fits what's plugged in.")

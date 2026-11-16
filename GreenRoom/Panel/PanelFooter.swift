@@ -14,13 +14,13 @@ struct PanelFooter: View {
         HStack(spacing: 6) {
             if monitor.setups.isEmpty {
                 Button("Save as my setup") { monitor.saveSetup() }
-                    .buttonStyle(MiniButtonStyle())
+                    .buttonStyle(.panelCompact)
                     .help("Remember these devices and warn when something's different")
             } else {
                 SetupMenu(monitor: monitor, closePanel: closePanel)
             }
             Button("History") { showHistory() }
-                .buttonStyle(MiniButtonStyle())
+                .buttonStyle(.panelCompact)
             Spacer()
             OptionsMenu(updater: updater, showSettings: showSettings)
         }

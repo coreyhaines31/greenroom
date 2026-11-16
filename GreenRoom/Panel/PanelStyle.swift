@@ -3,65 +3,6 @@ import SwiftUI
 
 // Small pieces the panel needs that PanelKit doesn't have yet. They draw with PanelKit's tokens.
 
-/// A compact metal key for buttons inside rows, like Hear Yourself and Test.
-struct MiniButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        MiniButton(configuration: configuration)
-    }
-
-    private struct MiniButton: View {
-        let configuration: Configuration
-        @Environment(\.panelTheme) private var theme
-        @Environment(\.isEnabled) private var isEnabled
-
-        var body: some View {
-            configuration.label
-                .font(.system(size: 11.5, weight: .semibold))
-                .lineLimit(1)
-                .foregroundStyle(theme.ink)
-                .padding(.vertical, 3)
-                .padding(.horizontal, 8)
-                .background(MiniKeyBackground())
-                .opacity(configuration.isPressed ? 0.8 : (isEnabled ? 1 : 0.5))
-                .contentShape(Rectangle())
-                .fixedSize()
-        }
-    }
-}
-
-/// The metal key face behind a mini button or a menu that looks like one.
-struct MiniKeyBackground: View {
-    @Environment(\.panelTheme) private var theme
-
-    var body: some View {
-        let shape = RoundedRectangle(cornerRadius: 4)
-        shape.fill(LinearGradient(colors: theme.button2, startPoint: .top, endPoint: .bottom))
-            .overlay(shape.strokeBorder(theme.button2Edge, lineWidth: 1))
-            .shadow(color: .black.opacity(0.08), radius: 0, y: 1)
-    }
-}
-
-/// A text link in the panel's ink, for small actions like Ignore and Compare.
-struct LinkButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        LinkLabel(configuration: configuration)
-    }
-
-    private struct LinkLabel: View {
-        let configuration: Configuration
-        @Environment(\.panelTheme) private var theme
-
-        var body: some View {
-            configuration.label
-                .font(.system(size: 11.5, weight: .semibold))
-                .foregroundStyle(theme.ink)
-                .underline(color: theme.sub.opacity(0.6))
-                .opacity(configuration.isPressed ? 0.6 : 1)
-                .contentShape(Rectangle())
-        }
-    }
-}
-
 /// A row icon: an SF Symbol drawn in the panel ink.
 struct SymbolTile: View {
     let name: String

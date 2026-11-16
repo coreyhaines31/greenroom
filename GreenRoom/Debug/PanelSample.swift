@@ -146,6 +146,26 @@ private struct ProblemSample: View {
                 ForEach(Self.items, id: \.title) { RecordingCheckRow(item: $0) }
             }
             .overlay(alignment: .top) { PanelHairline() }
+        } footer: {
+            HStack(spacing: 6) {
+                Menu {
+                    Button("Studio") {}
+                } label: {
+                    HStack(spacing: 4) {
+                        Text("Studio")
+                        Image(systemName: "chevron.down").font(.system(size: 8, weight: .bold))
+                    }
+                }
+                .menuStyle(.button)
+                .buttonStyle(.panelCompact)
+                .menuIndicator(.hidden)
+                .fixedSize()
+                Button("History") {}.buttonStyle(.panelCompact)
+                Spacer()
+            }
+            .padding(.vertical, 9)
+            .padding(.horizontal, 14)
+            .overlay(alignment: .top) { PanelHairline() }
         }
     }
 

@@ -128,7 +128,7 @@ struct IssueRow: View {
                         .help("For apps that always listen, like recorders. Undo in Settings.")
                 }
             }
-            .buttonStyle(MiniButtonStyle())
+            .buttonStyle(.panelCompact)
             .padding(.leading, 12)
             .padding(.top, 2)
         }
@@ -147,7 +147,7 @@ struct AdvisoryCard: View {
         NoticeCard(title: advisory.title, message: advisory.message) {
             if let device = advisory.fix {
                 Button("Use \(device.name)") { fix(device) }
-                    .buttonStyle(MiniButtonStyle())
+                    .buttonStyle(.panelCompact)
             }
         }
     }
@@ -187,7 +187,7 @@ struct LiveCaption: View {
     private func ignoreButton(_ apps: [String]) -> some View {
         if apps.count == 1, let app = apps.first {
             Button("Ignore") { ignore(app) }
-                .buttonStyle(LinkButtonStyle())
+                .buttonStyle(.panelQuietLink)
                 .help("Stop showing \(app) here and in warnings. Undo in Settings.")
         } else if apps.count > 1 {
             Menu {
@@ -195,11 +195,10 @@ struct LiveCaption: View {
                     Button(app) { ignore(app) }
                 }
             } label: {
-                Text("Ignore").font(.system(size: 11.5, weight: .semibold)).foregroundStyle(theme.ink)
-                    .underline(color: theme.sub.opacity(0.6))
+                Text("Ignore").font(.system(size: 11.5))
             }
             .menuStyle(.button)
-            .buttonStyle(.plain)
+            .buttonStyle(.panelQuietLink)
             .menuIndicator(.hidden)
             .fixedSize()
             .help("Stop showing an app here and in warnings. Undo in Settings.")

@@ -96,7 +96,7 @@ struct PanelView: View {
                         .multilineTextAlignment(.center)
                     if cameraDenied {
                         Button("Open Settings") { PrivacySettings.open(.camera) }
-                            .buttonStyle(MiniButtonStyle())
+                            .buttonStyle(.panelCompact)
                             .environment(\.colorScheme, .dark)
                     }
                 }
@@ -154,7 +154,7 @@ struct PanelView: View {
             DeviceSection(kind: .microphone, monitor: monitor, selected: monitor.snapshot.active(.microphone)) {
                 if canCompare {
                     Button(checks.inputs.isOn ? "Done" : "Compare") { checks.toggleCompare() }
-                        .buttonStyle(LinkButtonStyle())
+                        .buttonStyle(.panelQuietLink)
                         .help("Shows a live level for every mic, so you can see which one hears you")
                 }
             } detail: {
@@ -165,7 +165,7 @@ struct PanelView: View {
             } trailing: {
                 if !micDenied {
                     Button(checks.playback.buttonTitle) { checks.hearYourself() }
-                        .buttonStyle(MiniButtonStyle())
+                        .buttonStyle(.panelCompact)
                         .disabled(checks.playback.phase != .idle)
                         .help("Records five seconds and plays them back, so you hear what others will. "
                             + "Nothing is saved.")
@@ -182,7 +182,7 @@ struct PanelView: View {
                     PanelNote(text: "Allow microphone access in System Settings › Privacy & Security")
                         .padding(.trailing, -14)
                     Button("Open Settings") { PrivacySettings.open(.microphone) }
-                        .buttonStyle(MiniButtonStyle())
+                        .buttonStyle(.panelCompact)
                         .padding(.trailing, 14)
                         .padding(.bottom, 8)
                 }
@@ -207,7 +207,7 @@ struct PanelView: View {
             EmptyView()
         } trailing: {
             Button(checks.tone.buttonTitle) { checks.tone.play() }
-                .buttonStyle(MiniButtonStyle())
+                .buttonStyle(.panelCompact)
                 .disabled(checks.tone.playing != nil)
         }
     }
