@@ -30,6 +30,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@300;600;700&display=swap">
   <link rel="stylesheet" href="/brushed.css">
   <link rel="stylesheet" href="/site.css">
+  <link rel="stylesheet" href="/popover.css">
   <script src="/copy.js" defer></script>
   <script src="/nav.js" defer></script>
   <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "SoftwareApplication", "name": "Green Room", "operatingSystem": "macOS 14 or later", "applicationCategory": "UtilitiesApplication", "description": "A free Mac menu bar app that checks your camera, microphone, and speakers in one click, remembers your usual setup, and warns you when something changes.", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "downloadUrl": "https://github.com/coreyhaines31/greenroom/releases/latest", "url": "https://greenroomformac.com", "image": "https://greenroomformac.com/images/icon.png", "author": {"@type": "Person", "name": "Corey Haines", "url": "https://corey.co"}}, {"@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Does Green Room record me?", "acceptedAnswer": {"@type": "Answer", "text": "Live previews run while the panel or Record Preview is open. Optional microphone startup checks briefly read audio levels when another app opens a mic. Hear Yourself holds a short recording only in memory for playback. Nothing is saved or sent anywhere."}}, {"@type": "Question", "name": "Will it change my camera in Zoom or Google Meet?", "acceptedAnswer": {"@type": "Answer", "text": "Picking a mic or speaker in Green Room makes it your Mac's default, the same as System Settings › Sound, so most apps follow it. Picking a camera sets the one macOS suggests to apps. Zoom and Meet keep their own camera setting, so pick it there once too."}}, {"@type": "Question", "name": "How does it know a device is usually here?", "acceptedAnswer": {"@type": "Answer", "text": "Green Room keeps a history of every camera, mic, and speaker it sees. A device that's been connected on most recent days counts as usual. For USB audio devices it also reads macOS's own memory, so a mic you've used before shows up from the first day."}}, {"@type": "Question", "name": "My mic is plugged in. Why does it say Not plugged in?", "acceptedAnswer": {"@type": "Answer", "text": "It means your Mac doesn't see the mic on USB at all, even though the plug is in. That points to the cable, a hub, or the port. Try another port, or plug it straight into your Mac."}}, {"@type": "Question", "name": "What happens when I unplug my dock?", "acceptedAnswer": {"@type": "Answer", "text": "You get one alert that lists every usual device that left with it, not a pile of alerts. Turn alerts off any time in Settings."}}, {"@type": "Question", "name": "Can I see which mic is picking me up?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Click Compare next to the microphone picker and every mic gets its own live level. Talk, and the one hearing you moves; click it to switch. AirPods and iPhone mics say Switch to test instead, because opening their mic drops AirPods to call quality or wakes your phone."}}, {"@type": "Question", "name": "Does it work with AirPods and other Bluetooth devices?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. When an app turns on a headset's mic, it drops into call mode and everything sounds like a phone call; Green Room tells you and offers a better mic. When a usual Bluetooth device is missing, it says Not connected and tells you to turn it on or connect it in Bluetooth settings."}}, {"@type": "Question", "name": "What do I need to run it?", "acceptedAnswer": {"@type": "Answer", "text": "macOS 14 Sonoma or later. The app is signed and notarized by Apple, and it updates itself."}}, {"@type": "Question", "name": "Does Green Room read my calendar?", "acceptedAnswer": {"@type": "Answer", "text": "Only if you enable Check before calendar calls or Include calendar calls under Hold calls in Settings. It reads event times and video-call links, never changes your calendar, and never sends it anywhere."}}, {"@type": "Question", "name": "Can it replace a camera field monitor?", "acceptedAnswer": {"@type": "Answer", "text": "For checking a shot at your desk, yes. The record preview has a histogram, waveform, zebras, false color, focus peaking, monochrome, and LUT preview for log footage, all on your Mac's screen. It doesn't change camera settings like shutter or ISO; use the camera or its maker's app for those."}}, {"@type": "Question", "name": "Is it really free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. The source is on GitHub under the Functional Source License (FSL-1.1-MIT), and each version becomes MIT two years after it's released."}}]}]}</script>
@@ -52,8 +53,8 @@
   </header>
 
   <main>
-    <section class="hero">
-      <div class="wrap hero-grid">
+    <section class="hero bx-hero">
+      <div class="wrap bx-hero-grid">
         <div class="hero-copy">
           <p class="kicker"><span class="dot"></span>Free for Mac · No account · No tracking</p>
           <h1>Camera, mic, speakers. <em>Ready before you go on.</em></h1>
@@ -74,61 +75,9 @@
           </div>
         </div>
 
-        <div class="mirror" role="img" aria-label="The Green Room panel open from the menu bar. It says Not ready: ATR2100x-USB Microphone isn't connected. Below are the camera with a live preview, the microphone with a level meter, the speaker with a Test button, and a row explaining the missing microphone is not plugged in, last seen yesterday at 12:40 PM.">
-          <div class="screen">
-            <div class="menubar">
-              <span class="mb-left"><span class="apple"></span><b>Zoom</b><span>Meeting</span><span>View</span></span>
-              <span class="mb-right">
-                <span class="mb-item active"><svg viewBox="0 0 20 18" aria-hidden="true"><path class="warn-fill" d="M10 1.6 18.6 16.4H1.4Z"/><path class="warn-mark" d="M10 6.6v4.6M10 13.4v.4"/></svg></span>
-                <span class="mb-clock">Tue 9:58 AM</span>
-              </span>
-            </div>
-            <div class="panel">
-              <div class="p-head">
-                <div class="p-title warn"><svg viewBox="0 0 20 18" aria-hidden="true"><path class="warn-fill" d="M10 1.6 18.6 16.4H1.4Z"/><path class="warn-mark" d="M10 6.6v4.6M10 13.4v.4"/></svg>Not ready</div>
-                <p>ATR2100x-USB Microphone isn't connected</p>
-              </div>
-
-              <div class="p-group">
-                <span class="p-label">Camera</span>
-                <span class="popup">Cam Link 4K · External<i></i></span>
-                <div class="cam" aria-hidden="true">
-                  <span class="cam-lamp"></span><span class="cam-frame"></span><span class="cam-plant"></span>
-                  <span class="cam-neck"></span><span class="cam-body"></span><span class="cam-head"></span>
-                </div>
-              </div>
-
-              <div class="p-group">
-                <span class="p-label">Microphone</span>
-                <span class="popup">MacBook Pro Microphone · Built-in<i></i></span>
-                <div class="meter"><span></span></div>
-              </div>
-
-              <div class="p-row">
-                <div class="p-group">
-                  <span class="p-label">Speaker</span>
-                  <span class="popup">Studio Monitors · USB<i></i></span>
-                </div>
-                <span class="mac-btn">Test</span>
-              </div>
-
-              <div class="p-group">
-                <span class="p-label">Usually here, missing now</span>
-                <div class="missing">
-                  <b>ATR2100x-USB Microphone</b>
-                  <span class="orange">Not plugged in · last seen yesterday 12:40 PM</span>
-                  <span class="muted">Your Mac doesn't see it on USB at all. Check the cable and hub, or try another port.</span>
-                </div>
-              </div>
-
-              <div class="p-sep"></div>
-              <div class="p-foot">
-                <span class="mac-btn">Setup<svg viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4"/></svg></span>
-                <span class="mac-btn">History</span>
-                <span class="gear" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg></span>
-              </div>
-            </div>
-          </div>
+        <div class="bx-mount" role="img" aria-label="The Green Room panel open from the menu bar, checking a Studio setup. It says Not ready: sound is going to AirPods Pro, not Studio Display, with a Switch to Studio Display button. Below are a live preview from Cam Link 4K with a tip that the face is a little dark, a note that AirPods Pro are in call mode, the Shure MV7 microphone with a level meter and Hear Yourself button, the speaker with a Test button, and a row explaining the usual ATR2100x-USB Microphone is not plugged in, last seen yesterday at 12:40 PM.">
+          <span class="bx-screw"></span><span class="bx-screw"></span><span class="bx-screw"></span><span class="bx-screw"></span>
+          <div class="pop light" aria-hidden="true" style="--acc:#8448c9" data-pop="green"><div class="fas"><div class="fh"><span class="np"><i></i>FRAME</span><span class="ts">Studio setup</span></div><div class="cam"><span class="w"></span><span class="lamp"></span><span class="fsb" title="Record preview">⤢</span><svg viewBox="0 0 160 90" preserveAspectRatio="none" aria-hidden="true"><g stroke="#fff" stroke-opacity=".2" stroke-width=".4"><line x1="53.3" y1="0" x2="53.3" y2="90"></line><line x1="106.7" y1="0" x2="106.7" y2="90"></line><line x1="0" y1="30" x2="160" y2="30"></line><line x1="0" y1="60" x2="160" y2="60"></line></g></svg></div><div class="labs"><span class="lo">💡 Face is a little dark · add light in front</span><span class="ls">Cam Link 4K · USB</span></div></div><div class="verdict"><span class="led-l ca">Not ready</span><b>Sound is going to AirPods Pro, not Studio Display</b><p>Everything else matches your Studio setup.</p></div><div class="acts"><span class="b pri wide">Switch to Studio Display</span><span class="b">Ignore Zoom</span></div><div class="notice"><b>AirPods Pro are in call mode</b><p>Their mic drops your sound to phone quality.</p><span class="b sm">Use Shure MV7</span></div><div class="sect"><span>Camera</span><span></span></div><div class="row"><span class="badge-ico"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="5" width="10" height="8" rx="1.5"></rect><path d="m12 8 4-2v6l-4-2"></path></svg></span><span class="nm">Cam Link 4K · USB</span><span class="vl"><span class="pick">⌃</span></span><span class="sb">● Live in Zoom</span></div><div class="sect"><span>Microphone</span><span><span class="acc">Compare</span></span></div><div class="row"><span class="badge-ico"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="6.5" y="2.5" width="5" height="8" rx="2.5"></rect><path d="M4 9a5 5 0 0 0 10 0M9 14v2"></path></svg></span><span class="nm">Shure MV7 · USB</span><span class="vl"><span class="b sm">Hear Yourself</span></span><span class="sb"><span class="meter"><i class="g"></i><i class="g"></i><i class="g"></i><i class="g"></i><i class="y"></i><i></i><i></i><i></i></span></span></div><div class="sect"><span>Speaker</span><span></span></div><div class="row"><span class="badge-ico"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 7h3l4-3v10l-4-3H3Z"></path><path d="M12.5 6.5a3.5 3.5 0 0 1 0 5M14.5 4.5a6.4 6.4 0 0 1 0 9"></path></svg></span><span class="nm">AirPods Pro · Bluetooth</span><span class="vl"><span class="b sm">Test</span></span><span class="sb">Zoom is using AirPods Pro · Ignore</span></div><div class="sect"><span>Usually here, missing now</span><span></span></div><div class="row noico"><span class="nm">ATR2100x-USB Microphone</span><span class="vl"></span><span class="sb">Not plugged in · last seen yesterday 12:40p</span></div><p class="ln">Your Mac doesn’t see it on USB at all. Check the cable and hub, or try another port.</p><div class="sect"><span>Keeps disconnecting</span><span></span></div><p class="ln">Cam Link 4K dropped out and came back 3 times this week. Try another cable or port.</p><div class="disc"><div class="dh"><span class="tw">▸</span><span class="dt"><b>Ready to record?</b></span><span class="dr"><span class="led-l ca">2 to check</span></span></div></div><div class="pf"><span><span class="b sm">Studio ▾</span> <span class="b sm">History</span></span><span class="tbi" title="Settings, Check for Updates, Send Feedback, Quit">⚙</span></div></div>
         </div>
       </div>
     </section>
