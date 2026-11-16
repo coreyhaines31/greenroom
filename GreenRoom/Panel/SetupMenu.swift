@@ -1,5 +1,6 @@
 import AppKit
 import GreenRoomCore
+import PanelKit
 import SwiftUI
 
 /// Setups for each place you work. The one that fits what's plugged in is checked; picking
@@ -10,7 +11,7 @@ struct SetupMenu: View {
     let closePanel: () -> Void
 
     var body: some View {
-        Menu(monitor.setup?.name ?? "Setup") {
+        Menu {
             ForEach(monitor.setups, id: \.name) { setup in
                 Button {
                     monitor.apply(setup)
@@ -36,7 +37,15 @@ struct SetupMenu: View {
                     if ForgetPrompt.confirm(current.name) { monitor.forget(current) }
                 }
             }
+        } label: {
+            HStack(spacing: 4) {
+                Text(monitor.setup?.name ?? "Setup")
+                Image(systemName: "chevron.down").font(.system(size: 8, weight: .bold))
+            }
         }
+        .menuStyle(.button)
+        .buttonStyle(.panelCompact)
+        .menuIndicator(.hidden)
         .fixedSize()
         .help("Your setups. Green Room checks the one that fits what's plugged in.")
     }
