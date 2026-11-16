@@ -154,7 +154,8 @@ struct PanelView: View {
             DeviceSection(kind: .microphone, monitor: monitor, selected: monitor.snapshot.active(.microphone)) {
                 if canCompare {
                     Button(checks.inputs.isOn ? "Done" : "Compare") { checks.toggleCompare() }
-                        .buttonStyle(.panelQuietLink)
+                        .buttonStyle(.panelLink)
+                        .font(.system(size: 11, weight: .medium))
                         .help("Shows a live level for every mic, so you can see which one hears you")
                 }
             } detail: {

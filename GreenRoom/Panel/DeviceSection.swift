@@ -16,9 +16,7 @@ struct DeviceSection<HeaderAction: View, Detail: View, Trailing: View>: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             SectionHeader(kind.title)
-                .overlay(alignment: .bottomTrailing) {
-                    headerAction.padding(.trailing, 14).padding(.bottom, 5)
-                }
+                .trailingAccessory { headerAction }
             HStack(alignment: .center, spacing: 10) {
                 SymbolTile(kind.panelSymbol, bare: true)
                 VStack(alignment: .leading, spacing: 4) {

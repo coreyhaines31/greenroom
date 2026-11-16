@@ -20,11 +20,8 @@ struct RecordingSection: View {
             }
             .padding(.bottom, 6)
         }
-        .overlay(alignment: .topTrailing) {
+        .trailingAccessory {
             StatusLight(problems == 0 ? .go : .caution, problems == 0 ? "Yes" : "\(problems) to check")
-                .padding(.top, 13)
-                .padding(.trailing, 14)
-                .allowsHitTesting(false)
         }
         .overlay(alignment: .top) {
             PanelHairline()
