@@ -648,3 +648,13 @@ section.article { padding: 48px 0 24px; }
 .fc-key { list-style: none; display: grid; grid-template-columns: repeat(3, auto); gap: 8px 16px; margin: 4px 0 0; padding: 0; font-size: 12.5px; justify-content: start; }
 .fc-key li { display: flex; align-items: center; gap: 6px; }
 .fc-key i { width: 10px; height: 10px; border-radius: 2px; flex: none; }
+
+/* Homepage comparison */
+.compare-section .table-card { margin-top: 32px; }
+.compare-wide { min-width: 820px; }
+.compare-wide tbody th { width: 22%; }
+.compare-wide thead th a { color: inherit; }
+.compare-picks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 28px 0 0; }
+.compare-picks p { margin: 0; padding: 20px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); color: var(--bx-ink2); }
+.compare-picks strong { color: var(--ink); font-weight: 600; }
+@media (max-width: 880px) { .compare-picks { grid-template-columns: 1fr; } }
