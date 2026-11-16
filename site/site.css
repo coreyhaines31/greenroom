@@ -654,7 +654,7 @@ section.article { padding: 48px 0 24px; }
 .compare-wide { min-width: 820px; }
 .compare-wide tbody th { width: 22%; }
 .compare-wide thead th a { color: inherit; }
-.compare-picks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 28px 0 0; }
+.compare-picks { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin: 28px 0 0; }
 .compare-picks p { margin: 0; padding: 20px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); color: var(--bx-ink2); }
 .compare-picks strong { color: var(--ink); font-weight: 600; }
 @media (max-width: 880px) { .compare-picks { grid-template-columns: 1fr; } }
