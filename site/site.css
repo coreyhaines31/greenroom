@@ -660,7 +660,7 @@ section.article { padding: 48px 0 24px; }
 @media (max-width: 880px) { .compare-picks { grid-template-columns: 1fr; } }
 
 /* What's new strip under the hero */
-.whats-new { padding: 0; }
+.whats-new { padding: 24px 0 0; }
 .whats-new-card { display: flex; align-items: center; gap: 18px; padding: 14px 18px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); font-size: 15px; color: var(--bx-ink2); }
 .whats-new-card p { margin: 0; flex: 1; }
 .whats-new-card strong { color: var(--ink); }
