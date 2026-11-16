@@ -154,12 +154,16 @@ enum StatusGlyph: CaseIterable {
     /// Something needs fixing.
     case problem
 
+    /// The lens from the Brushed family: outline when idle, solid with the tally lit when ready.
+    /// Problems keep the system warning triangle, so they read at a glance.
     var image: NSImage {
-        let symbol = switch self {
-        case .idle: "web.camera"
-        case .ready: "web.camera.fill"
-        case .problem: "exclamationmark.triangle.fill"
+        let image = switch self {
+        case .idle: NSImage(named: "MenuBarIdle")
+        case .ready: NSImage(named: "MenuBarReady")
+        case .problem: NSImage(systemSymbolName: "exclamationmark.triangle.fill", accessibilityDescription: nil)
         }
-        return NSImage(systemSymbolName: symbol, accessibilityDescription: nil) ?? NSImage()
+        guard let image = image?.copy() as? NSImage else { return NSImage() }
+        image.isTemplate = true
+        return image
     }
 }
