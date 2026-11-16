@@ -41,7 +41,7 @@ struct WelcomeView: View {
 
             Toggle("Open Green Room at login", isOn: $openAtLogin)
 
-            Text("Open it any time from the camera icon in the menu bar, or press \(HotKey.label).")
+            Text("Open it any time from the lens icon in the menu bar, or press \(HotKey.label).")
                 .font(.callout).foregroundStyle(.secondary)
 
             HStack {

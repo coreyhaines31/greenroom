@@ -19,10 +19,9 @@ packages:
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
     exactVersion: "2.10.0"
-  # On the development branch until PanelKit 0.2.0 is tagged.
   PanelKit:
     url: https://github.com/coreyhaines31/panelkit
-    branch: development
+    from: "0.2.0"
 targets:
   GreenRoom:
     type: application
