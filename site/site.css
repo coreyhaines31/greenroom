@@ -658,3 +658,13 @@ section.article { padding: 48px 0 24px; }
 .compare-picks p { margin: 0; padding: 20px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); color: var(--bx-ink2); }
 .compare-picks strong { color: var(--ink); font-weight: 600; }
 @media (max-width: 880px) { .compare-picks { grid-template-columns: 1fr; } }
+
+/* What's new strip under the hero */
+.whats-new { padding: 0; }
+.whats-new-card { display: flex; align-items: center; gap: 18px; padding: 14px 18px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); font-size: 15px; color: var(--bx-ink2); }
+.whats-new-card p { margin: 0; flex: 1; }
+.whats-new-card strong { color: var(--ink); }
+.whats-new-card .kicker { flex: none; }
+.whats-new-card a { flex: none; white-space: nowrap; color: var(--ink); }
+@media (max-width: 760px) { .whats-new-card { flex-direction: column; align-items: flex-start; gap: 8px; } }
+
