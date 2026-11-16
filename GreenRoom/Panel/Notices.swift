@@ -68,7 +68,7 @@ struct StatusVerdict: View {
         if asVerdict {
             Verdict("Save your usual devices as your setup", message: usual, status: .off, statusLabel: "No setup")
         } else {
-            NoticeCard(title: "Save your usual devices as your setup", message: usual ?? "") { EmptyView() }
+            Notice("Save your usual devices as your setup", message: usual)
         }
     }
 }
@@ -144,7 +144,7 @@ struct AdvisoryCard: View {
     let fix: (Device) -> Void
 
     var body: some View {
-        NoticeCard(title: advisory.title, message: advisory.message) {
+        Notice(advisory.title, message: advisory.message) {
             if let device = advisory.fix {
                 Button("Use \(device.name)") { fix(device) }
                     .buttonStyle(.panelCompact)

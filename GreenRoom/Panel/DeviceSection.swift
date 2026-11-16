@@ -20,7 +20,7 @@ struct DeviceSection<HeaderAction: View, Detail: View, Trailing: View>: View {
                     headerAction.padding(.trailing, 14).padding(.bottom, 5)
                 }
             HStack(alignment: .center, spacing: 10) {
-                SymbolTile(name: kind.panelSymbol)
+                SymbolTile(kind.panelSymbol, bare: true)
                 VStack(alignment: .leading, spacing: 4) {
                     DeviceChooser(kind: kind, monitor: monitor, selected: selected)
                     detail

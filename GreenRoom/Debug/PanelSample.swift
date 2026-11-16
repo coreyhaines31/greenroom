@@ -119,7 +119,7 @@ private struct ProblemSample: View {
                         LinearGradient(colors: [.gray, .black], startPoint: .top, endPoint: .bottom)
                             .overlay(alignment: .topLeading) { TallyLight("Live").padding(7) }
                     }
-                    TipStrip(text: "Your face is dark. Add a light in front of you.")
+                    TipStrip("Your face is dark. Add a light in front of you.", accessibilityPrefix: "Framing tip")
                 }
             }
             StatusVerdict(check: check, setupName: "Studio", proposed: Setup(name: "", devices: [:]),

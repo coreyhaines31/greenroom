@@ -73,7 +73,7 @@ struct PanelView: View {
                     cameraWindow
                 }
                 if let advice = checks.camera.advice {
-                    TipStrip(text: advice)
+                    TipStrip(advice, accessibilityPrefix: "Framing tip")
                 }
             }
         }
