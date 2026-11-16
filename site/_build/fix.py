@@ -65,8 +65,9 @@ def head(title, desc, url, graph, og_type="article"):
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="{image}">
   <meta name="theme-color" content="#f5f5f7">
-  <link rel="icon" href="/images/icon.png">
-  <link rel="apple-touch-icon" href="/images/icon.png">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="canonical" href="{url}">
   <link rel="stylesheet" href="/site.css">
   <link rel="stylesheet" href="/fix/fix.css">
