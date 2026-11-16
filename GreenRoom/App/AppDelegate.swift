@@ -1,4 +1,5 @@
 import AppKit
+import PanelKit
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -17,6 +18,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var hotKey = HotKey { [weak self] in self?.statusItemController?.toggle(pinned: false) }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        PanelKit.registerFonts()
         // Before the first refresh records today: no history and no setups means a new install.
         let isNewUser = monitor.history.appDays.isEmpty && monitor.setups.isEmpty
         monitor.start()

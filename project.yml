@@ -19,6 +19,10 @@ packages:
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
     exactVersion: "2.10.0"
+  # Shared Brushed panel components. Pinned to the branch until it merges.
+  PanelKit:
+    url: https://github.com/coreyhaines31/mac-app-kit
+    branch: feature/2-panelkit
 targets:
   GreenRoom:
     type: application
@@ -28,6 +32,7 @@ targets:
     dependencies:
       - package: GreenRoomCore
       - package: Sparkle
+      - package: PanelKit
       # The `greenroom` command; the Homebrew cask links it onto the PATH.
       - target: GreenRoomCLI
         copy:
