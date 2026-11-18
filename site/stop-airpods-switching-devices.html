@@ -19,9 +19,17 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="canonical" href="https://greenroomformac.com/stop-airpods-switching-devices">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@300;600;700&display=swap">
+  <link rel="preload" href="/fonts/barlow-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/barlow-semi-condensed-600.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/barlow-semi-condensed-300.woff2" as="font" type="font/woff2" crossorigin>
+  <style>
+    @font-face {font-family: "Barlow"; font-style: normal; font-weight: 400; font-display: optional; src: url(/fonts/barlow-400.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+    @font-face {font-family: "Barlow"; font-style: normal; font-weight: 500; font-display: optional; src: url(/fonts/barlow-500.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+    @font-face {font-family: "Barlow"; font-style: normal; font-weight: 600; font-display: optional; src: url(/fonts/barlow-600.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+    @font-face {font-family: "Barlow Semi Condensed"; font-style: normal; font-weight: 300; font-display: optional; src: url(/fonts/barlow-semi-condensed-300.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+    @font-face {font-family: "Barlow Semi Condensed"; font-style: normal; font-weight: 600; font-display: optional; src: url(/fonts/barlow-semi-condensed-600.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+    @font-face {font-family: "Barlow Semi Condensed"; font-style: normal; font-weight: 700; font-display: optional; src: url(/fonts/barlow-semi-condensed-700.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+  </style>
   <link rel="stylesheet" href="/brushed.css">
   <link rel="stylesheet" href="/site.css">
   <script src="/nav.js" defer></script>
@@ -33,7 +41,7 @@
 <body class="bx">
   <header class="nav">
     <div class="wrap">
-      <a class="brand" href="/"><img src="/images/icon.png" alt="" width="30" height="30"> Green Room</a>
+      <a class="brand" href="/"><img src="/images/icon-104.webp" alt="" width="30" height="30"> Green Room</a>
       <nav>
         <a href="/#how">How it works</a>
         <details class="menu"><summary>Free tests</summary><div class="menu-list"><span>Test in your browser</span><a href="/mic-test">Microphone test</a><a href="/webcam-test">Webcam test</a><a href="/speaker-test">Speaker test</a><a href="/sound-test">Sound test</a><a href="/headphone-test">Headphone test</a><a href="/left-right-audio-test">Left/right audio test</a><span>Mac guides</span><a href="/mac-microphone-not-working">Mac microphone not working</a><a href="/stop-airpods-switching-devices">Mac camera not working</a><a href="/how-to-test-microphone-on-mac">How to test your mic on a Mac</a><span>App fixes</span><a href="/fix">Fix it in Zoom, Teams, Meet, and more</a></div></details>
@@ -123,7 +131,7 @@
     <div class="bx-family">
       <div class="wrap">
         <p class="bx-eyebrow">More free Mac apps</p>
-        <ul><li><a href="https://fuelgauge.app"><img src="/images/family/fuel.png" alt="" width="56" height="56">Fuel Gauge</a></li><li><a href="https://spareformac.com"><img src="/images/family/spare.png" alt="" width="56" height="56">Spare</a></li><li><a href="https://diskforecast.com"><img src="/images/family/disk.png" alt="" width="56" height="56">Disk Forecast</a></li><li><a href="https://midnightoil.app"><img src="/images/family/oil.png" alt="" width="56" height="56">Midnight Oil</a></li><li><a href="https://wifiorisp.com"><img src="/images/family/wifi.png" alt="" width="56" height="56">WiFi or ISP</a></li><li><a href="/" aria-current="page"><img src="/images/family/green.png" alt="" width="56" height="56">Green Room</a></li><li><a href="https://onhandformac.com"><img src="/images/family/hand.png" alt="" width="56" height="56">On Hand</a></li><li><a href="https://coatcheckformac.com"><img src="/images/family/coat.png" alt="" width="56" height="56">Coat Check</a></li><li><a href="https://killcord.app"><img src="/images/family/kill.png" alt="" width="56" height="56">Kill Cord</a></li></ul>
+        <ul><li><a href="https://fuelgauge.app"><img src="/images/family/fuel.webp" alt="" width="56" height="56">Fuel Gauge</a></li><li><a href="https://spareformac.com"><img src="/images/family/spare.webp" alt="" width="56" height="56">Spare</a></li><li><a href="https://diskforecast.com"><img src="/images/family/disk.webp" alt="" width="56" height="56">Disk Forecast</a></li><li><a href="https://midnightoil.app"><img src="/images/family/oil.webp" alt="" width="56" height="56">Midnight Oil</a></li><li><a href="https://wifiorisp.com"><img src="/images/family/wifi.webp" alt="" width="56" height="56">WiFi or ISP</a></li><li><a href="/" aria-current="page"><img src="/images/family/green.webp" alt="" width="56" height="56">Green Room</a></li><li><a href="https://onhandformac.com"><img src="/images/family/hand.webp" alt="" width="56" height="56">On Hand</a></li><li><a href="https://coatcheckformac.com"><img src="/images/family/coat.webp" alt="" width="56" height="56">Coat Check</a></li><li><a href="https://killcord.app"><img src="/images/family/kill.webp" alt="" width="56" height="56">Kill Cord</a></li></ul>
       </div>
     </div>
     <div class="bx-footer">
