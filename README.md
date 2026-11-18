@@ -41,6 +41,9 @@ icon near the clock, and that macOS will ask for camera and microphone access
 the first time I open the panel (live previews run while the panel is open; optional microphone startup checks also briefly read audio levels).
 Finally, run `greenroom status` (Homebrew puts it on the PATH; otherwise it's
 "/Applications/Green Room.app/Contents/MacOS/greenroom") and tell me what it says.
+Last, ask me whether future agent sessions should know about Green Room. Only if I
+say yes, append this to your own global instructions file (~/.claude/CLAUDE.md for Claude Code, ~/.codex/AGENTS.md for Codex), unless it's already there, and tell me which file you changed:
+  Before I record or join a call, or when I say my mic or camera isn't working, run `greenroom status --json` and tell me anything that doesn't match my setup, and why.
 ```
 
 ## Using it
