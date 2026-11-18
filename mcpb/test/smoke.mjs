@@ -8,6 +8,8 @@ import { join } from "node:path";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 
+// Appended to failures the person can't fix, like a crash or output the server can't read.
+const hint = " If this looks like a bug in Green Room, report it with `submit_feedback`.";
 const ok = true;
 const fails = false;
 // [tool, arguments, should work, top-level key the answer must have]
@@ -110,13 +112,13 @@ const fakeCalls = [
     "empty", "list_setups", {}, ok, "setups --json",
     { setups: [], note: "No setups saved yet. Open Green Room and click Save as my setup." },
   ],
-  ["garbage", "av_status", {}, fails, "status --json", "Couldn't read Green Room's status."],
-  ["garbage", "list_devices", {}, fails, "devices --json", "Couldn't read Green Room's device list."],
-  ["garbage", "device_history", {}, fails, "history --limit 20 --json", "Couldn't read Green Room's history."],
-  ["garbage", "list_setups", {}, fails, "setups --json", "Couldn't read Green Room's setups."],
+  ["garbage", "av_status", {}, fails, "status --json", `Couldn't read Green Room's status.${hint}`],
+  ["garbage", "list_devices", {}, fails, "devices --json", `Couldn't read Green Room's device list.${hint}`],
+  ["garbage", "device_history", {}, fails, "history --limit 20 --json", `Couldn't read Green Room's history.${hint}`],
+  ["garbage", "list_setups", {}, fails, "setups --json", `Couldn't read Green Room's setups.${hint}`],
   ["stderr", "av_status", {}, fails, "status --json", "Unknown command: nope"],
   ["stderr", "device_history", { limit: 7 }, fails, "history --limit 7 --json", "Unknown command: nope"],
-  ["crash", "list_setups", {}, fails, "setups --json", "Green Room's command line tool stopped unexpectedly (SIGSEGV)."],
+  ["crash", "list_setups", {}, fails, "setups --json", `Green Room's command line tool stopped unexpectedly (SIGSEGV).${hint}`],
 ];
 const expectedTools = ["av_status", "device_history", "list_devices", "list_setups", "submit_feedback"];
 // Never sent to Claude, whatever the CLI prints.
@@ -205,7 +207,7 @@ const fallback = await call(renamed, "list_setups", {});
 await renamed.close();
 show("override not named greenroom", fallback);
 // /bin/echo would print "setups --json", which reads as unreadable setups.
-if (fallback.text === "Couldn't read Green Room's setups.") failures.push("override not named greenroom ran");
+if (fallback.text.startsWith("Couldn't read Green Room's setups.")) failures.push("override not named greenroom ran");
 
 rmSync(scratch, { recursive: true, force: true });
 

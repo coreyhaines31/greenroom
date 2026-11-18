@@ -113,6 +113,9 @@ for (const [label, args] of rejected) {
   check(`rejects ${label}`, result.isError && !result.text.includes("github.com"));
 }
 
+const [name, args] = CLI_TOOL;
+const crashed = await call(client, name, args);
+check(`a crash in ${name} points at submit_feedback`, crashed.isError && crashed.text.endsWith(hint));
 await client.close();
 
 rmSync(scratch, { recursive: true, force: true });
