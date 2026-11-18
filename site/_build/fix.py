@@ -219,7 +219,7 @@ def green_room(page, app):
       <div class="wrap narrow">
         <div class="gr-card">
           <div>
-            <img src="/images/icon.png" alt="" width="52" height="52">
+            <img src="/images/icon-104.webp" alt="" width="52" height="52">
             <h2>{h}</h2>
             <p>{p} Free, with no account.</p>
             <div class="actions">
@@ -405,7 +405,7 @@ def render_hub():
       <div class="wrap narrow">
         <div class="gr-card">
           <div>
-            <img src="/images/icon.png" alt="" width="52" height="52">
+            <img src="/images/icon-104.webp" alt="" width="52" height="52">
             <h2>On a Mac? Green Room shows what your call is really using.</h2>
             <p>Apps keep their own device choices, so your Mac can look right while the call uses the wrong mic. Green Room shows which app has each mic and speaker open, warns you when it isn't your setup, and puts the fix one click away. Free, with no account.</p>
             <div class="actions">
