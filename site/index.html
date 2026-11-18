@@ -25,9 +25,17 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="canonical" href="https://greenroomformac.com/">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@300;600;700&display=swap">
+  <link rel="preload" href="/fonts/barlow-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/barlow-semi-condensed-600.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/barlow-semi-condensed-300.woff2" as="font" type="font/woff2" crossorigin>
+  <style>
+    @font-face {font-family: "Barlow"; font-style: normal; font-weight: 400; font-display: optional; src: url(/fonts/barlow-400.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+    @font-face {font-family: "Barlow"; font-style: normal; font-weight: 500; font-display: optional; src: url(/fonts/barlow-500.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+    @font-face {font-family: "Barlow"; font-style: normal; font-weight: 600; font-display: optional; src: url(/fonts/barlow-600.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+    @font-face {font-family: "Barlow Semi Condensed"; font-style: normal; font-weight: 300; font-display: optional; src: url(/fonts/barlow-semi-condensed-300.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+    @font-face {font-family: "Barlow Semi Condensed"; font-style: normal; font-weight: 600; font-display: optional; src: url(/fonts/barlow-semi-condensed-600.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+    @font-face {font-family: "Barlow Semi Condensed"; font-style: normal; font-weight: 700; font-display: optional; src: url(/fonts/barlow-semi-condensed-700.woff2) format("woff2"); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+  </style>
   <link rel="stylesheet" href="/brushed.css">
   <link rel="stylesheet" href="/site.css">
   <link rel="stylesheet" href="/popover.css">
@@ -40,7 +48,7 @@
 <body class="bx">
   <header class="nav">
     <div class="wrap">
-      <a class="brand" href="/"><img src="/images/icon.png" alt="" width="30" height="30"> Green Room</a>
+      <a class="brand" href="/"><img src="/images/icon-104.webp" alt="" width="30" height="30"> Green Room</a>
       <nav>
         <a href="#how">How it works</a>
         <details class="menu"><summary>Free tests</summary><div class="menu-list"><span>Test in your browser</span><a href="/mic-test">Microphone test</a><a href="/webcam-test">Webcam test</a><a href="/speaker-test">Speaker test</a><a href="/sound-test">Sound test</a><a href="/headphone-test">Headphone test</a><a href="/left-right-audio-test">Left/right audio test</a><span>Mac guides</span><a href="/mac-microphone-not-working">Mac microphone not working</a><a href="/mac-camera-not-working">Mac camera not working</a><a href="/how-to-test-microphone-on-mac">How to test your mic on a Mac</a><span>App fixes</span><a href="/fix">Fix it in Zoom, Teams, Meet, and more</a></div></details>
@@ -125,16 +133,16 @@
         </div>
         <div class="desk" role="img" aria-label="Three Mac notifications from Green Room: Sound is going to AirPods Pro, not Studio Monitors. Shure MV7 isn't connected. 3 devices disconnected: Cam Link 4K, Shure MV7, and Studio Monitors.">
           <div class="toast">
-            <img src="/images/icon.png" alt="" width="38" height="38">
+            <img src="/images/icon-104.webp" alt="" width="38" height="38">
             <div><span class="t-top"><b>Green Room</b><time>now</time></span><b>Sound is going to AirPods Pro, not Studio Monitors</b><span>Switch back from here, or in Green Room.</span></div>
             <span class="t-action">Switch to Studio Monitors</span>
           </div>
           <div class="toast">
-            <img src="/images/icon.png" alt="" width="38" height="38">
+            <img src="/images/icon-104.webp" alt="" width="38" height="38">
             <div><span class="t-top"><b>Green Room</b><time>2m ago</time></span><b>Shure MV7 isn't connected</b><span>Your Mac doesn't see it on USB at all. Check the cable and hub, or try another port.</span></div>
           </div>
           <div class="toast">
-            <img src="/images/icon.png" alt="" width="38" height="38">
+            <img src="/images/icon-104.webp" alt="" width="38" height="38">
             <div><span class="t-top"><b>Green Room</b><time>9:02 AM</time></span><b>3 devices disconnected</b><span>Cam Link 4K, Shure MV7, and Studio Monitors. Check the dock or hub they share.</span></div>
           </div>
         </div>
@@ -330,7 +338,10 @@ It's a menu bar app with no Dock icon. Tell me to look for the small lens
 icon near the clock, and that macOS will ask for camera and microphone access
 the first time I open the panel (live previews run while the panel is open; optional microphone startup checks also briefly read audio levels).
 Finally, run `greenroom status` (Homebrew puts it on the PATH; otherwise it's
-"/Applications/Green Room.app/Contents/MacOS/greenroom") and tell me what it says.</pre>
+"/Applications/Green Room.app/Contents/MacOS/greenroom") and tell me what it says.
+Last, ask me whether future agent sessions should know about Green Room. Only if I
+say yes, append this to your own global instructions file (~/.claude/CLAUDE.md for Claude Code, ~/.codex/AGENTS.md for Codex), unless it's already there, and tell me which file you changed:
+  Before I record or join a call, or when I say my mic or camera isn't working, run `greenroom status --json` and tell me anything that doesn't match my setup, and why.</pre>
         </div>
 
         <h3 class="agent-sub">Then let it check your setup for you</h3>
@@ -455,7 +466,7 @@ sudo ln -sf "/Applications/Green Room.app/Contents/MacOS/greenroom" \
     <section class="bx-section" id="why">
       <div class="bx-wrap">
         <div class="bx-maker">
-          <img src="/images/corey.jpg" alt="Corey Haines" width="76" height="76">
+          <img src="/images/corey-152.webp" srcset="/images/corey-76.webp 1x, /images/corey-152.webp 2x, /images/corey-228.webp 3x" alt="Corey Haines" width="76" height="76">
           <div>
             <span class="bx-strip">Why it exists</span>
             <p>I record videos and take a lot of calls, and my setup kept changing under me. AirPods would grab the sound, and one morning my USB mic had quietly dropped off its hub, which I found out halfway through a recording. Nothing checked my camera, mic and speakers together before I started. So I built the app I wanted: one click shows what&#39;s live and flags anything that isn&#39;t my usual setup. And it&#39;s free.</p>
@@ -485,7 +496,7 @@ sudo ln -sf "/Applications/Green Room.app/Contents/MacOS/greenroom" \
 
     <section class="cta">
       <div class="wrap">
-        <img src="/images/icon.png" alt="" width="96" height="96">
+        <img src="/images/icon-192.webp" alt="" width="96" height="96">
         <h2>Next call, skip “can you hear me?”</h2>
         <div class="actions center">
           <a class="pill big" href="https://github.com/coreyhaines31/greenroom/releases/latest">
@@ -502,14 +513,14 @@ sudo ln -sf "/Applications/Green Room.app/Contents/MacOS/greenroom" \
         <h2>More free Mac apps</h2>
         <p class="bx-intro">Small, free menu bar apps that each answer one question about your Mac. Same look, same rules: nothing leaves your Mac, no account, no subscription.</p>
         <div class="bx-apps">
-          <a href="https://fuelgauge.app"><img src="/images/family/fuel.png" alt=""><div><b>Fuel Gauge</b><span>Know if you'll make it to reset</span></div></a>
-          <a href="https://spareformac.com"><img src="/images/family/spare.png" alt=""><div><b>Spare</b><span>See what's using your Mac</span></div></a>
-          <a href="https://diskforecast.com"><img src="/images/family/disk.png" alt=""><div><b>Disk Forecast</b><span>Know before your Mac runs out of space</span></div></a>
-          <a href="https://midnightoil.app"><img src="/images/family/oil.png" alt=""><div><b>Midnight Oil</b><span>Keep your Mac awake</span></div></a>
-          <a href="https://wifiorisp.com"><img src="/images/family/wifi.png" alt=""><div><b>WiFi or ISP</b><span>Is slow internet your Wi-Fi or your ISP?</span></div></a>
-          <a href="https://onhandformac.com"><img src="/images/family/hand.png" alt=""><div><b>On Hand</b><span>Copy it once. Find it again.</span></div></a>
-          <a href="https://coatcheckformac.com"><img src="/images/family/coat.png" alt=""><div><b>Coat Check</b><span>Reach the menu bar icons the notch hides</span></div></a>
-          <a href="https://killcord.app"><img src="/images/family/kill.png" alt=""><div><b>Kill Cord</b><span>See your API spend before the bill does</span></div></a>
+          <a href="https://fuelgauge.app"><img src="/images/family/fuel.webp" alt="" width="56" height="56"><div><b>Fuel Gauge</b><span>Know if you'll make it to reset</span></div></a>
+          <a href="https://spareformac.com"><img src="/images/family/spare.webp" alt="" width="56" height="56"><div><b>Spare</b><span>See what's using your Mac</span></div></a>
+          <a href="https://diskforecast.com"><img src="/images/family/disk.webp" alt="" width="56" height="56"><div><b>Disk Forecast</b><span>Know before your Mac runs out of space</span></div></a>
+          <a href="https://midnightoil.app"><img src="/images/family/oil.webp" alt="" width="56" height="56"><div><b>Midnight Oil</b><span>Keep your Mac awake</span></div></a>
+          <a href="https://wifiorisp.com"><img src="/images/family/wifi.webp" alt="" width="56" height="56"><div><b>WiFi or ISP</b><span>Is slow internet your Wi-Fi or your ISP?</span></div></a>
+          <a href="https://onhandformac.com"><img src="/images/family/hand.webp" alt="" width="56" height="56"><div><b>On Hand</b><span>Copy it once. Find it again.</span></div></a>
+          <a href="https://coatcheckformac.com"><img src="/images/family/coat.webp" alt="" width="56" height="56"><div><b>Coat Check</b><span>Reach the menu bar icons the notch hides</span></div></a>
+          <a href="https://killcord.app"><img src="/images/family/kill.webp" alt="" width="56" height="56"><div><b>Kill Cord</b><span>See your API spend before the bill does</span></div></a>
         </div>
       </div>
     </section>
@@ -519,7 +530,7 @@ sudo ln -sf "/Applications/Green Room.app/Contents/MacOS/greenroom" \
     <div class="bx-family">
       <div class="wrap">
         <p class="bx-eyebrow">More free Mac apps</p>
-        <ul><li><a href="https://fuelgauge.app"><img src="/images/family/fuel.png" alt="" width="56" height="56">Fuel Gauge</a></li><li><a href="https://spareformac.com"><img src="/images/family/spare.png" alt="" width="56" height="56">Spare</a></li><li><a href="https://diskforecast.com"><img src="/images/family/disk.png" alt="" width="56" height="56">Disk Forecast</a></li><li><a href="https://midnightoil.app"><img src="/images/family/oil.png" alt="" width="56" height="56">Midnight Oil</a></li><li><a href="https://wifiorisp.com"><img src="/images/family/wifi.png" alt="" width="56" height="56">WiFi or ISP</a></li><li><a href="/" aria-current="page"><img src="/images/family/green.png" alt="" width="56" height="56">Green Room</a></li><li><a href="https://onhandformac.com"><img src="/images/family/hand.png" alt="" width="56" height="56">On Hand</a></li><li><a href="https://coatcheckformac.com"><img src="/images/family/coat.png" alt="" width="56" height="56">Coat Check</a></li><li><a href="https://killcord.app"><img src="/images/family/kill.png" alt="" width="56" height="56">Kill Cord</a></li></ul>
+        <ul><li><a href="https://fuelgauge.app"><img src="/images/family/fuel.webp" alt="" width="56" height="56">Fuel Gauge</a></li><li><a href="https://spareformac.com"><img src="/images/family/spare.webp" alt="" width="56" height="56">Spare</a></li><li><a href="https://diskforecast.com"><img src="/images/family/disk.webp" alt="" width="56" height="56">Disk Forecast</a></li><li><a href="https://midnightoil.app"><img src="/images/family/oil.webp" alt="" width="56" height="56">Midnight Oil</a></li><li><a href="https://wifiorisp.com"><img src="/images/family/wifi.webp" alt="" width="56" height="56">WiFi or ISP</a></li><li><a href="/" aria-current="page"><img src="/images/family/green.webp" alt="" width="56" height="56">Green Room</a></li><li><a href="https://onhandformac.com"><img src="/images/family/hand.webp" alt="" width="56" height="56">On Hand</a></li><li><a href="https://coatcheckformac.com"><img src="/images/family/coat.webp" alt="" width="56" height="56">Coat Check</a></li><li><a href="https://killcord.app"><img src="/images/family/kill.webp" alt="" width="56" height="56">Kill Cord</a></li></ul>
       </div>
     </div>
     <div class="bx-footer">
