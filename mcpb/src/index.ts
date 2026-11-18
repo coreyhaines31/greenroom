@@ -5,7 +5,7 @@ import { runGreenRoom } from "./cli.js";
 import { registerFeedbackTool } from "./feedback.js";
 import { shapeDevices, shapeHistory, shapeSetups, shapeStatus } from "./shape.js";
 
-const VERSION = "0.1.1";
+const VERSION = "0.1.2";
 
 const server = new McpServer(
   { name: "greenroom", version: VERSION },
