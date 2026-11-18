@@ -118,7 +118,7 @@ const fakeCalls = [
   ["stderr", "device_history", { limit: 7 }, fails, "history --limit 7 --json", "Unknown command: nope"],
   ["crash", "list_setups", {}, fails, "setups --json", "Green Room's command line tool stopped unexpectedly (SIGSEGV)."],
 ];
-const expectedTools = ["av_status", "device_history", "list_devices", "list_setups"];
+const expectedTools = ["av_status", "device_history", "list_devices", "list_setups", "submit_feedback"];
 // Never sent to Claude, whatever the CLI prints.
 const forbidden = ["SERIAL123", "74-3F-8E", "0x1234", "uniqueID", "\"id\""];
 const server = process.env.SERVER ?? new URL("../server/index.mjs", import.meta.url).pathname;

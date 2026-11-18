@@ -42,7 +42,8 @@
     { "name": "av_status", "description": "The camera, mic, and speaker in use, and anything to fix before a call or recording" },
     { "name": "list_devices", "description": "Every camera, mic, and speaker connected, and usual ones that are missing" },
     { "name": "device_history", "description": "Recent plug-ins, unplugs, and switches" },
-    { "name": "list_setups", "description": "Saved setups and which one fits what's plugged in" }
+    { "name": "list_setups", "description": "Saved setups and which one fits what's plugged in" },
+    { "name": "submit_feedback", "description": "Drafts a GitHub issue link about a missing or broken tool for you to review and submit; sends nothing" }
   ],
   "compatibility": {
     "claude_desktop": ">=0.10.0",

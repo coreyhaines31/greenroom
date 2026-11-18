@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { runGreenRoom } from "./cli.js";
+import { registerFeedbackTool } from "./feedback.js";
 import { shapeDevices, shapeHistory, shapeSetups, shapeStatus } from "./shape.js";
 
 const VERSION = "0.1.1";
@@ -111,5 +112,7 @@ server.registerTool(
     return reply(result.ok ? shapeSetups(result.stdout) : result);
   },
 );
+
+registerFeedbackTool(server, VERSION);
 
 await server.connect(new StdioServerTransport());
