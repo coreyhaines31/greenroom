@@ -24,6 +24,25 @@ Requires macOS 14 Sonoma or later.
 brew install --cask coreyhaines31/tap/greenroom
 ```
 
+**Or ask your coding agent.** Paste this into Claude Code, Codex, or another coding agent:
+
+```text
+Install the macOS app "Green Room" for me.
+If Homebrew is installed (check with `command -v brew`), run:
+  brew install --cask coreyhaines31/tap/greenroom
+Otherwise, download and install the signed DMG:
+  curl -fL -o /tmp/GreenRoom.dmg https://github.com/coreyhaines31/greenroom/releases/latest/download/GreenRoom.dmg
+  hdiutil attach -nobrowse -quiet -mountpoint /tmp/greenroom-dmg /tmp/GreenRoom.dmg
+  ditto "/tmp/greenroom-dmg/Green Room.app" "/Applications/Green Room.app"
+  hdiutil detach -quiet /tmp/greenroom-dmg
+Then open it with: open -a "Green Room"
+It's a menu bar app with no Dock icon. Tell me to look for the small lens
+icon near the clock, and that macOS will ask for camera and microphone access
+the first time I open the panel (live previews run while the panel is open; optional microphone startup checks also briefly read audio levels).
+Finally, run `greenroom status` (Homebrew puts it on the PATH; otherwise it's
+"/Applications/Green Room.app/Contents/MacOS/greenroom") and tell me what it says.
+```
+
 ## Using it
 
 1. **A welcome window opens the first time.** It proposes your usual devices from what you've used, so saving your setup is one click, and offers the alerts, Keep my setup, calendar checks, and open at login in one place.
