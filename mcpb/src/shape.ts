@@ -1,6 +1,7 @@
 // Turns the CLI's JSON into short answers for Claude. Only the listed fields pass through, so nothing the
 // CLI might add later reaches the conversation by accident. Device IDs (Core Audio UIDs, camera unique IDs,
 // and Bluetooth addresses in history) are dropped: names are what people recognize, and IDs identify hardware.
+import { withBugHint } from "./feedback.js";
 
 export const NO_HISTORY = "Nothing yet. Green Room records plug-ins, unplugs, and switches while it's running.";
 export const NO_SETUPS = "No setups saved yet. Open Green Room and click Save as my setup.";
@@ -62,7 +63,7 @@ function compact(object: Item): Item {
   return Object.fromEntries(Object.entries(object).filter(([, value]) => value !== undefined));
 }
 
-const unreadable = (what: string): Shaped => ({ ok: false, text: `Couldn't read Green Room's ${what}.` });
+const unreadable = (what: string): Shaped => ({ ok: false, text: withBugHint(`Couldn't read Green Room's ${what}.`) });
 
 export function shapeStatus(stdout: string, code: 0 | 2): Shaped {
   const parsed = parse(stdout);

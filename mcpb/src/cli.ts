@@ -2,6 +2,7 @@ import { execFile } from "node:child_process";
 import { accessSync, constants } from "node:fs";
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
+import { withBugHint } from "./feedback.js";
 
 export const INSTALL_MESSAGE =
   "Green Room isn't installed on this Mac, so there's nothing to check yet. " +
@@ -93,16 +94,16 @@ export async function runGreenRoom(args: string[]): Promise<RunResult> {
           const message = stderr.trim().split("\n")[0];
           if (message) return resolve({ ok: false, text: message.slice(0, 300) });
           if (error?.signal && !error.killed) {
-            return resolve({ ok: false, text: `Green Room's command line tool stopped unexpectedly (${error.signal}).` });
+            return resolve({ ok: false, text: withBugHint(`Green Room's command line tool stopped unexpectedly (${error.signal}).`) });
           }
           if (error?.killed) {
-            return resolve({ ok: false, text: `Green Room didn't answer within ${TIMEOUT_MS / 1000} seconds.` });
+            return resolve({ ok: false, text: withBugHint(`Green Room didn't answer within ${TIMEOUT_MS / 1000} seconds.`) });
           }
-          resolve({ ok: false, text: `Green Room's command line tool failed: ${error?.message ?? "unknown error"}` });
+          resolve({ ok: false, text: withBugHint(`Green Room's command line tool failed: ${error?.message ?? "unknown error"}`) });
         },
       );
     } catch (error) {
-      resolve({ ok: false, text: `Couldn't start Green Room's command line tool at ${cli}: ${(error as Error).message}` });
+      resolve({ ok: false, text: withBugHint(`Couldn't start Green Room's command line tool at ${cli}: ${(error as Error).message}`) });
     }
   });
 }
