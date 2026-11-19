@@ -86,11 +86,11 @@
 .bx-faq summary { cursor: pointer; font: 600 19px/1.3 var(--bx-display); }
 .bx-faq details p { color: var(--bx-ink2); margin: 10px 0 0; max-width: 70ch; }
 
-/* Family footer: the eight instruments on a black panel */
+/* Family footer: ten apps across, five on phones */
 .bx-family { background: #1b1b1b; color: #cfd0d1; padding-block: 28px 30px; }
 .bx-family .bx-eyebrow { color: #8f9192; }
-.bx-family ul { list-style: none; margin: 16px 0 0; padding: 0; display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 8px; }
-@media (max-width: 760px) { .bx-family ul { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.bx-family ul { list-style: none; margin: 16px 0 0; padding: 0; display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 960px) { .bx-family ul { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
 .bx-family a { display: grid; justify-items: center; gap: 6px; padding: 10px 4px; border-radius: 8px; color: #cfd0d1; text-decoration: none; font-size: 13px; text-align: center; }
 .bx-family a:hover, .bx-family a[aria-current] { background: #2a2a2b; color: #fff; }
 .bx-family img { width: 56px; height: 56px; }

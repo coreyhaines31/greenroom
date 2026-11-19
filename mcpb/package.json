@@ -1,13 +1,14 @@
 {
   "name": "greenroom-mcpb",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "type": "module",
   "description": "Claude Desktop extension for Green Room",
   "scripts": {
     "build": "esbuild src/index.ts --bundle --platform=node --target=node20 --format=esm --outfile=server/index.mjs",
     "lint": "tsc --noEmit",
-    "test": "npm run build && node test/smoke.mjs",
+    "test": "npm run build && node test/smoke.mjs && node test/feedback.mjs",
+    "test:feedback": "npm run build && node test/feedback.mjs",
     "pack": "npm run build && mcpb validate manifest.json && mcpb pack . dist/greenroom.mcpb"
   },
   "dependencies": {
