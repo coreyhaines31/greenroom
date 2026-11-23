@@ -47,7 +47,7 @@
   color-scheme: light;
 }
 
-.pop {
+html .pop { /* html: popover.css loads after this file and sets these on .pop */
   --display: "Barlow Semi Condensed", "Barlow Semi Condensed Fallback", "Helvetica Neue", ui-sans-serif, system-ui, sans-serif;
   --cond: "Barlow Semi Condensed", "Barlow Semi Condensed Caps Fallback", "SF Pro Display", system-ui, sans-serif;
 }
