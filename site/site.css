@@ -1,6 +1,18 @@
 /* Green Room on the Brushed family look. brushed.css holds the shared tokens and components;
    these site tokens point at them, so every page and dark mode follow. Colour only in lights and readings. */
+
+/* Local fallbacks sized to Barlow Semi Condensed, so headings wrap the same before and after it arrives and
+   the swap doesn't shift the page (the hero h1 went from four lines to two). size-adjust = Barlow width /
+   Helvetica Neue width over the site's own text; the overrides put Barlow's ascent (1.0) and descent (0.2)
+   back after that scaling. Uppercase labels run narrower than mixed case, so they get a Caps fallback.
+   Body Barlow already wraps like Helvetica Neue, so it keeps its plain fallback. */
+@font-face { font-family: "Barlow Semi Condensed Fallback"; font-weight: 300; src: local("Helvetica Neue Light"), local("HelveticaNeue-Light"), local("Arial"), local("ArialMT"); size-adjust: 86.4%; ascent-override: 115.7%; descent-override: 23.1%; line-gap-override: 0%; }
+@font-face { font-family: "Barlow Semi Condensed Fallback"; font-weight: 600; src: local("Helvetica Neue Bold"), local("HelveticaNeue-Bold"), local("Arial Bold"), local("Arial-BoldMT"); size-adjust: 79%; ascent-override: 126.6%; descent-override: 25.3%; line-gap-override: 0%; }
+@font-face { font-family: "Barlow Semi Condensed Caps Fallback"; font-weight: 600; src: local("Helvetica Neue Bold"), local("HelveticaNeue-Bold"), local("Arial Bold"), local("Arial-BoldMT"); size-adjust: 75%; ascent-override: 133.3%; descent-override: 26.7%; line-gap-override: 0%; }
+@font-face { font-family: "Barlow Semi Condensed Fallback"; font-weight: 700; src: local("Helvetica Neue Bold"), local("HelveticaNeue-Bold"), local("Arial Bold"), local("Arial-BoldMT"); size-adjust: 83%; ascent-override: 120.5%; descent-override: 24.1%; line-gap-override: 0%; }
+
 :root {
+  --bx-display: "Barlow Semi Condensed", "Barlow Semi Condensed Fallback", "Helvetica Neue", system-ui, sans-serif;
   --bx-accent: #8448c9;
   --bg: var(--bx-page);
   --surface: var(--bx-card);
@@ -30,8 +42,14 @@
   --radius: 10px;
   --font: var(--bx-body);
   --display: var(--bx-display);
+  --display-caps: "Barlow Semi Condensed", "Barlow Semi Condensed Caps Fallback", "Helvetica Neue", system-ui, sans-serif;
   --mono: var(--bx-mono);
   color-scheme: light;
+}
+
+html .pop { /* html: popover.css loads after this file and sets these on .pop */
+  --display: "Barlow Semi Condensed", "Barlow Semi Condensed Fallback", "Helvetica Neue", ui-sans-serif, system-ui, sans-serif;
+  --cond: "Barlow Semi Condensed", "Barlow Semi Condensed Caps Fallback", "SF Pro Display", system-ui, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -111,7 +129,7 @@ main > section + section { border-top: 1px solid var(--line); }
 .hero, .sub-hero { background: var(--bx-brush); border-bottom: 1px solid rgba(0, 0, 0, 0.25); }
 .hero { padding: 84px 0 56px; }
 .hero-copy { min-width: 0; }
-.kicker { width: fit-content; display: inline-flex; align-items: center; gap: 10px; font: 600 12px/1.2 var(--display); letter-spacing: 0.26em; text-transform: uppercase; background: var(--bx-plate); color: var(--bx-plate-ink); padding: 7px 12px 7px 10px; border-radius: 2px; margin-bottom: 0; }
+.kicker { width: fit-content; display: inline-flex; align-items: center; gap: 10px; font: 600 12px/1.2 var(--display-caps); letter-spacing: 0.26em; text-transform: uppercase; background: var(--bx-plate); color: var(--bx-plate-ink); padding: 7px 12px 7px 10px; border-radius: 2px; margin-bottom: 0; }
 .kicker .dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--bx-accent); box-shadow: 0 0 6px var(--bx-accent); }
 h1 { font-weight: 600; font-size: clamp(40px, 6vw, 72px); line-height: 0.97; margin-top: 18px; text-wrap: balance; }
 h1 em { display: block; }
