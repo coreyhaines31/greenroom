@@ -10,8 +10,13 @@
 @font-face { font-family: "Barlow Semi Condensed Fallback"; font-weight: 600; src: local("Helvetica Neue Bold"), local("HelveticaNeue-Bold"), local("Arial Bold"), local("Arial-BoldMT"); size-adjust: 79%; ascent-override: 126.6%; descent-override: 25.3%; line-gap-override: 0%; }
 @font-face { font-family: "Barlow Semi Condensed Caps Fallback"; font-weight: 600; src: local("Helvetica Neue Bold"), local("HelveticaNeue-Bold"), local("Arial Bold"), local("Arial-BoldMT"); size-adjust: 75%; ascent-override: 133.3%; descent-override: 26.7%; line-gap-override: 0%; }
 @font-face { font-family: "Barlow Semi Condensed Fallback"; font-weight: 700; src: local("Helvetica Neue Bold"), local("HelveticaNeue-Bold"), local("Arial Bold"), local("Arial-BoldMT"); size-adjust: 83%; ascent-override: 120.5%; descent-override: 24.1%; line-gap-override: 0%; }
+/* Body Barlow runs about 6% narrower than Helvetica Neue (the 1440 lede gained a line), so it gets site-kit's body faces too. */
+@font-face { font-family: "Barlow Fallback"; font-weight: 400; src: local("Helvetica Neue"), local("HelveticaNeue"), local("Arial"), local("ArialMT"); size-adjust: 94.5%; ascent-override: 105.8%; descent-override: 21.2%; line-gap-override: 0%; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Barlow Fallback"; font-weight: 500; src: local("Helvetica Neue Medium"), local("HelveticaNeue-Medium"), local("Arial"), local("ArialMT"); size-adjust: 92.6%; ascent-override: 108.0%; descent-override: 21.6%; line-gap-override: 0%; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: "Barlow Fallback"; font-weight: 600; src: local("Helvetica Neue Bold"), local("HelveticaNeue-Bold"), local("Arial Bold"), local("Arial-BoldMT"); size-adjust: 90.7%; ascent-override: 110.3%; descent-override: 22.1%; line-gap-override: 0%; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 
 :root {
+  --bx-body: "Barlow", "Barlow Fallback", "Helvetica Neue", system-ui, sans-serif;
   --bx-display: "Barlow Semi Condensed", "Barlow Semi Condensed Fallback", "Helvetica Neue", system-ui, sans-serif;
   --bx-accent: #8448c9;
   --bg: var(--bx-page);
@@ -48,6 +53,7 @@
 }
 
 html .pop { /* html: popover.css loads after this file and sets these on .pop */
+  --body: "Barlow", "Barlow Fallback", "Helvetica Neue", ui-sans-serif, system-ui, sans-serif;
   --display: "Barlow Semi Condensed", "Barlow Semi Condensed Fallback", "Helvetica Neue", ui-sans-serif, system-ui, sans-serif;
   --cond: "Barlow Semi Condensed", "Barlow Semi Condensed Caps Fallback", "SF Pro Display", system-ui, sans-serif;
 }
